@@ -33,7 +33,7 @@ public class BowelsWorldProvider extends WorldProvider {
 
     @Override
     public boolean canRespawnHere() {
-        return true;
+        return false;
     }
 
     @Override

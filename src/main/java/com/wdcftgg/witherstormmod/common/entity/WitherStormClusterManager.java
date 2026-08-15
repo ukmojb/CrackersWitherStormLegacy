@@ -5,6 +5,7 @@ import com.wdcftgg.witherstormmod.api.common.ai.witherstorm.clustersource.BlockC
 import com.wdcftgg.witherstormmod.common.config.WitherStormConfig;
 import com.wdcftgg.witherstormmod.common.init.ModSounds;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamBlockTags;
+import com.wdcftgg.witherstormmod.common.resource.WitherStormBlockRules;
 import com.wdcftgg.witherstormmod.common.util.WorldUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
@@ -350,7 +351,7 @@ final class WitherStormClusterManager {
     }
 
     private static boolean isBlacklisted(IBlockState state) {
-        return UpstreamBlockTags.contains(UpstreamBlockTags.WITHER_STORM_BLOCK_BLACKLIST, state);
+        return !WitherStormBlockRules.canConsume(state);
     }
 
     private boolean hasNearbySymbiont(BlockPos position) {

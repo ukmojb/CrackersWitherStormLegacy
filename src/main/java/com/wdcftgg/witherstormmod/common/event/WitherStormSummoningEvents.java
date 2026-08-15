@@ -2,6 +2,7 @@ package com.wdcftgg.witherstormmod.common.event;
 
 import com.wdcftgg.witherstormmod.Tags;
 import com.wdcftgg.witherstormmod.common.entity.WitherStormEntity;
+import com.wdcftgg.witherstormmod.common.config.WitherStormConfig;
 import com.wdcftgg.witherstormmod.common.init.ModSounds;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamBlockTags;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -33,6 +34,7 @@ public final class WitherStormSummoningEvents {
         }
         World world = (World) event.getWorld();
         if (world.getDifficulty() == EnumDifficulty.PEACEFUL) return;
+        if (!WitherStormConfig.isSummoningDimensionAllowed(world.provider.getDimension())) return;
         BlockPos placedPosition = event.getPos();
         for (EnumFacing.Axis axis : new EnumFacing.Axis[] {EnumFacing.Axis.X, EnumFacing.Axis.Z}) {
             for (int offset = -1; offset <= 1; offset++) {

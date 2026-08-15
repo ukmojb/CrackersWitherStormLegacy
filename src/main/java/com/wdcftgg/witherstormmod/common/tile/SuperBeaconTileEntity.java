@@ -100,6 +100,9 @@ public class SuperBeaconTileEntity extends AbstractSuperBeaconTileEntity impleme
                 condition -> canCraftCondition(condition));
         if (recipe == null) return;
         if (recipe.isEntityRecipe()) {
+            if (SuperBeaconLogic.isWitherStormResummon(recipe.entity)
+                    && !WitherStormConfig.isSummoningDimensionAllowed(
+                    world.provider.getDimension())) return;
             resummoningEntity = recipe.entity;
             resummoningEntityNbt = recipe.entityNbt;
             resummonTicks = 0;
@@ -208,6 +211,11 @@ public class SuperBeaconTileEntity extends AbstractSuperBeaconTileEntity impleme
         resummonTicks++;
         updateResummonShake();
         boolean witherStorm = SuperBeaconLogic.isWitherStormResummon(resummoningEntity);
+        if (witherStorm && !WitherStormConfig.isSummoningDimensionAllowed(
+                world.provider.getDimension())) {
+            cancelWitherStormResummon();
+            return;
+        }
         if (resummonTicks == RESUMMON_START) {
             clear();
             ModNetwork.sendSuperBeaconParticles(world, pos,
@@ -366,6 +374,10 @@ public class SuperBeaconTileEntity extends AbstractSuperBeaconTileEntity impleme
     }
 
     private void finishWitherStormResummon() {
+        if (!WitherStormConfig.isSummoningDimensionAllowed(world.provider.getDimension())) {
+            cancelWitherStormResummon();
+            return;
+        }
         List<BlockPos> supports = new ArrayList<BlockPos>(connected.values());
         for (SupplementalEntities.BlockClusterEntity cluster : resummonClusters) {
             if (cluster != null && !cluster.isDead) cluster.setDead();
@@ -389,6 +401,14 @@ public class SuperBeaconTileEntity extends AbstractSuperBeaconTileEntity impleme
                 CriteriaTriggers.SUMMONED_ENTITY.trigger(player, storm);
             }
         }
+    }
+
+    private void cancelWitherStormResummon() {
+        for (SupplementalEntities.BlockClusterEntity cluster : resummonClusters) {
+            if (cluster != null && !cluster.isDead) cluster.setDead();
+        }
+        resummonClusters.clear();
+        finishResummonState();
     }
 
     static AxisAlignedBB getResummonAdvancementBox(BlockPos beaconPos) {

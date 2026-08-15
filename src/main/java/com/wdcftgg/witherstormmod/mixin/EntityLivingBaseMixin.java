@@ -84,11 +84,13 @@ public abstract class EntityLivingBaseMixin implements EntityLivingBaseExperienc
     }
 
     @WrapOperation(
-            method = "onDeathUpdate()V",
+            method = {"onDeathUpdate()V", "func_70609_aI()V"},
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraftforge/event/ForgeEventFactory;getExperienceDrop(Lnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/entity/player/EntityPlayer;I)I",
-                    remap = false))
+                    remap = false),
+            remap = false,
+            require = 1)
     private int witherstormmod$skipCapturedExperience(
             EntityLivingBase entity, EntityPlayer player, int originalExperience,
             Operation<Integer> originalOperation) {

@@ -212,20 +212,29 @@ public final class WitherStormHeadManager {
             int idleHeadUpdates = head.idleAttacks++;
             if (idleHeadUpdates > 15) {
                 if (!storm.tractorBeamActive(index)) {
-                    Vec3d origin = head.position;
-                    storm.performRangedAttack(index,
-                            WitherStormPartLogic.randomBetween(
-                                    storm.getRNG(), origin.x - 10.0D, origin.x + 10.0D),
-                            WitherStormPartLogic.randomBetween(
-                                    storm.getRNG(), origin.y - 5.0D, origin.y + 5.0D),
-                            WitherStormPartLogic.randomBetween(
-                                    storm.getRNG(), origin.z - 10.0D, origin.z + 10.0D), true);
+                    if (storm.getPhase() < 4) {
+                        performEarlyPhaseRangedAttack(index, head, true);
+                    } else {
+                        Vec3d origin = head.position;
+                        storm.performRangedAttack(index,
+                                WitherStormPartLogic.randomBetween(
+                                        storm.getRNG(), origin.x - 10.0D, origin.x + 10.0D),
+                                WitherStormPartLogic.randomBetween(
+                                        storm.getRNG(), origin.y - 5.0D, origin.y + 5.0D),
+                                WitherStormPartLogic.randomBetween(
+                                        storm.getRNG(), origin.z - 10.0D, origin.z + 10.0D), true);
+                    }
                 }
                 head.idleAttacks = 0;
             }
             if (target != null && !head.isDistracted()) {
                 if (!storm.tractorBeamActive(index)) {
-                    storm.performRangedAttack(index, target);
+                    if (storm.getPhase() < 4) {
+                        performEarlyPhaseRangedAttack(index, head,
+                                index == 0 && storm.getRNG().nextFloat() < 0.001F);
+                    } else {
+                        storm.performRangedAttack(index, target);
+                    }
                 }
                 head.nextHeadUpdate = storm.ticksExisted + (storm.getPhase() < 4
                         ? 40 + storm.getRNG().nextInt(20)
@@ -236,6 +245,12 @@ public final class WitherStormHeadManager {
             }
         }
         tickMainTargetTimeout();
+    }
+
+    private void performEarlyPhaseRangedAttack(int index, HeadState head, boolean dangerous) {
+        Vec3d look = getLookVector(head);
+        storm.performRangedAttack(index, head.position.x + look.x,
+                head.position.y + look.y, head.position.z + look.z, dangerous);
     }
 
     private void tickMainTargetTimeout() {
@@ -909,7 +924,7 @@ public final class WitherStormHeadManager {
 
     public float getYaw(int index, float partial) {
         HeadState state = heads[head(index)];
-        return state.yawO + MathHelper.wrapDegrees(state.yaw - state.yawO) * partial;
+        return lerp(state.yawO, state.yaw, partial);
     }
 
     public float getPitch(int index, float partial) {

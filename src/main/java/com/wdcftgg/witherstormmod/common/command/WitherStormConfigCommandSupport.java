@@ -31,6 +31,7 @@ final class WitherStormConfigCommandSupport {
                 "flyingHeight", "dynamicFlyingHeight", "dynamicFlyingHeightTime",
                 "tillShouldShowHole", "shouldShowHole", "rotationSpeed",
                 "witherStormInvulnerability", "smartBossbar", "randomBowelsEntrance",
+                "summoningDimensionListMode",
                 "crossbowsSupportEnderPearls", "preventWitherStormCamping",
                 "bowelsFallResistance", "resummonedPhase", "canAttackHeads",
                 "endOfPhaseFiveBombableExclusively",
@@ -61,7 +62,10 @@ final class WitherStormConfigCommandSupport {
                 "normalFlyingSpeed");
         register("server.targeting", "headEscapeTime", "tractorPullSpeedModifier",
                 "specialTargetingBias", "specialTargetingBiasChance");
-        register("server.evolution", "evolutionAttributeModifier");
+        register("server.evolution", "evolutionAttributeModifier", "phase0Requirement",
+                "phase1Requirement", "phase2Requirement", "phase3Requirement",
+                "phase4Requirement", "phase5Requirement", "phase6Requirement",
+                "phase7Requirement");
         register("server.performance", "clustersRemoveItems", "squashHitbox",
                 "chunkLoadingRadius", "removeNearbyJunk", "mobsRunIntoPortals");
         register("server.world_consumption", "hunchbackClusterPickupInterval",

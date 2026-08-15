@@ -12,7 +12,6 @@ import com.wdcftgg.witherstormmod.common.item.CommandBlockHoeItem;
 import com.wdcftgg.witherstormmod.common.item.SimpleItem;
 import com.wdcftgg.witherstormmod.common.item.CommandBlockPickaxeItem;
 import com.wdcftgg.witherstormmod.common.item.CommandBlockShovelItem;
-import com.wdcftgg.witherstormmod.common.item.SpawnEggItem;
 import com.wdcftgg.witherstormmod.common.item.CommandBlockSwordItem;
 import com.wdcftgg.witherstormmod.common.item.ModToolMaterials;
 import com.wdcftgg.witherstormmod.common.item.WitheredNetherStarItem;
@@ -35,30 +34,9 @@ import java.util.Map;
 public final class ModItems {
 
     private static final Map<String, Item> ITEMS = new LinkedHashMap<String, Item>();
-    private static final Map<String, int[]> SPAWN_EGG_COLORS = new LinkedHashMap<String, int[]>();
     private static final String[] ITEM_NAMES = ModRegistryNames.itemNames();
 
     static {
-        SPAWN_EGG_COLORS.put("sickened_creeper", new int[] {9851315, 3278099});
-        SPAWN_EGG_COLORS.put("sickened_skeleton", new int[] {13606575, 3612758});
-        SPAWN_EGG_COLORS.put("sickened_spider", new int[] {2827051, 16056399});
-        SPAWN_EGG_COLORS.put("sickened_villager", new int[] {8551284, 11305627});
-        SPAWN_EGG_COLORS.put("sickened_zombie", new int[] {4808027, 10648470});
-        SPAWN_EGG_COLORS.put("sickened_phantom", new int[] {6967167, 16713046});
-        SPAWN_EGG_COLORS.put("sickened_chicken", new int[] {5977232, 5570648});
-        SPAWN_EGG_COLORS.put("sickened_parrot", new int[] {7032441, 5911693});
-        SPAWN_EGG_COLORS.put("sickened_wolf", new int[] {4866401, 7960207});
-        SPAWN_EGG_COLORS.put("sickened_cat", new int[] {1775149, 9595267});
-        SPAWN_EGG_COLORS.put("sickened_cow", new int[] {3613496, 10066329});
-        SPAWN_EGG_COLORS.put("sickened_pig", new int[] {6706811, 5786734});
-        SPAWN_EGG_COLORS.put("sickened_mushroom_cow", new int[] {8200599, 11887564});
-        SPAWN_EGG_COLORS.put("sickened_bee", new int[] {10711155, 3023140});
-        SPAWN_EGG_COLORS.put("sickened_pillager", new int[] {4403259, 10190758});
-        SPAWN_EGG_COLORS.put("sickened_vindicator", new int[] {10190758, 3422273});
-        SPAWN_EGG_COLORS.put("sickened_iron_golem", new int[] {13541842, 15270143});
-        SPAWN_EGG_COLORS.put("sickened_snow_golem", new int[] {15589887, 12754175});
-        SPAWN_EGG_COLORS.put("tentacle", new int[] {722193, 1379103});
-        SPAWN_EGG_COLORS.put("withered_symbiont", new int[] {2233397, 16056568});
         for (String name : ITEM_NAMES) {
             if (!ModBlocksContains.blockExists(name)) {
                 ITEMS.put(name, createItem(name));
@@ -121,14 +99,6 @@ public final class ModItems {
         }
         if ("eye_of_the_storm".equals(name)) {
             return new EyeOfTheStormItem(name);
-        }
-        if (name.endsWith("_spawn_egg")) {
-            String entityName = name.substring(0, name.length() - "_spawn_egg".length());
-            int[] colors = SPAWN_EGG_COLORS.get(entityName);
-            if (colors == null) {
-                throw new IllegalStateException("Missing upstream spawn egg colors for " + entityName);
-            }
-            return new SpawnEggItem(name, entityName, colors[0], colors[1]);
         }
         if ("golden_apple_stew".equals(name)) {
             return new GoldenAppleStewItem(name);

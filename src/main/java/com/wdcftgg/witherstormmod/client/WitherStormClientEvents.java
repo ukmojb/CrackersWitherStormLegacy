@@ -540,10 +540,15 @@ public final class WitherStormClientEvents {
                 || !isOccludedWitherStormSound(sound.getSoundLocation())) return;
 
         float depth = MathHelper.clamp((float) -minecraft.player.posY + 40.0F, 0.0F, 20.0F);
-        float volume = sound.getVolume() * ((20.0F - depth) / 20.0F) * 0.5F;
-        event.setResultSound(new PositionedSoundRecord(sound.getSoundLocation(), sound.getCategory(),
-                volume, sound.getPitch(), sound.canRepeat(), sound.getRepeatDelay(),
-                sound.getAttenuationType(), sound.getXPosF(), sound.getYPosF(), sound.getZPosF()));
+        try {
+            float volume = sound.getVolume() * ((20.0F - depth) / 20.0F) * 0.5F;
+            event.setResultSound(new PositionedSoundRecord(sound.getSoundLocation(), sound.getCategory(),
+                    volume, sound.getPitch(), sound.canRepeat(), sound.getRepeatDelay(),
+                    sound.getAttenuationType(), sound.getXPosF(), sound.getYPosF(), sound.getZPosF()));
+        } catch (NullPointerException ignored) {
+            // Cleanroom can post PlaySoundEvent before PositionedSound resolves its Sound.
+            // Keeping the original result lets SoundManager finish resolving and play it safely.
+        }
     }
 
     private static boolean isOccludedWitherStormSound(ResourceLocation sound) {

@@ -5,6 +5,7 @@ import com.wdcftgg.witherstormmod.common.entity.SupplementalEntities;
 import com.wdcftgg.witherstormmod.common.entity.WitherStormEntity;
 import com.wdcftgg.witherstormmod.common.init.ModSounds;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamBlockTags;
+import com.wdcftgg.witherstormmod.common.resource.WitherStormBlockRules;
 import com.wdcftgg.witherstormmod.common.util.WorldUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -72,7 +73,7 @@ public abstract class BlockClusterSource {
     }
 
     protected boolean isValidClusterBlock(WitherStormEntity storm, IBlockState state) {
-        return !UpstreamBlockTags.contains(UpstreamBlockTags.WITHER_STORM_BLOCK_BLACKLIST, state);
+        return WitherStormBlockRules.canConsume(state);
     }
 
     protected abstract int getPickupInterval(WitherStormEntity storm);
@@ -133,8 +134,7 @@ public abstract class BlockClusterSource {
                 candidate = new BlockPos(candidate.getX(), randomY, candidate.getZ());
                 state = storm.world.getBlockState(candidate);
                 if (isAirOrWater(storm.world, candidate, state)
-                        || UpstreamBlockTags.contains(
-                        UpstreamBlockTags.WITHER_STORM_BLOCK_BLACKLIST, state)) {
+                        || !WitherStormBlockRules.canConsume(state)) {
                     candidate = originalCandidate;
                     state = originalState;
                 }

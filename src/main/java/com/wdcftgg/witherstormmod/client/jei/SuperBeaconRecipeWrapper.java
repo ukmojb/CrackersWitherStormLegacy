@@ -1,13 +1,14 @@
 package com.wdcftgg.witherstormmod.client.jei;
 
 import com.wdcftgg.witherstormmod.common.beacon.SuperBeaconRecipes;
-import com.wdcftgg.witherstormmod.common.init.ModItems;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeWrapper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.Item;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemMonsterPlacer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentTranslation;
 
 import java.util.ArrayList;
@@ -68,10 +69,9 @@ public abstract class SuperBeaconRecipeWrapper implements IRecipeWrapper {
 
     private static ItemStack spawnEggFor(String entityId) {
         if (entityId == null) return ItemStack.EMPTY;
-        String path = entityId;
-        int separator = entityId.indexOf(':');
-        if (separator >= 0) path = entityId.substring(separator + 1);
-        Item item = ModItems.get(path + "_spawn_egg");
-        return item == null ? ItemStack.EMPTY : new ItemStack(item);
+        ResourceLocation entityName = new ResourceLocation(entityId);
+        ItemStack egg = new ItemStack(Items.SPAWN_EGG);
+        ItemMonsterPlacer.applyEntityIdToItemStack(egg, entityName);
+        return egg;
     }
 }

@@ -14,11 +14,16 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class EntityFireballMixin {
 
     @WrapOperation(
-            method = "onUpdate()V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/World;spawnParticle(Lnet/minecraft/util/EnumParticleTypes;DDDDDD[I)V",
-                    ordinal = 1))
+            method = {"onUpdate()V", "func_70071_h_()V"},
+            at = {
+                    @At(
+                            value = "INVOKE",
+                            target = "Lnet/minecraft/world/World;spawnParticle(Lnet/minecraft/util/EnumParticleTypes;DDDDDD[I)V",
+                            ordinal = 1,
+                            remap = false)
+            },
+            remap = false,
+            require = 1)
     private void witherstormmod$suppressVanillaTrailParticle(
             World world, EnumParticleTypes particle, double x, double y, double z,
             double velocityX, double velocityY, double velocityZ, int[] parameters,

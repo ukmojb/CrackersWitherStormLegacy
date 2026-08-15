@@ -216,8 +216,11 @@ public final class StructureTemplates {
             NBTTagCompound root = CompressedStreamTools.readCompressed(stream);
             List<Connector> connectors = readConnectors(root);
             List<DataMarker> dataMarkers = readDataMarkers(root);
-            convertPalette(root.getTagList("palette", 10));
-            convertBlockEntities(root.getTagList("blocks", 10));
+            NBTTagList palette = root.getTagList("palette", 10);
+            NBTTagList blocks = root.getTagList("blocks", 10);
+            convertSkullBlockEntities(palette, blocks);
+            convertPalette(palette);
+            convertBlockEntities(blocks);
             root.setInteger("DataVersion", 1343);
             Template template = new Template();
             template.read(root);
@@ -270,6 +273,9 @@ public final class StructureTemplates {
         if (name.startsWith("witherstormmod:")) return new Mapping(name);
         String path = name.substring(name.indexOf(':') + 1);
         if (path.equals("jigsaw") || path.equals("structure_block")) return new Mapping("minecraft:air");
+        if (path.equals("wither_skeleton_skull"))
+            return new Mapping("minecraft:skull", "facing", "up");
+        if (path.equals("wither_skeleton_wall_skull")) return new Mapping("minecraft:skull");
         ResourceLocation directId = new ResourceLocation(name);
         if (Block.REGISTRY.containsKey(directId)) return new Mapping(name);
         ResourceLocation futureId = new ResourceLocation("futuremc", path);
@@ -308,7 +314,6 @@ public final class StructureTemplates {
         if (path.equals("dirt_path")) return new Mapping("minecraft:grass_path");
         if (path.equals("wall_torch")) return new Mapping("minecraft:torch");
         if (path.equals("water_cauldron")) return new Mapping("minecraft:cauldron");
-        if (path.equals("wither_skeleton_skull")) return new Mapping("minecraft:skull");
         if (path.equals("barrel")) return new Mapping("minecraft:chest");
         if (path.equals("blast_furnace") || path.equals("smoker")) return new Mapping("minecraft:furnace");
         if (path.equals("campfire")) return new Mapping("minecraft:netherrack");
@@ -330,6 +335,32 @@ public final class StructureTemplates {
             if (path.equals(color + "_carpet")) return new Mapping("minecraft:carpet", "color", color);
         }
         return new Mapping("minecraft:stone");
+    }
+
+    private static void convertSkullBlockEntities(NBTTagList palette, NBTTagList blocks) {
+        for (int index = 0; index < blocks.tagCount(); index++) {
+            NBTTagCompound block = blocks.getCompoundTagAt(index);
+            int stateIndex = block.getInteger("state");
+            if (stateIndex < 0 || stateIndex >= palette.tagCount()) continue;
+            NBTTagCompound modernState = palette.getCompoundTagAt(stateIndex);
+            String name = modernState.getString("Name");
+            boolean standing = "minecraft:wither_skeleton_skull".equals(name);
+            if (!standing && !"minecraft:wither_skeleton_wall_skull".equals(name)) continue;
+
+            NBTTagCompound data = block.hasKey("nbt", 10)
+                    ? block.getCompoundTag("nbt") : new NBTTagCompound();
+            data.setString("id", "minecraft:skull");
+            data.setByte("SkullType", (byte) 1);
+            if (standing) {
+                String rotation = modernState.getCompoundTag("Properties").getString("rotation");
+                try {
+                    data.setByte("Rot", (byte) (Integer.parseInt(rotation) & 15));
+                } catch (NumberFormatException ignored) {
+                    data.setByte("Rot", (byte) 0);
+                }
+            }
+            block.setTag("nbt", data);
+        }
     }
 
     private static void convertBlockEntities(NBTTagList blocks) {

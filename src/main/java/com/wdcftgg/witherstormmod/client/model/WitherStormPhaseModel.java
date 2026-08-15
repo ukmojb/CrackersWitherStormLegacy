@@ -354,12 +354,17 @@ public class WitherStormPhaseModel extends ModelBase {
     private static void animateVanillaSideHead(WitherStormEntity storm, ModelRenderer head,
                                                int sideIndex, float partialTicks) {
         if (head == null) return;
-        head.rotateAngleY = MathHelper.wrapDegrees(
-                storm.getHeadYRotation(sideIndex, partialTicks)
-                        - interpolateBodyYaw(storm, partialTicks))
-                * ((float) Math.PI / 180.0F) + (float) Math.PI;
-        head.rotateAngleX = -storm.getHeadXRotation(sideIndex, partialTicks)
+        // These are vanilla Wither head cubes, not the forward-extended storm HeadModel.
+        // Upstream therefore uses neither HeadModel's PI yaw offset nor its inverted pitch.
+        head.rotateAngleY = (storm.getHeadYRotation(sideIndex, partialTicks)
+                - interpolateBodyYawLinear(storm, partialTicks)) * ((float) Math.PI / 180.0F);
+        head.rotateAngleX = storm.getHeadXRotation(sideIndex, partialTicks)
                 * ((float) Math.PI / 180.0F);
+    }
+
+    private static float interpolateBodyYawLinear(WitherStormEntity storm, float partialTicks) {
+        return storm.prevRenderYawOffset
+                + (storm.renderYawOffset - storm.prevRenderYawOffset) * partialTicks;
     }
 
     private static float interpolateBodyYaw(WitherStormEntity storm, float partialTicks) {

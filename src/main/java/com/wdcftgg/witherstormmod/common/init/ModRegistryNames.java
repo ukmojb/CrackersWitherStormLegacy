@@ -4,14 +4,8 @@ public final class ModRegistryNames {
 
     private static final String[] ITEMS = {
             "withered_bone", "withered_flesh", "withered_spider_eye", "golden_apple_stew",
-            "amulet", "command_block_book", "withered_nether_star", "sickened_creeper_spawn_egg",
-            "sickened_skeleton_spawn_egg", "sickened_spider_spawn_egg", "sickened_villager_spawn_egg",
-            "sickened_zombie_spawn_egg", "sickened_phantom_spawn_egg", "sickened_chicken_spawn_egg",
-            "sickened_parrot_spawn_egg", "sickened_wolf_spawn_egg", "sickened_cat_spawn_egg",
-            "sickened_cow_spawn_egg", "sickened_pig_spawn_egg", "sickened_mushroom_cow_spawn_egg",
-            "sickened_bee_spawn_egg", "sickened_pillager_spawn_egg", "sickened_vindicator_spawn_egg",
-            "sickened_iron_golem_spawn_egg", "sickened_snow_golem_spawn_egg", "tentacle_spawn_egg",
-            "withered_symbiont_spawn_egg", "command_block_sword", "command_block_pickaxe", "command_block_axe",
+            "amulet", "command_block_book", "withered_nether_star", "command_block_sword",
+            "command_block_pickaxe", "command_block_axe",
             "command_block_shovel", "command_block_hoe", "wooden_command_block_sword", "wooden_command_block_pickaxe",
             "wooden_command_block_axe", "wooden_command_block_shovel", "wooden_command_block_hoe",
             "stone_command_block_sword", "stone_command_block_pickaxe", "stone_command_block_axe",

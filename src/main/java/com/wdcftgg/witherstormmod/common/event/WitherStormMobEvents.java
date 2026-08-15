@@ -58,6 +58,15 @@ public final class WitherStormMobEvents {
     @SubscribeEvent
     public static void onEntityJoinWorld(EntityJoinWorldEvent event) {
         Entity entity = event.getEntity();
+        if (!event.getWorld().isRemote && entity instanceof WitherStormEntity) {
+            WitherStormEntity storm = (WitherStormEntity) entity;
+            if (!storm.wasRestoredFromPersistentData()
+                    && !WitherStormConfig.isSummoningDimensionAllowed(
+                    event.getWorld().provider.getDimension())) {
+                event.setCanceled(true);
+                return;
+            }
+        }
         if (event.getWorld().isRemote) return;
         redirectSkeletonArrow(entity);
         if (!WitherStormConfig.injectCustomAiBehavior || !(entity instanceof EntityCreature)) return;

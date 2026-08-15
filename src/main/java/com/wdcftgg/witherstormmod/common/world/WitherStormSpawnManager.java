@@ -77,6 +77,8 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
     private void tick(WorldServer world) {
         WitherStormSpawnData data = WitherStormSpawnData.get(world);
         recoverMissingStartingStructure(world, data);
+        if (!WitherStormConfig.isSummoningDimensionAllowed(
+                world.provider.getDimension())) return;
         if (!WitherStormConfig.autoSpawnWitherStorm) {
             data.setHasSpawnedWitherStorm(true);
             return;

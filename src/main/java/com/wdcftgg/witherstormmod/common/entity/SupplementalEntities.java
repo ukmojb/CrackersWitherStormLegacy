@@ -141,7 +141,11 @@ public final class SupplementalEntities {
             playSound(ModSounds.get("flaming_skull_impact"), 6.0F,
                     (rand.nextFloat() - rand.nextFloat()) * -0.2F + getImpactPitch());
             ModNetwork.shakeNear(world, posX, posY, posZ, getShakeRange(), 20.0F, getShakePower());
-            world.newExplosion(this, posX, posY, posZ, getExplosionSize(), mobGriefing, mobGriefing);
+
+            Entity explosionSource = shootingEntity == null ? null : this;
+            world.newExplosion(explosionSource, posX, posY, posZ,
+                    getExplosionSize(), mobGriefing, mobGriefing);
+
             setDead();
         }
 

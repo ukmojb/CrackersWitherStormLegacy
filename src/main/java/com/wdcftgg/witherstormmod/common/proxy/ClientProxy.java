@@ -30,7 +30,6 @@ import com.wdcftgg.witherstormmod.common.capability.WitherSicknessCapability;
 import com.wdcftgg.witherstormmod.common.capability.WitherSicknessTracker;
 import com.wdcftgg.witherstormmod.common.init.ModBlocks;
 import com.wdcftgg.witherstormmod.common.init.ModSounds;
-import com.wdcftgg.witherstormmod.common.item.SpawnEggItem;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamResourcePackInstaller;
 import com.wdcftgg.witherstormmod.client.resources.WitherStormResourceConfigManager;
 import com.wdcftgg.witherstormmod.client.shader.PostProcessingShaders;
@@ -68,7 +67,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import com.wdcftgg.witherstormmod.client.render.SickenedMobRenderer;
 import com.wdcftgg.witherstormmod.client.render.PowerfulExplosiveRenderer;
 import com.wdcftgg.witherstormmod.client.render.FlamingWitherSkullRenderer;
@@ -139,13 +137,6 @@ public class ClientProxy extends CommonProxy {
                 (state, world, position, tintIndex) -> TaintedDustBlock.getColor(), taintedDust);
         Minecraft.getMinecraft().getItemColors().registerItemColorHandler(
                 (stack, tintIndex) -> TaintedDustBlock.getColor(), Item.getItemFromBlock(taintedDust));
-        for (Item item : ForgeRegistries.ITEMS.getValuesCollection()) {
-            if (item instanceof SpawnEggItem) {
-                SpawnEggItem egg = (SpawnEggItem) item;
-                Minecraft.getMinecraft().getItemColors().registerItemColorHandler(
-                        (stack, tintIndex) -> egg.getColor(tintIndex), egg);
-            }
-        }
     }
 
     @Override

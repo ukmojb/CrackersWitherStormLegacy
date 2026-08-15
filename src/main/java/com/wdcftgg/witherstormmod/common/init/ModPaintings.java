@@ -33,13 +33,18 @@ public final class ModPaintings {
 
             EntityPainting.EnumArt amulet = (EntityPainting.EnumArt)
                     unsafe.allocateInstance(EntityPainting.EnumArt.class);
-            putObject(unsafe, amulet, Enum.class, "name", "AMULET");
-            putInt(unsafe, amulet, Enum.class, "ordinal", current.length);
-            putObject(unsafe, amulet, EntityPainting.EnumArt.class, "title", "Amulet");
-            putInt(unsafe, amulet, EntityPainting.EnumArt.class, "sizeX", 16);
-            putInt(unsafe, amulet, EntityPainting.EnumArt.class, "sizeY", 32);
-            putInt(unsafe, amulet, EntityPainting.EnumArt.class, "offsetX", 0);
-            putInt(unsafe, amulet, EntityPainting.EnumArt.class, "offsetY", 0);
+            putObject(unsafe, amulet, Enum.class, "AMULET", "name");
+            putInt(unsafe, amulet, Enum.class, current.length, "ordinal");
+            putObject(unsafe, amulet, EntityPainting.EnumArt.class, "Amulet",
+                    "title", "field_75702_A");
+            putInt(unsafe, amulet, EntityPainting.EnumArt.class, 16,
+                    "sizeX", "field_75703_B");
+            putInt(unsafe, amulet, EntityPainting.EnumArt.class, 32,
+                    "sizeY", "field_75704_C");
+            putInt(unsafe, amulet, EntityPainting.EnumArt.class, 0,
+                    "offsetX", "field_75699_D");
+            putInt(unsafe, amulet, EntityPainting.EnumArt.class, 0,
+                    "offsetY", "field_75700_E");
             AMULET = amulet;
 
             EntityPainting.EnumArt[] extended = Arrays.copyOf(current, current.length + 1);
@@ -60,15 +65,27 @@ public final class ModPaintings {
     }
 
     private static void putObject(Unsafe unsafe, Object target, Class<?> owner,
-                                  String fieldName, Object value) throws Exception {
-        Field field = owner.getDeclaredField(fieldName);
+                                  Object value, String... fieldNames) throws Exception {
+        Field field = findField(owner, fieldNames);
         unsafe.putObject(target, unsafe.objectFieldOffset(field), value);
     }
 
     private static void putInt(Unsafe unsafe, Object target, Class<?> owner,
-                               String fieldName, int value) throws Exception {
-        Field field = owner.getDeclaredField(fieldName);
+                               int value, String... fieldNames) throws Exception {
+        Field field = findField(owner, fieldNames);
         unsafe.putInt(target, unsafe.objectFieldOffset(field), value);
+    }
+
+    static Field findField(Class<?> owner, String... fieldNames) throws NoSuchFieldException {
+        for (String fieldName : fieldNames) {
+            try {
+                return owner.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException ignored) {
+                // Try the next MCP/SRG name.
+            }
+        }
+        throw new NoSuchFieldException(
+                "Unable to find " + Arrays.toString(fieldNames) + " in " + owner.getName());
     }
 
     private static void clearEnumCache(Unsafe unsafe, Class<?> enumClass) throws Exception {

@@ -11,23 +11,23 @@ import java.util.List;
 /** 维护大型凋零风暴随身体旋转的碰撞分区。 */
 final class WitherStormSectionManager {
     private final WitherStormEntity storm;
+    private final BowelsEntranceSection bowelsEntranceSection;
 
     WitherStormSectionManager(WitherStormEntity storm) {
         this.storm = storm;
+        this.bowelsEntranceSection = new BowelsEntranceSection();
     }
 
     void tick() {
         int phase = storm.getPhase();
-        if (phase <= 4) return;
+        if (phase <= 4) {
+            bowelsEntranceSection.deactivate();
+            return;
+        }
 
         float bodyXRotation = storm.getBodyXRotation(1.0F);
         for (AxisAlignedBB bounds : getBodySectionBounds(phase, bodyXRotation)) pushEntities(bounds);
-
-        AxisAlignedBB entrance = getBowelsEntranceBounds(phase, bodyXRotation);
-        if (entrance != null) {
-            pushEntities(entrance);
-            storm.handleBowelsEntranceCollision(entrance);
-        }
+        bowelsEntranceSection.tick(phase, bodyXRotation);
     }
 
     AxisAlignedBB[] getBodySectionBounds() {
@@ -38,8 +38,7 @@ final class WitherStormSectionManager {
 
     AxisAlignedBB getBowelsEntranceBounds() {
         int phase = storm.getPhase();
-        if (phase <= 4) return null;
-        return getBowelsEntranceBounds(phase, storm.getBodyXRotation(1.0F));
+        return bowelsEntranceSection.getBounds(phase, storm.getBodyXRotation(1.0F));
     }
 
     private AxisAlignedBB[] getBodySectionBounds(int phase, float bodyXRotation) {
@@ -47,12 +46,6 @@ final class WitherStormSectionManager {
             return new AxisAlignedBB[] {createFallingSection(phase, bodyXRotation)};
         }
         return createSideSections(phase, bodyXRotation);
-    }
-
-    private AxisAlignedBB getBowelsEntranceBounds(int phase, float bodyXRotation) {
-        if (phase < 7 || !storm.isBeingTornApart()) return null;
-        return createSection(16.0F, 16.0F,
-                -3.0D, 34.0D, -24.0D, bodyXRotation, false);
     }
 
     private AxisAlignedBB[] createSideSections(int phase, float bodyXRotation) {
@@ -104,7 +97,7 @@ final class WitherStormSectionManager {
         float bodyPitch = (bodyXRotation + 90.0F) * 0.017453292F;
         double lateralX = MathHelper.cos(bodyYaw) * offsetX;
         double lateralZ = MathHelper.sin(bodyYaw) * offsetX;
-        float offsetAngle = (float) Math.atan2(offsetY, offsetZ);
+        float offsetAngle = (float) Math.atan2(offsetZ, offsetY);
         double radius = Math.sqrt(offsetY * offsetY + offsetZ * offsetZ);
         double rawX = MathHelper.cos(bodyPitch + offsetAngle) * MathHelper.cos(bodyYawRight);
         double rawY = MathHelper.sin(bodyPitch + offsetAngle);
@@ -133,6 +126,37 @@ final class WitherStormSectionManager {
             if (!entity.isRiding()) {
                 entity.addVelocity(deltaX * strength, 0.0D, deltaZ * strength);
             }
+        }
+    }
+
+    /** The phase-seven entrance is an action section, not part of the storm's body collision. */
+    private final class BowelsEntranceSection {
+        private AxisAlignedBB bounds;
+
+        void tick(int phase, float bodyXRotation) {
+            bounds = createBounds(phase, bodyXRotation);
+            if (bounds == null) return;
+
+            // CollisionActionSection first applies the normal Section push, then runs its action query.
+            pushEntities(bounds);
+            for (Entity entity : storm.world.getEntitiesWithinAABB(Entity.class, bounds)) {
+                storm.handleBowelsEntranceCollision(entity);
+            }
+        }
+
+        AxisAlignedBB getBounds(int phase, float bodyXRotation) {
+            bounds = createBounds(phase, bodyXRotation);
+            return bounds;
+        }
+
+        void deactivate() {
+            bounds = null;
+        }
+
+        private AxisAlignedBB createBounds(int phase, float bodyXRotation) {
+            if (phase < 7 || !storm.isBeingTornApart()) return null;
+            return createSection(16.0F, 16.0F,
+                    -3.0D, 34.0D, -24.0D, bodyXRotation, false);
         }
     }
 }
