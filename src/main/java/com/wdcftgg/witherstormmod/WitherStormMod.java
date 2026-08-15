@@ -6,6 +6,7 @@ import com.wdcftgg.witherstormmod.api.common.ai.witherstorm.WitherStormWorldInte
 import com.wdcftgg.witherstormmod.common.capability.WitherSicknessCapability;
 import com.wdcftgg.witherstormmod.common.command.WitherStormAdminCommand;
 import com.wdcftgg.witherstormmod.common.command.WitherStormSelectorHandler;
+import com.wdcftgg.witherstormmod.common.compat.CrossbowCompatibilityBootstrap;
 import com.wdcftgg.witherstormmod.common.entity.SymbiontSpells;
 import com.wdcftgg.witherstormmod.common.init.ModBlocks;
 import com.wdcftgg.witherstormmod.common.init.ModAttributes;
@@ -47,7 +48,7 @@ import org.apache.logging.log4j.Logger;
 import java.time.LocalDate;
 
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION,
-        dependencies = "required-after:futuremc",
+        dependencies = "required-after:futuremc;required-after:crossbow",
         guiFactory = "com.wdcftgg.witherstormmod.client.config.WitherStormGuiFactory")
 public class WitherStormMod {
 
@@ -71,6 +72,7 @@ public class WitherStormMod {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         WitherStormSelectorHandler.register();
+        CrossbowCompatibilityBootstrap.register();
         try {
             UpstreamResourceArchive.initialize(event.getModConfigurationDirectory().getParentFile());
         } catch (java.io.IOException exception) {

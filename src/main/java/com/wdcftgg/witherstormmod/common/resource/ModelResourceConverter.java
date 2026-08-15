@@ -24,6 +24,10 @@ final class ModelResourceConverter {
     private static final String PHASOMETER_MODEL = MODEL_PREFIX + "item/phasometer.json";
     private static final String PHASOMETER_GUI_MODEL = MODEL_PREFIX + "item/phasometer_gui.json";
     private static final String PHASOMETER_SOURCE = MODEL_PREFIX + "item/phasometer.json";
+    private static final String CROSSBOW_MOD_ENDER_PEARL_MODEL =
+            MODEL_PREFIX + "item/crossbow_mod_ender_pearl.json";
+    private static final String CROSSBOW_ENDER_PEARL_SOURCE =
+            MODEL_PREFIX + "item/crossbow_ender_pearl.json";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Map<String, String> PARENT_REWRITES;
     private static final Map<String, Scale> PADDED_TEXTURES;
@@ -61,7 +65,6 @@ final class ModelResourceConverter {
         parents.put("minecraft:block/door_top_left_open", "minecraft:block/door_top_rh");
         parents.put("minecraft:block/door_top_right_open", "minecraft:block/door_top");
         parents.put("minecraft:item/template_spawn_egg", "minecraft:item/spawn_egg");
-        parents.put("item/crossbow", "futuremc:item/crossbow");
         PARENT_REWRITES = Collections.unmodifiableMap(parents);
 
         Map<String, Scale> padded = new HashMap<String, Scale>();
@@ -87,6 +90,9 @@ final class ModelResourceConverter {
         if (PHASOMETER_MODEL.equals(legacyName) || PHASOMETER_GUI_MODEL.equals(legacyName)) {
             return PHASOMETER_SOURCE;
         }
+        if (CROSSBOW_MOD_ENDER_PEARL_MODEL.equals(legacyName)) {
+            return CROSSBOW_ENDER_PEARL_SOURCE;
+        }
         return legacyName;
     }
 
@@ -100,6 +106,13 @@ final class ModelResourceConverter {
                 } else if (PHASOMETER_GUI_MODEL.equals(legacyName)) {
                     JsonObject perspectives = requiredObject(root, "perspectives", legacyName);
                     root = requiredObject(perspectives, "gui", legacyName);
+                } else if (CROSSBOW_MOD_ENDER_PEARL_MODEL.equals(legacyName)) {
+                    // Crossbow's blockstate shorthand resolves to block/template, but this
+                    // generated item model is baked directly and needs the explicit parent path.
+                    root.addProperty("parent", "crossbow:block/template");
+                    JsonObject textures = getOrCreateObject(root, "textures");
+                    textures.addProperty(
+                            "layer0", "witherstormmod:items/crossbow_mod_ender_pearl");
                 }
                 convertModel(root);
                 if (PHASOMETER_MODEL.equals(legacyName)) {

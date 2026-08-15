@@ -354,8 +354,9 @@ public class WitherStormPhaseModel extends ModelBase {
     private static void animateVanillaSideHead(WitherStormEntity storm, ModelRenderer head,
                                                int sideIndex, float partialTicks) {
         if (head == null) return;
-        head.rotateAngleY = (storm.getHeadYRotation(sideIndex, partialTicks)
-                - interpolateBodyYaw(storm, partialTicks))
+        head.rotateAngleY = MathHelper.wrapDegrees(
+                storm.getHeadYRotation(sideIndex, partialTicks)
+                        - interpolateBodyYaw(storm, partialTicks))
                 * ((float) Math.PI / 180.0F) + (float) Math.PI;
         head.rotateAngleX = -storm.getHeadXRotation(sideIndex, partialTicks)
                 * ((float) Math.PI / 180.0F);

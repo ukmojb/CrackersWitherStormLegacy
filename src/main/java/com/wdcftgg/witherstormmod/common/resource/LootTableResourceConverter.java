@@ -100,7 +100,7 @@ public final class LootTableResourceConverter {
         String itemName = string(converted, "name");
         if ("minecraft:wither_rose".equals(itemName)) converted.addProperty("name", "futuremc:wither_rose");
         if ("minecraft:phantom_membrane".equals(itemName)) converted.addProperty("name", "minecraft:leather");
-        if ("minecraft:crossbow".equals(itemName)) converted.addProperty("name", "futuremc:crossbow");
+        if ("minecraft:crossbow".equals(itemName)) converted.addProperty("name", "crossbow:crossbow");
         if ("minecraft:suspicious_stew".equals(itemName)) converted.addProperty("name", "futuremc:suspicious_stew");
         if ("minecraft:glow_berries".equals(itemName)) converted.addProperty("name", "minecraft:melon");
         if ("minecraft:enchanted_golden_apple".equals(itemName)) {

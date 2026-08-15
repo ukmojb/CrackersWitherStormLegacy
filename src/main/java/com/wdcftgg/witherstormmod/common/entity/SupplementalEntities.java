@@ -1082,10 +1082,11 @@ public final class SupplementalEntities {
                 EntityDataManager.createKey(StormPartBase.class, DataSerializers.VARINT);
         private static final DataParameter<Boolean> OTHER_HEADS_DISABLED =
                 EntityDataManager.createKey(StormPartBase.class, DataSerializers.BOOLEAN);
+        private static final DataParameter<Boolean> INDEPENDENT_BOWELS_PART =
+                EntityDataManager.createKey(StormPartBase.class, DataSerializers.BOOLEAN);
         private UUID ownerUuid;
         private WitherStormEntity owner;
         private int orphanTicks;
-        private boolean independentBowelsPart;
 
         protected StormPartBase(World world) {
             super(world);
@@ -1151,6 +1152,7 @@ public final class SupplementalEntities {
             dataManager.register(STORM_PLAY_DEAD_STATE, WitherStormEntity.PlayDeadState.NORMAL_BEHAVIOR.ordinal());
             dataManager.register(STORM_PLAY_DEAD_TICKS, 0);
             dataManager.register(OTHER_HEADS_DISABLED, false);
+            dataManager.register(INDEPENDENT_BOWELS_PART, false);
         }
 
         public void bindTo(WitherStormEntity owner, int index) {
@@ -1166,14 +1168,14 @@ public final class SupplementalEntities {
         }
 
         public void setIndependentBowelsPart() {
-            independentBowelsPart = true;
+            dataManager.set(INDEPENDENT_BOWELS_PART, true);
             owner = null;
             ownerUuid = null;
             dataManager.set(OWNER_ID, -1);
         }
 
         public boolean isIndependentBowelsPart() {
-            return independentBowelsPart;
+            return dataManager.get(INDEPENDENT_BOWELS_PART);
         }
 
         public int getPartIndex() {
@@ -1276,7 +1278,7 @@ public final class SupplementalEntities {
 
         @Override
         public void onLivingUpdate() {
-            if (independentBowelsPart) {
+            if (isIndependentBowelsPart()) {
                 super.onLivingUpdate();
                 motionX = motionY = motionZ = 0.0D;
                 return;
@@ -1316,7 +1318,7 @@ public final class SupplementalEntities {
 
         @Override
         public boolean attackEntityFrom(DamageSource source, float amount) {
-            if (independentBowelsPart) return attackPartDirectly(source, amount);
+            if (isIndependentBowelsPart()) return attackPartDirectly(source, amount);
             WitherStormEntity owner = getOwnerStorm();
             return owner != null && owner.attackEntityFrom(source, amount * getDamageTransfer());
         }
@@ -1336,7 +1338,7 @@ public final class SupplementalEntities {
             compound.setInteger("WitherStormPartPlayDeadState", dataManager.get(STORM_PLAY_DEAD_STATE));
             compound.setInteger("WitherStormPartPlayDeadTicks", dataManager.get(STORM_PLAY_DEAD_TICKS));
             compound.setBoolean("WitherStormPartOtherHeadsDisabled", dataManager.get(OTHER_HEADS_DISABLED));
-            compound.setBoolean("IndependentBowelsPart", independentBowelsPart);
+            compound.setBoolean("IndependentBowelsPart", isIndependentBowelsPart());
         }
 
         @Override
@@ -1351,14 +1353,14 @@ public final class SupplementalEntities {
             dataManager.set(STORM_PLAY_DEAD_TICKS, Math.max(0,
                     compound.getInteger("WitherStormPartPlayDeadTicks")));
             dataManager.set(OTHER_HEADS_DISABLED, compound.getBoolean("WitherStormPartOtherHeadsDisabled"));
-            independentBowelsPart = compound.getBoolean("IndependentBowelsPart");
+            dataManager.set(INDEPENDENT_BOWELS_PART, compound.getBoolean("IndependentBowelsPart"));
         }
 
         @Override protected void despawnEntity() { }
 
         @Override
         public void setDead() {
-            if (!world.isRemote && this instanceof WitherStormSegmentEntity && !independentBowelsPart) {
+            if (!world.isRemote && this instanceof WitherStormSegmentEntity && !isIndependentBowelsPart()) {
                 ChunkLoadingManager.INSTANCE.releaseEntity(world, "segment", getUniqueID());
             }
             super.setDead();
@@ -1392,6 +1394,7 @@ public final class SupplementalEntities {
         private final RibAnimation[] ribAnimations = createRibAnimations();
         private UUID podiumClusterUuid;
         private BlockClusterEntity podiumCluster;
+        private double podiumClusterYOffset = Double.NaN;
         private int coreStateTicks;
         private int modeAnimationTicks;
         private int previousModeAnimationTicks;
@@ -1671,6 +1674,20 @@ public final class SupplementalEntities {
             if (uuid == null ? getOwnerUuid() != null : !uuid.equals(getOwnerUuid())) {
                 setOwnerUuid(uuid);
             }
+        }
+
+        @Override
+        public void setPositionAndRotationDirect(double x, double y, double z,
+                                                 float yaw, float pitch,
+                                                 int positionRotationIncrements,
+                                                 boolean teleport) {
+            if (world.isRemote && isIndependentBowelsPart()) {
+                setPosition(x, y, z);
+                setRotation(yaw, pitch);
+                return;
+            }
+            super.setPositionAndRotationDirect(x, y, z, yaw, pitch,
+                    positionRotationIncrements, teleport);
         }
 
         @Override protected double[] getOffset(WitherStormEntity owner, int index) {
@@ -2189,45 +2206,30 @@ public final class SupplementalEntities {
             if (world.spawnEntity(cluster)) {
                 podiumCluster = cluster;
                 podiumClusterUuid = cluster.getUniqueID();
-            }
-        }
-
-        public void movePodiumCluster(double x, double y, double z) {
-            findPodiumCluster();
-            if (podiumCluster != null && !podiumCluster.isDead) {
-                podiumCluster.motionX = x;
-                podiumCluster.motionY = y;
-                podiumCluster.motionZ = z;
+                podiumClusterYOffset = cluster.posY - posY;
             }
         }
 
         /**
-         * Advances the command block and its captured podium from one shared
-         * absolute Y coordinate.  The old port used Entity.move() for the
-         * core and independent motionY for the podium; collision handling can
-         * therefore leave the core behind on the third lift.  setPosition is
-         * intentional here: the upstream two objects remain rigidly aligned.
+         * Applies one authoritative lift pose to the command block and podium.
+         * No caller may advance either entity independently.
          */
-        public void synchronizePodiumAndCoreHeight(double expectedY) {
+        public void applyBowelsPodiumLiftPose(double expectedY) {
             if (world.isRemote) return;
-            if (Math.abs(posY - expectedY) > 1.0E-7D) {
-                setPosition(posX, expectedY, posZ);
-            }
-            motionX = motionY = motionZ = 0.0D;
-            alignPodiumClusterToCore();
-        }
-
-        public void alignPodiumClusterToCore() {
             findPodiumCluster();
             if (podiumCluster != null && !podiumCluster.isDead) {
-                podiumCluster.setPosition(posX, getAlignedPodiumClusterY(), posZ);
+                double offsetY = getPodiumClusterYOffset();
+                podiumCluster.setPosition(posX, expectedY + offsetY, posZ);
                 podiumCluster.motionX = 0.0D;
                 podiumCluster.motionY = 0.0D;
                 podiumCluster.motionZ = 0.0D;
             }
+            setPosition(posX, expectedY, posZ);
+            motionX = motionY = motionZ = 0.0D;
         }
 
-        private double getAlignedPodiumClusterY() {
+        private double getPodiumClusterYOffset() {
+            if (!Double.isNaN(podiumClusterYOffset)) return podiumClusterYOffset;
             int verticalCenter = MathHelper.floor(
                     (podiumCluster.getEntityBoundingBox().maxY
                             - podiumCluster.getEntityBoundingBox().minY) / 2.0D - 0.5D);
@@ -2240,13 +2242,15 @@ public final class SupplementalEntities {
                     topOffset = Math.max(topOffset, offset.getY());
                 }
             }
-            if (topOffset == Integer.MIN_VALUE) return posY - 13.0D;
-            return posY - 1.0D - verticalCenter - topOffset;
+            podiumClusterYOffset = topOffset == Integer.MIN_VALUE
+                    ? -13.0D : -1.0D - verticalCenter - topOffset;
+            return podiumClusterYOffset;
         }
 
-        public void finishPodiumMove() {
+        public void finishPodiumMove(double expectedY) {
+            applyBowelsPodiumLiftPose(expectedY);
             findPodiumCluster();
-            BlockPos blockPosition = getPosition();
+            BlockPos blockPosition = new BlockPos(posX, expectedY, posZ);
             // This port's populate()/place() pair already round-trips the
             // captured blocks at the entity position. The modern cluster has
             // a different origin convention and its extra +1Y must not be
@@ -2254,17 +2258,12 @@ public final class SupplementalEntities {
             Vec3d alignedPosition = new Vec3d(blockPosition.getX() + 0.5D,
                     blockPosition.getY(), blockPosition.getZ() + 0.5D);
             if (podiumCluster != null && !podiumCluster.isDead) {
-                podiumCluster.setPosition(alignedPosition.x,
-                        getAlignedPodiumClusterY(),
-                        alignedPosition.z);
-                podiumCluster.motionX = 0.0D;
-                podiumCluster.motionY = 0.0D;
-                podiumCluster.motionZ = 0.0D;
                 podiumCluster.place();
             }
             setPosition(alignedPosition.x, alignedPosition.y, alignedPosition.z);
             podiumCluster = null;
             podiumClusterUuid = null;
+            podiumClusterYOffset = Double.NaN;
         }
 
         public void findPodiumCluster() {
@@ -2296,6 +2295,9 @@ public final class SupplementalEntities {
             if (owner != null) compound.setUniqueId("OwnerUUID", owner);
             tentacleManager.writeToNBT(compound);
             if (podiumClusterUuid != null) compound.setUniqueId("PodiumCluster", podiumClusterUuid);
+            if (!Double.isNaN(podiumClusterYOffset)) {
+                compound.setDouble("PodiumClusterYOffset", podiumClusterYOffset);
+            }
             // 1.12 的独立死亡控制器需要在重载后继续其 240 tick 序列。
             compound.setInteger("CommandBlockDeathTicks", specialDeathTime);
         }
@@ -2304,6 +2306,8 @@ public final class SupplementalEntities {
         public void readEntityFromNBT(NBTTagCompound compound) {
             super.readEntityFromNBT(compound);
             podiumClusterUuid = compound.hasUniqueId("PodiumCluster") ? compound.getUniqueId("PodiumCluster") : null;
+            podiumClusterYOffset = compound.hasKey("PodiumClusterYOffset", 6)
+                    ? compound.getDouble("PodiumClusterYOffset") : Double.NaN;
             String stateKey = compound.hasKey("State", 3) ? "State" : "CommandBlockState";
             if (compound.hasKey(stateKey, 3)) {
                 dataManager.set(CORE_STATE, MathHelper.clamp(compound.getInteger(stateKey),
@@ -2409,10 +2413,22 @@ public final class SupplementalEntities {
         @Override
         public void setDead() {
             if (!world.isRemote) tentacleManager.removeTentacles();
+            clearBossBarState();
+            super.setDead();
+        }
+
+        public void discardDuplicateBowelsCore() {
+            if (!world.isRemote) {
+                tentacleManager.discardOwnedTentaclesWithoutResolvingSavedReferences();
+            }
+            clearBossBarState();
+            super.setDead();
+        }
+
+        private void clearBossBarState() {
             coreBossInfo.setVisible(false);
             directBossBarViewers.clear();
             outsideBossBarViewers.clear();
-            super.setDead();
         }
     }
 

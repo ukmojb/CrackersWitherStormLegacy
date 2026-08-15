@@ -85,7 +85,7 @@ public final class WitherStormSummoningEvents {
         float yaw = axis == EnumFacing.Axis.X ? 0.0F : 90.0F;
         storm.setLocationAndAngles(spawnPosition.getX() + 0.5D, spawnPosition.getY() + 0.55D,
                 spawnPosition.getZ() + 0.5D, yaw, 0.0F);
-        storm.renderYawOffset = yaw;
+        storm.initializeStructureSummonYaw(yaw);
         storm.ignite();
         if (ModSounds.get("command_block_activates") != null) {
             world.playSound(null, spawnPosition, ModSounds.get("command_block_activates"),

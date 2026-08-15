@@ -32,6 +32,7 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
     private static final int OVERWORLD = 0;
     private static final int STRUCTURE_SALT = 406417795;
     private static final int MINIMUM_AUTO_SPAWN_TICKS = 100;
+    private static final int PLATFORM_RECOVERY_INTERVAL = 20;
 
     private WitherStormSpawnManager() {
     }
@@ -39,9 +40,14 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
     @Override
     public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator chunkGenerator,
                          IChunkProvider chunkProvider) {
-        if (world.isRemote || world.provider.getDimension() != OVERWORLD || chunkX != 0 || chunkZ != 0) return;
+        if (world.isRemote || world.provider.getDimension() != OVERWORLD || chunkX != 0 || chunkZ != 0
+                || !world.getWorldInfo().isMapFeaturesEnabled()) return;
         WitherStormSpawnData data = WitherStormSpawnData.get(world);
-        if (data.isPlatformGenerated()) return;
+        generateStartingStructure(world, data, "chunk generation");
+    }
+
+    private void generateStartingStructure(World world, WitherStormSpawnData data, String source) {
+        if (data.isPlatformGenerated() && data.getSpawnPosition() != null) return;
 
         Random platformRandom = new Random(world.getSeed() ^ STRUCTURE_SALT);
         BlockPos origin = world.getHeight(BlockPos.ORIGIN);
@@ -54,8 +60,8 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
             return;
         }
         data.recordPlatform(spawnPosition);
-        WitherStormMod.LOGGER.info("Generated {} at {} with storm spawn marker {}", template, origin,
-                spawnPosition);
+        WitherStormMod.LOGGER.info("Generated {} at {} with storm spawn marker {} via {}", template,
+                origin, spawnPosition, source);
     }
 
     @SubscribeEvent
@@ -70,6 +76,7 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
 
     private void tick(WorldServer world) {
         WitherStormSpawnData data = WitherStormSpawnData.get(world);
+        recoverMissingStartingStructure(world, data);
         if (!WitherStormConfig.autoSpawnWitherStorm) {
             data.setHasSpawnedWitherStorm(true);
             return;
@@ -107,6 +114,20 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
         }
         WitherStormMod.LOGGER.info("Automatically spawned the Wither Storm at {} after {} ticks",
                 spawnPosition, elapsedTicks);
+    }
+
+    private void recoverMissingStartingStructure(WorldServer world, WitherStormSpawnData data) {
+        if (data.isPlatformGenerated() && data.getSpawnPosition() != null) return;
+        if (!world.getWorldInfo().isMapFeaturesEnabled()
+                || world.getTotalWorldTime() % PLATFORM_RECOVERY_INTERVAL != 0L) return;
+
+        // Existing worlds may already contain chunk 0,0 from before this generator was present.
+        // Providing the chunk lets the normal callback run for new chunks; the direct call then
+        // repairs only the old-chunk case if no platform record was produced.
+        world.getChunkProvider().provideChunk(0, 0);
+        if (!data.isPlatformGenerated() || data.getSpawnPosition() == null) {
+            generateStartingStructure(world, data, "world tick recovery");
+        }
     }
 
     private static String selectPlatform(Biome biome, Random random) {

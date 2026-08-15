@@ -51,7 +51,8 @@ public final class ModEntities {
         registerProjectile("blue_flaming_wither_skull", SupplementalEntities.BlueFlamingWitherSkullEntity.class, entityId++);
         registerProjectile("tentacle_spike", SupplementalEntities.TentacleSpikeEntity.class, entityId++);
         registerProjectile("block_cluster", SupplementalEntities.BlockClusterEntity.class, entityId++, 1);
-        registerLiving("command_block", SupplementalEntities.CommandBlockEntity.class, entityId++, 0xBA6B33, 0x232323, 160);
+        registerLiving("command_block", SupplementalEntities.CommandBlockEntity.class, entityId++,
+                0xBA6B33, 0x232323, 160, 1);
         registerLiving("wither_storm_head", SupplementalEntities.WitherStormHeadEntity.class, entityId++,
                 0x21162C, 0x7F3FBA, DISTANT_STORM_TRACKING_RANGE, 1);
         registerLiving("wither_storm_segment", SupplementalEntities.WitherStormSegmentEntity.class, entityId,

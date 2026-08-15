@@ -479,7 +479,7 @@ public final class AdvancementResourceConverter {
             return "futuremc:suspicious_stew";
         }
         if ("minecraft:crossbow".equals(itemId)) {
-            return "futuremc:crossbow";
+            return "crossbow:crossbow";
         }
         if ("minecraft:honey_bottle".equals(itemId)
                 || "minecraft:honeycomb".equals(itemId)

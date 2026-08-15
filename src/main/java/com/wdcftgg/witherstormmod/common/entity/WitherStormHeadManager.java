@@ -66,6 +66,19 @@ public final class WitherStormHeadManager {
     }
 
     public void tick() {
+        tick(true);
+    }
+
+    /**
+     * Upstream still advances queued head interpolation while the summoning
+     * invulnerability goal owns LOOK, but it does not run head look AI or
+     * server targeting during that period.
+     */
+    public void tickWithoutLookAi() {
+        tick(false);
+    }
+
+    private void tick(boolean runLookAi) {
         int flags = storm.getHeadAnimationFlags();
         for (int index = 0; index < heads.length; index++) {
             HeadState head = heads[index];
@@ -78,7 +91,8 @@ public final class WitherStormHeadManager {
                 head.yaw = storm.getSyncedHeadYaw(index);
                 head.pitch = storm.getSyncedHeadPitch(index);
             } else {
-                updateLook(index, head);
+                if (runLookAi) updateLook(index, head);
+                else tickHeadLerp(head);
                 constrainHeadYaw(index, head);
                 storm.updateHeadRotation(index, head.yaw, head.pitch);
             }
@@ -119,7 +133,7 @@ public final class WitherStormHeadManager {
                 head.shakeO = head.shake = 0.0F;
             }
         }
-        if (!storm.world.isRemote) serverTick();
+        if (!storm.world.isRemote && runLookAi) serverTick();
     }
 
     private void serverTick() {
@@ -612,13 +626,9 @@ public final class WitherStormHeadManager {
         head.pitch += MathHelper.wrapDegrees(wantedPitch - head.pitch) / steps;
     }
 
-    /**
-     * Additional heads always stay inside the upstream +/-80 degree forward
-     * arc. Late phases apply the same arc to every head so stale/synced look
-     * targets cannot rotate a head through the mass while changing targets.
-     */
+    /** Late attached heads keep the existing mass-intersection guard. */
     private void constrainHeadYaw(int index, HeadState head) {
-        if (storm.isDeadOrPlayingDead() || (storm.getPhase() <= 3 && index == 0)) return;
+        if (storm.isDeadOrPlayingDead() || storm.getPhase() <= 3) return;
         float relativeYaw = MathHelper.wrapDegrees(head.yaw - storm.renderYawOffset);
         head.yaw = storm.renderYawOffset + MathHelper.clamp(relativeYaw,
                 -MAXIMUM_HEAD_YAW, MAXIMUM_HEAD_YAW);
@@ -693,6 +703,16 @@ public final class WitherStormHeadManager {
         for (int index = 1; index < heads.length; index++) {
             heads[index].nextRoar = storm.getRNG().nextInt(30) + 1;
             heads[index].roarScheduleInitialized = true;
+        }
+    }
+
+    /** Mirrors WitherStormPatternChecker initializing both AdditionalHead yaws. */
+    void initializeAdditionalHeadYaw(float yaw) {
+        for (int index = 1; index < heads.length; index++) {
+            HeadState head = heads[index];
+            head.yaw = yaw;
+            head.yawO = yaw;
+            storm.updateHeadRotation(index, yaw, head.pitch);
         }
     }
 

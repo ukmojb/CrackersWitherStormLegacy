@@ -157,7 +157,7 @@ public final class WitherStormClientEvents {
         ModBlocks.registerModels();
         ModItems.registerModels();
         PhasometerModelCompatibility.registerModels();
-        CrossbowCompatibility.registerModels();
+        WitherStormMod.proxy.registerCrossbowModModels();
         WitherStormMod.LOGGER.info("Registered all legacy block and item models during ModelRegistryEvent");
     }
 
@@ -171,7 +171,6 @@ public final class WitherStormClientEvents {
 
     @SubscribeEvent
     public static void auditBakedModels(ModelBakeEvent event) {
-        CrossbowCompatibility.bakeModels(event);
         PhasometerModelCompatibility.bakeModels(event);
         IBakedModel missing = event.getModelManager().getMissingModel();
         int checked = 0;

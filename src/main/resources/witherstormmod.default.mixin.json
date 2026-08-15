@@ -20,8 +20,6 @@
     "EntityEndermanMixin",
     "EntityFireballMixin",
     "EntityFishHookMixin",
-    "CrossbowItemMixin",
-    "FutureMcCrossbowConfigMixin",
     "EntityItemMixin",
     "PotionMixin",
     "WitherMixin",

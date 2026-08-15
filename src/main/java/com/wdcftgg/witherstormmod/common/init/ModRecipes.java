@@ -7,7 +7,6 @@ import com.wdcftgg.witherstormmod.common.recipe.AnvilRecipes;
 import com.wdcftgg.witherstormmod.common.recipe.LockAmuletRecipe;
 import com.wdcftgg.witherstormmod.common.resource.RecipeResourceConverter;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamResourceArchive;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.Ingredient;
@@ -17,12 +16,10 @@ import net.minecraft.potion.PotionHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.common.crafting.JsonContext;
-import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import thedarkcolour.futuremc.recipe.stonecutter.StonecutterRecipes;
 
 import java.io.InputStream;
@@ -37,9 +34,6 @@ public final class ModRecipes {
     private static final int BREWING_COMBINATION_COUNT = 15;
     private static final String LOCK_AMULET_ENTRY = RecipeResourceConverter.RECIPE_PREFIX + "amulet_lock.json";
     private static boolean brewingRegistered;
-    private static final ResourceLocation FUTURE_MC_CROSSBOW =
-            new ResourceLocation("futuremc", "crossbow");
-
     private ModRecipes() {
     }
 
@@ -103,19 +97,6 @@ public final class ModRecipes {
 
     @SubscribeEvent
     public static void registerCraftingRecipes(RegistryEvent.Register<IRecipe> event) {
-        net.minecraft.item.Item crossbow = ForgeRegistries.ITEMS.getValue(FUTURE_MC_CROSSBOW);
-        if (crossbow == null) {
-            throw new IllegalStateException("Future MC crossbow was not registered");
-        }
-        ShapedOreRecipe crossbowRecipe = new ShapedOreRecipe(null, new ItemStack(crossbow),
-                "SIS", "HTH", " S ",
-                'S', Items.STICK,
-                'I', Items.IRON_INGOT,
-                'H', Items.STRING,
-                'T', Blocks.TRIPWIRE_HOOK);
-        crossbowRecipe.setRegistryName(new ResourceLocation(Tags.MOD_ID, "crossbow"));
-        event.getRegistry().register(crossbowRecipe);
-
         int registered = 0;
         int lockAmuletRegistered = 0;
         try {
@@ -164,6 +145,5 @@ public final class ModRecipes {
         }
         WitherStormMod.LOGGER.info("Registered {} crafting recipes from the external Wither Storm archive", registered);
         WitherStormMod.LOGGER.info("Registered the external amulet lock recipe");
-        WitherStormMod.LOGGER.info("Registered the standard crafting recipe for the restored Future MC crossbow");
     }
 }

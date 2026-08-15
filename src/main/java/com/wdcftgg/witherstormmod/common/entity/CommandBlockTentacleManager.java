@@ -65,6 +65,20 @@ final class CommandBlockTentacleManager {
         }
     }
 
+    void discardOwnedTentaclesWithoutResolvingSavedReferences() {
+        if (commandBlock.world.isRemote) return;
+        for (SickenedEntities.TentacleEntity tentacle : commandBlock.world.getEntities(
+                SickenedEntities.TentacleEntity.class,
+                entity -> entity.isCommandBlockStructureOf(commandBlock))) {
+            if (!tentacle.isDead) tentacle.setDead();
+        }
+        for (int index = 0; index < tentacles.length; index++) {
+            tentacles[index] = null;
+            savedTentacleUuids[index] = null;
+            unresolvedTicks[index] = 0;
+        }
+    }
+
     void awakenTentacles(boolean indefinite) {
         if (commandBlock.world.isRemote || !(commandBlock.world instanceof WorldServer)) return;
         resolveSavedTentacles();

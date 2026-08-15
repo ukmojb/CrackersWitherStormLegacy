@@ -379,7 +379,7 @@ public class WitherStormEntity extends EntityMob
             if (ticksExisted % 10 == 0) {
                 heal((getMaxHealth() - 1.0F) / startingTicks * 10.0F);
             }
-            headManager.tick();
+            headManager.tickWithoutLookAi();
             updateBodyRotation();
             sectionManager.tick();
             updateAttachedEntities();
@@ -3141,6 +3141,17 @@ public class WitherStormEntity extends EntityMob
 
     public float getHeadYRotation(int head, float partialTicks) {
         return headManager.getYaw(head, partialTicks);
+    }
+
+    /** Applies the complete upstream structure-summon rotation before the entity enters the world. */
+    public void initializeStructureSummonYaw(float yaw) {
+        rotationYaw = prevRotationYaw = yaw;
+        renderYawOffset = prevRenderYawOffset = yaw;
+        rotationYawHead = prevRotationYawHead = yaw;
+        clientBodyYRotationTarget = yaw;
+        clientBodyXRotationSteps = 0;
+        dataManager.set(BODY_Y_ROTATION, yaw);
+        headManager.initializeAdditionalHeadYaw(yaw);
     }
 
     public float getHeadXRotation(int head) {

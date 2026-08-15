@@ -19,6 +19,10 @@ public class UpstreamResourcePack extends FileResourcePack {
     private static final byte[] PACK_METADATA = ("{\"pack\":{\"pack_format\":3,\"description\":\"Cracker's Wither Storm Legacy upstream resources\"}}")
             .getBytes(StandardCharsets.UTF_8);
     private static final String[] PADDED_TEXTURES = {"flesh_skele", "flesh_skull_e", "flesh_zomb", "flesh_zomb_e"};
+    private static final String CROSSBOW_MOD_ENDER_PEARL_TEXTURE =
+            "assets/witherstormmod/textures/item/crossbow_mod_ender_pearl.png";
+    private static final String CROSSBOW_ENDER_PEARL_TEXTURE =
+            "assets/witherstormmod/textures/item/crossbow_ender_pearl.png";
 
     public UpstreamResourcePack(File resourcePackFile) {
         super(resourcePackFile);
@@ -48,6 +52,9 @@ public class UpstreamResourcePack extends FileResourcePack {
             throw new FileNotFoundException(name);
         }
         String mappedName = mapLegacyTexturePath(name);
+        if (CROSSBOW_MOD_ENDER_PEARL_TEXTURE.equals(mappedName)) {
+            return crossbowEnderPearlOverlayTexture();
+        }
         if (isLegacyParticleTexture(mappedName)) {
             InputStream normalized = normalizedParticleTexture(mappedName);
             if (normalized != null) {
@@ -82,6 +89,9 @@ public class UpstreamResourcePack extends FileResourcePack {
             return false;
         }
         String mappedName = mapLegacyTexturePath(name);
+        if (CROSSBOW_MOD_ENDER_PEARL_TEXTURE.equals(mappedName)) {
+            return super.hasResourceName(CROSSBOW_ENDER_PEARL_TEXTURE);
+        }
         if (isLegacyParticleTexture(mappedName)) {
             return hasResourceNameDirect(mappedName);
         }
@@ -89,6 +99,42 @@ public class UpstreamResourcePack extends FileResourcePack {
             return true;
         }
         return super.hasResourceName(mappedName);
+    }
+
+    private InputStream crossbowEnderPearlOverlayTexture() throws IOException {
+        BufferedImage image;
+        try (InputStream source = super.getInputStreamByName(CROSSBOW_ENDER_PEARL_TEXTURE)) {
+            image = ImageIO.read(source);
+        }
+        if (image == null) {
+            throw new IOException("Unable to decode upstream crossbow ender pearl texture");
+        }
+        BufferedImage overlay = new BufferedImage(
+                image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        try {
+            int retainedPixels = 0;
+            for (int y = 0; y < image.getHeight(); y++) {
+                for (int x = 0; x < image.getWidth(); x++) {
+                    int color = image.getRGB(x, y);
+                    int red = color >>> 16 & 255;
+                    int green = color >>> 8 & 255;
+                    int blue = color & 255;
+                    if ((color >>> 24) != 0 && green > red && blue > red) {
+                        overlay.setRGB(x, y, color);
+                        retainedPixels++;
+                    }
+                }
+            }
+            if (retainedPixels == 0) {
+                throw new IOException("Upstream crossbow ender pearl texture has no pearl pixels");
+            }
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            ImageIO.write(overlay, "png", output);
+            return new ByteArrayInputStream(output.toByteArray());
+        } finally {
+            image.flush();
+            overlay.flush();
+        }
     }
 
     private InputStream normalizedBlockTexture(String name) throws IOException {

@@ -87,13 +87,13 @@ public final class BowelsBossfightController {
         BowelsInstanceData data = BowelsInstanceData.get(world);
         BowelsInstanceData.Instance instance = data.findContaining(core.getPosition());
         if (instance == null || instance.completed) return;
-
-        // During MOVE_PODIUM the core is advanced by the entity mover every
-        // tick. Re-applying a derived Y coordinate here would rewind that
-        // movement before the next stage tick (and is not upstream behavior).
-        if (instance.bossPhase != 2 && instance.bossPhase != 7 && instance.bossPhase != 13) {
-            synchronizeCorePodiumHeight(core, instance);
+        if (instance.commandBlockUuid == null) {
+            instance.commandBlockUuid = core.getUniqueID();
+            data.markDirty();
+        } else if (!instance.commandBlockUuid.equals(core.getUniqueID())) {
+            return;
         }
+        core.applyBowelsPodiumLiftPose(getExpectedCoreY(instance));
         Integer initializedPhase = INITIALIZED_PHASES.get(core);
         if (initializedPhase == null || initializedPhase != instance.bossPhase) {
             initializePhase(world, core, instance, instance.bossPhase);
@@ -121,6 +121,8 @@ public final class BowelsBossfightController {
         BowelsInstanceData data = BowelsInstanceData.get(world);
         BowelsInstanceData.Instance instance = data.findContaining(core.getPosition());
         if (instance == null || instance.completed || core.isEntityInvulnerable(source)
+                || (instance.commandBlockUuid != null
+                && !instance.commandBlockUuid.equals(core.getUniqueID()))
                 || !isVulnerablePhase(instance.bossPhase)) return false;
 
         float nextHealth = core.getHealth() - core.getMaxHealth() / 4.0F;
@@ -165,7 +167,7 @@ public final class BowelsBossfightController {
         if (instance == null || instance.completed || instance.bossPhase == 17) return;
         Entity killer = source == null ? null : source.getTrueSource();
         instance.killerUuid = killer == null ? null : killer.getUniqueID();
-        finishPhase(world, core, instance.bossPhase);
+        finishPhase(world, core, instance, instance.bossPhase);
         instance.bossPhase = 17;
         instance.bossPhaseTicks = 0;
         initializePhase(world, core, instance, 17);
@@ -218,6 +220,9 @@ public final class BowelsBossfightController {
         BowelsInstanceData.Instance instance = BowelsInstanceData.get(world)
                 .findContaining(core.getPosition());
         if (instance == null || instance.completed) return;
+        if (instance.commandBlockUuid != null
+                && !instance.commandBlockUuid.equals(core.getUniqueID())) return;
+        core.applyBowelsPodiumLiftPose(getExpectedCoreY(instance));
         initializePhase(world, core, instance, instance.bossPhase);
     }
 
@@ -245,7 +250,7 @@ public final class BowelsBossfightController {
 
     private static void advance(WorldServer world, SupplementalEntities.CommandBlockEntity core,
                                 BowelsInstanceData data, BowelsInstanceData.Instance instance) {
-        finishPhase(world, core, instance.bossPhase);
+        finishPhase(world, core, instance, instance.bossPhase);
         instance.bossPhase = Math.min(18, instance.bossPhase + 1);
         instance.bossPhaseTicks = 0;
         initializePhase(world, core, instance, instance.bossPhase);
@@ -331,7 +336,7 @@ public final class BowelsBossfightController {
             // later lifts (most visibly the third hit).  The upstream pair is
             // visually rigid, so both positions must be derived from the same
             // phase clock every tick.
-            core.synchronizePodiumAndCoreHeight(getExpectedCoreY(instance, phase, ticks));
+            core.applyBowelsPodiumLiftPose(getExpectedCoreY(instance, phase, ticks));
         } else if (phase == 4 && ticks % 8 == 0) {
             spawnWaveMob(world, core, WAVE_1, 2.0D);
         } else if (phase == 9 && ticks % 10 == 0) {
@@ -353,9 +358,10 @@ public final class BowelsBossfightController {
         if (wave > 1) awakenNearbyTentacles(world, core);
     }
 
-    private static void finishPhase(WorldServer world, SupplementalEntities.CommandBlockEntity core, int phase) {
+    private static void finishPhase(WorldServer world, SupplementalEntities.CommandBlockEntity core,
+                                    BowelsInstanceData.Instance instance, int phase) {
         if (phase == 2 || phase == 7 || phase == 13) {
-            core.finishPodiumMove();
+            core.finishPodiumMove(getExpectedCoreY(instance, phase, PODIUM_MOVE_TICKS));
         } else if (phase == 4 || phase == 9) {
             play(world, core, "command_block_power_down", SoundCategory.HOSTILE, 5.0F);
             if (phase == 9) spawnRushSymbiont(world, core);
@@ -766,20 +772,6 @@ public final class BowelsBossfightController {
             height += MathHelper.clamp(ticks, 0, PODIUM_MOVE_TICKS) * PODIUM_MOVE_PER_TICK;
         }
         return height;
-    }
-
-    private static void synchronizeCorePodiumHeight(
-            SupplementalEntities.CommandBlockEntity core, BowelsInstanceData.Instance instance) {
-        synchronizeCorePodiumHeight(core, instance, instance.bossPhase, instance.bossPhaseTicks);
-    }
-
-    private static void synchronizeCorePodiumHeight(SupplementalEntities.CommandBlockEntity core,
-                                                     BowelsInstanceData.Instance instance,
-                                                     int phase, int ticks) {
-        double expectedY = getExpectedCoreY(instance, phase, ticks);
-        if (Math.abs(core.posY - expectedY) <= 1.0E-7D) return;
-        core.setPosition(core.posX, expectedY, core.posZ);
-        core.motionY = 0.0D;
     }
 
     private static void play(WorldServer world, Entity core, String sound, SoundCategory category, float volume) {

@@ -1,5 +1,6 @@
 package com.wdcftgg.witherstormmod.common.proxy;
 
+import com.wdcftgg.witherstormmod.WitherStormMod;
 import com.wdcftgg.witherstormmod.client.ClientEffects;
 import com.wdcftgg.witherstormmod.client.PhasometerOverlay;
 import com.wdcftgg.witherstormmod.client.WitherStormClientConfig;
@@ -77,10 +78,16 @@ import com.wdcftgg.witherstormmod.client.render.TentacleSpikeRenderer;
 import com.wdcftgg.witherstormmod.client.render.BlockClusterRenderer;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.Loader;
 
+import java.lang.reflect.Method;
 import java.util.Set;
 
 public class ClientProxy extends CommonProxy {
+    private static final String CROSSBOW_CLIENT_COMPATIBILITY =
+            "com.wdcftgg.witherstormmod.client.CrossbowModClientCompatibility";
+    private Object crossbowEnderPearlAmmo;
+    private boolean crossbowAmmoCreationAttempted;
 
     @Override
     public void preInit(FMLPreInitializationEvent event) {
@@ -138,6 +145,36 @@ public class ClientProxy extends CommonProxy {
                 Minecraft.getMinecraft().getItemColors().registerItemColorHandler(
                         (stack, tintIndex) -> egg.getColor(tintIndex), egg);
             }
+        }
+    }
+
+    @Override
+    public Object createCrossbowEnderPearlAmmo() {
+        if (!Loader.isModLoaded("crossbow")) return null;
+        if (!crossbowAmmoCreationAttempted) {
+            crossbowAmmoCreationAttempted = true;
+            try {
+                Method factory = Class.forName(CROSSBOW_CLIENT_COMPATIBILITY)
+                        .getMethod("createAmmo");
+                crossbowEnderPearlAmmo = factory.invoke(null);
+            } catch (ReflectiveOperationException | LinkageError exception) {
+                WitherStormMod.LOGGER.error(
+                        "Unable to create the Crossbow ender pearl ammo model bridge", exception);
+            }
+        }
+        return crossbowEnderPearlAmmo;
+    }
+
+    @Override
+    public void registerCrossbowModModels() {
+        if (!Loader.isModLoaded("crossbow")) return;
+        try {
+            Class.forName(CROSSBOW_CLIENT_COMPATIBILITY)
+                    .getMethod("registerModels")
+                    .invoke(null);
+        } catch (ReflectiveOperationException | LinkageError exception) {
+            throw new IllegalStateException(
+                    "Unable to register Crossbow ender pearl models", exception);
         }
     }
 

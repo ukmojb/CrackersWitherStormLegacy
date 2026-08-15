@@ -74,7 +74,10 @@ public final class StructureTemplates {
         data.template.addBlocksToWorld(world, origin, FEATURE_PLACEMENT_PROCESSOR, settings, 2);
         for (DataMarker marker : data.dataMarkers) {
             if ("spawn_position".equals(marker.metadata)) {
-                return Template.transformedBlockPos(settings, marker.pos).add(origin);
+                BlockPos spawnPosition = Template.transformedBlockPos(settings, marker.pos).add(origin);
+                // Upstream Piece.handleDataMarker removes the structure block after recording it.
+                world.setBlockToAir(spawnPosition);
+                return spawnPosition;
             }
         }
         if ("auto_spawn_platform".equals(id)) {

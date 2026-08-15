@@ -24,6 +24,13 @@ public class CommonProxy {
     public void init(FMLInitializationEvent event) {
     }
 
+    public Object createCrossbowEnderPearlAmmo() {
+        return null;
+    }
+
+    public void registerCrossbowModModels() {
+    }
+
     public void handleShakeScreen(float duration, float power) {
     }
 

@@ -190,7 +190,7 @@ public final class WitherStormConfig {
     public static boolean randomBowelsEntrance = true;
 
     @Config.Name("crossbowsSupportEnderPearls")
-    @Config.Comment("Future MC 十字弩是否可以从主手或副手装填并发射末影珍珠。")
+    @Config.Comment("Crossbow 弩是否可以从主手或副手装填并发射末影珍珠。")
     public static boolean crossbowsSupportEnderPearls = true;
 
     @Config.Name("bowelsFallResistance")

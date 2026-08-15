@@ -26,7 +26,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
@@ -189,31 +191,25 @@ public final class BowelsManager {
         world.getChunkProvider().provideChunk(arena.getX() >> 4, arena.getZ() >> 4);
         Entity existing = instance.commandBlockUuid == null
                 ? null : world.getEntityFromUuid(instance.commandBlockUuid);
-        if (existing instanceof SupplementalEntities.CommandBlockEntity && !existing.isDead) {
-            SupplementalEntities.CommandBlockEntity core =
-                    (SupplementalEntities.CommandBlockEntity) existing;
+        SupplementalEntities.CommandBlockEntity core = resolveCanonicalCommandBlock(
+                world, instance, arena, existing);
+        if (core != null) {
+            boolean changed = !core.getUniqueID().equals(instance.commandBlockUuid);
+            instance.commandBlockUuid = core.getUniqueID();
             core.setBowelsOwnerUuid(instance.stormUuid);
             alignBowelsCoreRotation(core);
-            double centeredX = Math.floor(core.posX) + 0.5D;
-            double centeredZ = Math.floor(core.posZ) + 0.5D;
-            // MOVE_PODIUM advances the core through normal entity movement on
-            // every tick.  The 20-tick arena keeper must not rewind that motion
-            // to the phase's last persisted coordinate.
-            if (instance.bossPhase != 2 && instance.bossPhase != 7 && instance.bossPhase != 13) {
-                double expectedY = BowelsBossfightController.getExpectedCoreY(instance);
-                if (Math.abs(core.posX - centeredX) > 1.0E-6D
-                        || Math.abs(core.posY - expectedY) > 1.0E-6D
-                        || Math.abs(core.posZ - centeredZ) > 1.0E-6D) {
-                    core.setPosition(centeredX, expectedY, centeredZ);
-                }
-            } else if (Math.abs(core.posX - centeredX) > 1.0E-6D
+            double centeredX = arena.getX() + 0.5D;
+            double centeredZ = arena.getZ() + 0.5D;
+            if (Math.abs(core.posX - centeredX) > 1.0E-6D
                     || Math.abs(core.posZ - centeredZ) > 1.0E-6D) {
                 core.setPosition(centeredX, core.posY, centeredZ);
             }
+            core.applyBowelsPodiumLiftPose(BowelsBossfightController.getExpectedCoreY(instance));
+            if (changed) data.markDirty();
             return;
         }
 
-        SupplementalEntities.CommandBlockEntity core = new SupplementalEntities.CommandBlockEntity(world);
+        core = new SupplementalEntities.CommandBlockEntity(world);
         core.setIndependentBowelsPart();
         core.setBowelsOwnerUuid(instance.stormUuid);
         core.setPosition(arena.getX() + 0.5D,
@@ -226,6 +222,47 @@ public final class BowelsManager {
             instance.commandBlockUuid = core.getUniqueID();
             data.markDirty();
         }
+    }
+
+    @Nullable
+    private static SupplementalEntities.CommandBlockEntity resolveCanonicalCommandBlock(
+            WorldServer world, BowelsInstanceData.Instance instance, BlockPos arena,
+            Entity savedEntity) {
+        AxisAlignedBB arenaBounds = new AxisAlignedBB(arena).grow(32.0D, 24.0D, 32.0D);
+        List<SupplementalEntities.CommandBlockEntity> candidates =
+                world.getEntitiesWithinAABB(SupplementalEntities.CommandBlockEntity.class,
+                        arenaBounds, entity -> !entity.isDead && entity.isIndependentBowelsPart());
+        SupplementalEntities.CommandBlockEntity saved = savedEntity instanceof SupplementalEntities.CommandBlockEntity
+                && !savedEntity.isDead
+                && ((SupplementalEntities.CommandBlockEntity) savedEntity).isIndependentBowelsPart()
+                ? (SupplementalEntities.CommandBlockEntity) savedEntity : null;
+        SupplementalEntities.CommandBlockEntity canonical = saved;
+        if (instance.bossPhase == 2 || instance.bossPhase == 7 || instance.bossPhase == 13) {
+            for (SupplementalEntities.CommandBlockEntity candidate : candidates) {
+                if (candidate.getPodiumCluster() != null) {
+                    canonical = candidate;
+                    break;
+                }
+            }
+        }
+        if (canonical == null) {
+            double closestDistance = Double.MAX_VALUE;
+            for (SupplementalEntities.CommandBlockEntity candidate : candidates) {
+                double distance = candidate.getDistanceSqToCenter(arena);
+                if (distance < closestDistance) {
+                    canonical = candidate;
+                    closestDistance = distance;
+                }
+            }
+        }
+        if (canonical == null) return null;
+        for (SupplementalEntities.CommandBlockEntity candidate : candidates) {
+            if (candidate == canonical) continue;
+            SupplementalEntities.BlockClusterEntity duplicateCluster = candidate.getPodiumCluster();
+            if (duplicateCluster != null && !duplicateCluster.isDead) duplicateCluster.setDead();
+            candidate.discardDuplicateBowelsCore();
+        }
+        return canonical;
     }
 
     private static void ensureArenaEntities(WorldServer world, BowelsInstanceData data,

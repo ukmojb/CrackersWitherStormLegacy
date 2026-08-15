@@ -34,7 +34,7 @@ public final class RecipeResourceConverter {
         mappings.put("minecraft:spyglass", item("minecraft:glass_bottle"));
         mappings.put("minecraft:barrel", item("futuremc:barrel"));
         mappings.put("minecraft:golden_apple", item("minecraft:golden_apple", 0));
-        mappings.put("minecraft:crossbow", item("futuremc:crossbow"));
+        mappings.put("minecraft:crossbow", item("crossbow:crossbow"));
         mappings.put("minecraft:phantom_membrane", item("minecraft:leather"));
         mappings.put("minecraft:honey_bottle", item("futuremc:honey_bottle"));
         mappings.put("minecraft:honeycomb", item("futuremc:honeycomb"));
