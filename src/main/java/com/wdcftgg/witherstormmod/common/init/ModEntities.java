@@ -12,6 +12,7 @@ import net.minecraftforge.fml.common.registry.EntityRegistry;
 
 public final class ModEntities {
     private static final int DISTANT_STORM_TRACKING_RANGE = Integer.MAX_VALUE;
+    static final int WITHERED_SYMBIONT_UPDATE_FREQUENCY = 3;
 
     private ModEntities() {
     }
@@ -39,11 +40,10 @@ public final class ModEntities {
         registerLiving("sickened_wolf", SickenedEntities.SickenedWolfEntity.class, entityId++, 0xA9A9A9, 0x6D2A83, 80);
         registerLiving("sickened_zombie", SickenedEntities.SickenedZombieEntity.class, entityId++, 0x507A4A, 0xA12AFF, 80);
         registerLiving("tentacle", SickenedEntities.TentacleEntity.class, entityId++, 0x201323, 0x913CC4, 160);
-        // Match the upstream entity tracker cadence (10 ticks). Spell state,
-        // boss-stage changes and long-range boss bars are synchronized through
-        // explicit data/network updates rather than a 2-tick tracker spam.
+        // 上游的 10 是区块跟踪范围，更新间隔未覆盖并沿用默认 3 tick。
+        // 1.12 若误用 10 tick，客户端会每半秒校正一次位置，移动明显顿挫。
         registerLiving("withered_symbiont", SickenedEntities.WitheredSymbiontEntity.class, entityId++,
-                0x251A2A, 0xD053FF, 160, 10);
+                0x251A2A, 0xD053FF, 160, WITHERED_SYMBIONT_UPDATE_FREQUENCY);
         registerLiving("tainted_slime", SickenedEntities.TaintedSlimeEntity.class, entityId++, 0x34203B, 0xA64DCF, 80);
         registerProjectile("super_tnt", PowerfulExplosiveEntity.SuperTntEntity.class, entityId++);
         registerProjectile("formidibomb", PowerfulExplosiveEntity.FormidibombEntity.class, entityId++);

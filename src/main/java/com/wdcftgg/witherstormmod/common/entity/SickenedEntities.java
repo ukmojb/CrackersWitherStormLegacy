@@ -323,6 +323,7 @@ public final class SickenedEntities {
 
         @Override
         public boolean attackEntityAsMob(Entity target) {
+            if (!infectTarget(target)) return false;
             float damage = (float) ((int) getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE)
                     .getAttributeValue());
             boolean attacked = target.attackEntityFrom(DamageSource.causeMobDamage(this), damage);
@@ -1023,6 +1024,7 @@ public final class SickenedEntities {
 
         @Override
         public boolean attackEntityAsMob(Entity entityIn) {
+            if (!infectTarget(entityIn)) return false;
             attackAnimationTick = 10;
             if (!world.isRemote) {
                 world.setEntityState(this, (byte) 4);
@@ -1895,6 +1897,8 @@ public final class SickenedEntities {
     }
 
     public static class SickenedSkeletonEntity extends SickenedMobEntity implements IRangedAttackMob {
+        private static final DataParameter<Boolean> SWINGING_ARMS = EntityDataManager.createKey(
+                SickenedSkeletonEntity.class, DataSerializers.BOOLEAN);
         private EntityAIAttackRangedBow<SickenedSkeletonEntity> rangedAttackGoal;
         private EntityAIAttackMelee meleeAttackGoal;
 
@@ -1907,6 +1911,12 @@ public final class SickenedEntities {
         @Override protected double getSickenedHealth() { return 24.0D; }
         @Override protected double getSickenedSpeed() { return 0.28D; }
         @Override public String getSickenedType() { return "sickened_skeleton"; }
+
+        @Override
+        protected void entityInit() {
+            super.entityInit();
+            dataManager.register(SWINGING_ARMS, false);
+        }
 
         @Override
         protected void initEntityAI() {
@@ -1927,7 +1937,16 @@ public final class SickenedEntities {
         }
 
         private void setCombatTask() {
-            if (world == null || world.isRemote || rangedAttackGoal == null || meleeAttackGoal == null) return;
+            if (world == null || world.isRemote) return;
+            // EntityLiving invokes initEntityAI from its constructor, before this
+            // subclass's fields are initialized. Recreate the retained goals here.
+            if (rangedAttackGoal == null) {
+                rangedAttackGoal = new EntityAIAttackRangedBow<SickenedSkeletonEntity>(
+                        this, 1.0D, 20, 15.0F);
+            }
+            if (meleeAttackGoal == null) {
+                meleeAttackGoal = new EntityAIAttackMelee(this, 1.2D, false);
+            }
             tasks.removeTask(rangedAttackGoal);
             tasks.removeTask(meleeAttackGoal);
             if (getHeldItemMainhand().getItem() instanceof ItemBow) {
@@ -1963,7 +1982,14 @@ public final class SickenedEntities {
             return result;
         }
 
-        @Override public void setSwingingArms(boolean swingingArms) { }
+        public boolean isSwingingArms() {
+            return dataManager.get(SWINGING_ARMS);
+        }
+
+        @Override
+        public void setSwingingArms(boolean swingingArms) {
+            dataManager.set(SWINGING_ARMS, swingingArms);
+        }
     }
 
     public static class SickenedSnowGolemEntity extends SickenedMobEntity implements IRangedAttackMob, IShearable {
@@ -2295,6 +2321,8 @@ public final class SickenedEntities {
     }
 
     public static class SickenedVindicatorEntity extends SickenedMobEntity {
+        private static final DataParameter<Boolean> AGGRESSIVE = EntityDataManager.createKey(
+                SickenedVindicatorEntity.class, DataSerializers.BOOLEAN);
         private boolean johnny;
 
         public SickenedVindicatorEntity(World world) { super(world); setSize(0.6F, 1.95F); }
@@ -2306,9 +2334,27 @@ public final class SickenedEntities {
         @Override public String getSickenedType() { return "sickened_vindicator"; }
 
         @Override
+        protected void entityInit() {
+            super.entityInit();
+            dataManager.register(AGGRESSIVE, false);
+        }
+
+        @Override
         protected void initEntityAI() {
             tasks.addTask(0, new EntityAISwimming(this));
-            tasks.addTask(4, new EntityAIAttackMelee(this, 1.0D, false));
+            tasks.addTask(4, new EntityAIAttackMelee(this, 1.0D, false) {
+                @Override
+                public void startExecuting() {
+                    super.startExecuting();
+                    SickenedVindicatorEntity.this.setAggressive(true);
+                }
+
+                @Override
+                public void resetTask() {
+                    super.resetTask();
+                    SickenedVindicatorEntity.this.setAggressive(false);
+                }
+            });
             tasks.addTask(8, new EntityAIWander(this, 0.6D));
             tasks.addTask(9, new EntityAIWatchClosest(this, EntityPlayer.class, 3.0F, 1.0F));
             tasks.addTask(10, new EntityAIWatchClosest(this, EntityLiving.class, 8.0F));
@@ -2330,6 +2376,23 @@ public final class SickenedEntities {
         @Override
         protected void setEquipmentBasedOnDifficulty(DifficultyInstance difficulty) {
             setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
+        }
+
+        @Override
+        public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty,
+                                                @Nullable IEntityLivingData livingData) {
+            IEntityLivingData result = super.onInitialSpawn(difficulty, livingData);
+            setEquipmentBasedOnDifficulty(difficulty);
+            setEnchantmentBasedOnDifficulty(difficulty);
+            return result;
+        }
+
+        public boolean isAggressive() {
+            return dataManager.get(AGGRESSIVE);
+        }
+
+        private void setAggressive(boolean aggressive) {
+            dataManager.set(AGGRESSIVE, aggressive);
         }
 
         @Override
@@ -3606,6 +3669,8 @@ public final class SickenedEntities {
         private int nextSpellPickCount;
         private int spellsUsed;
         private int smashAirTime;
+        /** 上游的特殊死亡计时；不能复用 deathTime，否则会触发 1.12 默认侧翻。 */
+        private int specialDeathTime;
         private final List<EntityLivingBase> entitiesToThrow = new ArrayList<EntityLivingBase>();
         private final List<ItemStack> dropItems = new ArrayList<ItemStack>();
         private final List<UUID> fightContributors = new ArrayList<UUID>();
@@ -4003,13 +4068,19 @@ public final class SickenedEntities {
                         .cast((EntityLivingBase) attacker);
             }
             if (source.isExplosion()) amount /= 4.0F;
+            float halfHealth = getMaxHealth() * 0.5F;
+            boolean reachesHalfHealth = false;
             if (shouldNotGoOverHalfHealth()) {
-                float predictedHealth = getHealth() - amount;
-                float halfHealth = getMaxHealth() * 0.5F;
-                amount = Math.min(amount - (halfHealth - predictedHealth), amount);
+                reachesHalfHealth = SymbiontHalfHealthGate.reachesThreshold(
+                        getHealth(), getMaxHealth(), amount);
+                amount = SymbiontHalfHealthGate.clampDamage(getHealth(), getMaxHealth(), amount);
             }
             float before = getHealth();
             boolean result = super.attackEntityFrom(source, amount);
+            if (result && reachesHalfHealth && getHealth() > halfHealth) {
+                // 1.12 在此后才应用护甲；归位到门槛，确保下一轮施法能解除半血锁。
+                setHealth(halfHealth);
+            }
             if (result && before - getHealth() >= 5.0F && attacker instanceof EntityPlayer
                     && !fightContributors.contains(attacker.getUniqueID())) {
                 fightContributors.add(attacker.getUniqueID());
@@ -4334,16 +4405,16 @@ public final class SickenedEntities {
                 super.onDeathUpdate();
                 return;
             }
-            deathTime++;
+            specialDeathTime++;
             if (world instanceof WorldServer) {
-                int particles = Math.max(0, (320 - deathTime) / 40);
+                int particles = Math.max(0, (320 - specialDeathTime) / 40);
                 ((WorldServer) world).spawnParticle(EnumParticleTypes.EXPLOSION_NORMAL,
                         posX, posY + height * 0.5D, posZ, particles,
                         width * 0.5D, height * 0.5D, width * 0.5D, 0.02D);
             }
             float turn = MathHelper.clamp(MathHelper.wrapDegrees(-50.0F - rotationPitch), -3.0F, 3.0F);
             rotationPitch += turn;
-            if (deathTime < 320) return;
+            if (specialDeathTime < 320) return;
             if (!world.isRemote) {
                 distributeCapturedDrops();
                 if (world.getGameRules().getBoolean("doMobLoot")) {
@@ -4596,7 +4667,12 @@ public final class SickenedEntities {
             private DoNothingGoal(WitheredSymbiontEntity entity) { this.entity = entity; setMutexBits(7); }
             @Override public boolean shouldExecute() { return entity.isVulnerable(); }
             @Override public boolean shouldContinueExecuting() { return entity.isVulnerable(); }
+            @Override public void startExecuting() {
+                // 1.12 的目标切换不会总是重置刚被移除近战目标留下的导航路径。
+                entity.getNavigator().clearPath();
+            }
             @Override public void updateTask() {
+                entity.getNavigator().clearPath();
                 float turn = MathHelper.clamp(MathHelper.wrapDegrees(55.0F - entity.rotationPitch), -3.0F, 3.0F);
                 entity.rotationPitch += turn;
             }

@@ -133,8 +133,14 @@ public final class AdvancementResourceConverter {
         JsonObject icon = JsonUtils.getJsonObject(display, "icon", new JsonObject());
         if (icon.has("item") && icon.get("item").isJsonPrimitive()) {
             String itemId = icon.get("item").getAsString();
-            icon.addProperty("item", convertItemId(itemId));
-            applyLegacyItemMetadata(icon, itemId);
+            if ("witherstormmod:withered_symbiont_spawn_egg".equals(itemId)) {
+                icon.addProperty("item", "minecraft:spawn_egg");
+                icon.addProperty("nbt",
+                        "{EntityTag:{id:\"witherstormmod:withered_symbiont\"}}");
+            } else {
+                icon.addProperty("item", convertItemId(itemId));
+                applyLegacyItemMetadata(icon, itemId);
+            }
         }
         if (display.has("background")) {
             String background = JsonUtils.getString(display, "background");

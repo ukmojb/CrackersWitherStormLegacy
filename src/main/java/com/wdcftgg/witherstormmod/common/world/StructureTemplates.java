@@ -45,6 +45,13 @@ public final class StructureTemplates {
             return blockInfo;
         }
     };
+    private static final ITemplateProcessor STORM_SPAWN_PLATFORM_PROCESSOR = new ITemplateProcessor() {
+        @Override
+        public Template.BlockInfo processBlock(World world, BlockPos worldPos, Template.BlockInfo blockInfo) {
+            // Upstream uses BlockIgnoreProcessor.STRUCTURE_BLOCK, so template air must replace terrain.
+            return blockInfo;
+        }
+    };
     private static final ITemplateProcessor FEATURE_REMOVAL_PROCESSOR = new ITemplateProcessor() {
         @Override
         public Template.BlockInfo processBlock(World world, BlockPos worldPos, Template.BlockInfo blockInfo) {
@@ -71,7 +78,7 @@ public final class StructureTemplates {
         if (data == null) return null;
         PlacementSettings settings = new PlacementSettings().setMirror(Mirror.NONE).setRotation(rotation)
                 .setIgnoreEntities(false).setIgnoreStructureBlock(true);
-        data.template.addBlocksToWorld(world, origin, FEATURE_PLACEMENT_PROCESSOR, settings, 2);
+        data.template.addBlocksToWorld(world, origin, STORM_SPAWN_PLATFORM_PROCESSOR, settings, 2);
         for (DataMarker marker : data.dataMarkers) {
             if ("spawn_position".equals(marker.metadata)) {
                 BlockPos spawnPosition = Template.transformedBlockPos(settings, marker.pos).add(origin);

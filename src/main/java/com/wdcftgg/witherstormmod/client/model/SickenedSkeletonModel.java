@@ -1,9 +1,9 @@
 package com.wdcftgg.witherstormmod.client.model;
 
+import com.wdcftgg.witherstormmod.common.entity.SickenedEntities;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
@@ -35,7 +35,7 @@ public class SickenedSkeletonModel extends ModelBiped {
         rightArmPose = ArmPose.EMPTY;
         leftArmPose = ArmPose.EMPTY;
         ItemStack held = entity.getHeldItem(EnumHand.MAIN_HAND);
-        if (held.getItem() instanceof ItemBow && hasAttackTarget(entity)) {
+        if (held.getItem() instanceof ItemBow && isSwingingArms(entity)) {
             if (entity.getPrimaryHand() == EnumHandSide.RIGHT) {
                 rightArmPose = ArmPose.BOW_AND_ARROW;
             } else {
@@ -51,7 +51,7 @@ public class SickenedSkeletonModel extends ModelBiped {
         super.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
         EntityLivingBase living = (EntityLivingBase) entity;
         ItemStack held = living.getHeldItemMainhand();
-        if (hasAttackTarget(living) && (held.isEmpty() || !(held.getItem() instanceof ItemBow))) {
+        if (isSwingingArms(living) && (held.isEmpty() || !(held.getItem() instanceof ItemBow))) {
             float swing = MathHelper.sin(swingProgress * (float) Math.PI);
             float easedSwing = MathHelper.sin((1.0F - (1.0F - swingProgress) * (1.0F - swingProgress)) * (float) Math.PI);
             bipedRightArm.rotateAngleZ = 0.0F;
@@ -67,7 +67,8 @@ public class SickenedSkeletonModel extends ModelBiped {
         }
     }
 
-    private boolean hasAttackTarget(EntityLivingBase entity) {
-        return entity instanceof EntityLiving && ((EntityLiving) entity).getAttackTarget() != null;
+    private boolean isSwingingArms(EntityLivingBase entity) {
+        return entity instanceof SickenedEntities.SickenedSkeletonEntity
+                && ((SickenedEntities.SickenedSkeletonEntity) entity).isSwingingArms();
     }
 }

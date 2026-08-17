@@ -1,9 +1,9 @@
 package com.wdcftgg.witherstormmod.client.render;
 
 import com.wdcftgg.witherstormmod.client.model.SickenedIllagerModel;
+import com.wdcftgg.witherstormmod.common.entity.SickenedEntities;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
 import net.minecraft.client.renderer.entity.layers.LayerHeldItem;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.EnumHandSide;
 
@@ -19,8 +19,8 @@ public final class SickenedIllagerHeldItemLayer extends LayerHeldItem {
     public void doRenderLayer(EntityLivingBase entity, float limbSwing, float limbSwingAmount,
                               float partialTicks, float ageInTicks, float netHeadYaw,
                               float headPitch, float scale) {
-        if (!aggressiveOnly || entity instanceof EntityLiving
-                && ((EntityLiving) entity).getAttackTarget() != null) {
+        if (!aggressiveOnly || entity instanceof SickenedEntities.SickenedVindicatorEntity
+                && ((SickenedEntities.SickenedVindicatorEntity) entity).isAggressive()) {
             super.doRenderLayer(entity, limbSwing, limbSwingAmount, partialTicks,
                     ageInTicks, netHeadYaw, headPitch, scale);
         }

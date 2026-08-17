@@ -30,7 +30,6 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
     public static final WitherStormSpawnManager INSTANCE = new WitherStormSpawnManager();
 
     private static final int OVERWORLD = 0;
-    private static final int STRUCTURE_SALT = 406417795;
     private static final int MINIMUM_AUTO_SPAWN_TICKS = 100;
     private static final int PLATFORM_RECOVERY_INTERVAL = 20;
 
@@ -49,11 +48,12 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
     private void generateStartingStructure(World world, WitherStormSpawnData data, String source) {
         if (data.isPlatformGenerated() && data.getSpawnPosition() != null) return;
 
-        Random platformRandom = new Random(world.getSeed() ^ STRUCTURE_SALT);
-        BlockPos origin = world.getHeight(BlockPos.ORIGIN);
-        String template = selectPlatform(world.getBiome(origin), platformRandom);
+        // At chunk 0,0, Structure.GenerationContext's legacy random is reset to the world seed.
+        Random platformRandom = new Random(world.getSeed());
         Rotation[] rotations = Rotation.values();
         Rotation rotation = rotations[platformRandom.nextInt(rotations.length)];
+        BlockPos origin = world.getHeight(BlockPos.ORIGIN);
+        String template = selectPlatform(world.getBiome(origin), platformRandom);
         BlockPos spawnPosition = StructureTemplates.placeStormSpawnPlatform(world, template, origin, rotation);
         if (spawnPosition == null) {
             WitherStormMod.LOGGER.error("Unable to generate upstream Wither Storm spawn platform {}", template);

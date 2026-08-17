@@ -3,6 +3,7 @@ package com.wdcftgg.witherstormmod.client.jei;
 import com.wdcftgg.witherstormmod.common.beacon.SuperBeaconRecipes;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeWrapper;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemMonsterPlacer;
@@ -17,6 +18,8 @@ import java.util.List;
 
 /** 超级信标配方在 JEI 中的通用展示包装。 */
 public abstract class SuperBeaconRecipeWrapper implements IRecipeWrapper {
+    private static final ResourceLocation SLOT_TEXTURE =
+            new ResourceLocation("witherstormmod", "textures/gui/jei/slot.png");
     private final SuperBeaconRecipes.Recipe recipe;
 
     protected SuperBeaconRecipeWrapper(SuperBeaconRecipes.Recipe recipe) {
@@ -48,10 +51,31 @@ public abstract class SuperBeaconRecipeWrapper implements IRecipeWrapper {
     @Override
     public void drawInfo(Minecraft minecraft, int recipeWidth, int recipeHeight,
                          int mouseX, int mouseY) {
+        drawSlots(minecraft);
         String conditionKey = conditionTranslationKey(recipe.condition);
         if (conditionKey == null) return;
         String text = new TextComponentTranslation(conditionKey).getFormattedText();
-        minecraft.fontRenderer.drawString(text, 5, 42, 0xFF404040);
+        int x = (recipeWidth - minecraft.fontRenderer.getStringWidth(text)) / 2;
+        minecraft.fontRenderer.drawString(text, x, recipeHeight - 10, 0xFFFFFFFF);
+    }
+
+    private void drawSlots(Minecraft minecraft) {
+        minecraft.getTextureManager().bindTexture(SLOT_TEXTURE);
+        int totalSize = recipe.getIngredients().size();
+        int centerY = SuperBeaconLayout.centerY(recipe.condition);
+        for (int index = 0; index < totalSize; index++) {
+            int x = SuperBeaconLayout.inputX(index, totalSize) - 1;
+            int y = SuperBeaconLayout.inputY(index, totalSize, centerY) - 1;
+            Gui.drawModalRectWithCustomSizedTexture(x, y, 0.0F, 0.0F,
+                    SuperBeaconLayout.SLOT_SIZE,
+                    SuperBeaconLayout.SLOT_SIZE, 256.0F, 256.0F);
+        }
+        if (!recipe.isEntityRecipe()) {
+            Gui.drawModalRectWithCustomSizedTexture(SuperBeaconLayout.WIDTH / 2 - 9,
+                    centerY - 9, 0.0F, 0.0F,
+                    SuperBeaconLayout.SLOT_SIZE,
+                    SuperBeaconLayout.SLOT_SIZE, 256.0F, 256.0F);
+        }
     }
 
     private static String conditionTranslationKey(String condition) {

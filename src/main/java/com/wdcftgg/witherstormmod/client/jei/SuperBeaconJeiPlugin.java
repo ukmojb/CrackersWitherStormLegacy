@@ -32,7 +32,8 @@ public final class SuperBeaconJeiPlugin implements IModPlugin {
         List<SuperBeaconRecipes.Recipe> summoning = new ArrayList<SuperBeaconRecipes.Recipe>();
         for (SuperBeaconRecipes.Recipe recipe : SuperBeaconRecipes.getRecipes()) {
             if (recipe.isEntityRecipe()) {
-                summoning.add(recipe);
+                // 上游明确隐藏彩蛋用的 Reuben 猪配方。
+                if (SuperBeaconLayout.shouldShowSummoningEntity(recipe.entity)) summoning.add(recipe);
             } else {
                 itemCrafting.add(recipe);
             }
@@ -49,7 +50,11 @@ public final class SuperBeaconJeiPlugin implements IModPlugin {
                 SUMMONING_UID);
 
         ItemStack beacon = new ItemStack(ModBlocks.get("super_beacon"));
+        ItemStack supportBeacon = new ItemStack(ModBlocks.get("super_support_beacon"));
         registry.addRecipeCatalyst(beacon, ITEM_CRAFTING_UID, SUMMONING_UID);
+        registry.addRecipeCatalyst(supportBeacon, ITEM_CRAFTING_UID, SUMMONING_UID);
+        registry.addIngredientInfo(beacon, ItemStack.class, "withered_beacon.info");
+        registry.addIngredientInfo(supportBeacon, ItemStack.class, "withered_beacon.info");
     }
 
     private static List<SuperBeaconRecipeWrapper> wrap(

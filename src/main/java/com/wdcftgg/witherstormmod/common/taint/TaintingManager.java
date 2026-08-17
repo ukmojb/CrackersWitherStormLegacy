@@ -71,7 +71,7 @@ public final class TaintingManager {
                 TaintingData.createSickenedEntity(recipe.getSickenedType(), original.world);
         if (replacement == null) return false;
         replacement.rememberOriginal(original);
-        copySharedState(original, replacement);
+        copySharedState(original, replacement, true);
         replacement.setSickenedChild(original.isChild());
         replacement.setHealth(replacement.getMaxHealth()
                 * Math.max(0.1F, original.getHealth() / original.getMaxHealth()));
@@ -81,6 +81,10 @@ public final class TaintingManager {
                 original, replacement, SickenedMobConversionEvent.Direction.INFECTION);
         if (MinecraftForge.EVENT_BUS.post(pre)) return false;
         if (!original.world.spawnEntity(replacement)) return false;
+        // WorldTainting.convertMob(..., true) moves the equipment into the
+        // sickened entity. Clear the source only after the replacement is
+        // accepted by the world so a cancelled conversion leaves it intact.
+        clearEquipment(original);
         transferRidingRelationships(original, replacement);
         replacement.playSound(com.wdcftgg.witherstormmod.common.init.ModSounds.get("mob_infected"),
                 1.0F, 1.0F);
@@ -108,10 +112,9 @@ public final class TaintingManager {
             replacement.readFromNBT(saved);
         }
         original.copySpeciesDataTo(replacement);
-        copySharedState(original, replacement);
+        copySharedState(original, replacement, false);
         float healthRatio = original.getHealth() / original.getMaxHealth();
         replacement.setHealth(Math.max(1.0F, replacement.getMaxHealth() * healthRatio));
-        copyEquipment(original, replacement);
         replacement.addPotionEffect(new PotionEffect(MobEffects.NAUSEA, 200));
         SickenedMobConversionEvent.Pre pre = new SickenedMobConversionEvent.Pre(
                 original, replacement, SickenedMobConversionEvent.Direction.CURE);
@@ -146,7 +149,8 @@ public final class TaintingManager {
         return true;
     }
 
-    private static void copySharedState(EntityLivingBase original, EntityLivingBase replacement) {
+    private static void copySharedState(EntityLivingBase original, EntityLivingBase replacement,
+                                        boolean copyDropChances) {
         replacement.setLocationAndAngles(original.posX, original.posY, original.posZ,
                 original.rotationYaw, original.rotationPitch);
         replacement.renderYawOffset = original.renderYawOffset;
@@ -167,7 +171,7 @@ public final class TaintingManager {
             to.setCanPickUpLoot(from.canPickUpLoot());
             to.setLeftHanded(from.isLeftHanded());
             if (from.isNoDespawnRequired()) to.enablePersistence();
-            copyDropChances(from, to);
+            if (copyDropChances) copyDropChances(from, to);
         }
     }
 
@@ -176,6 +180,14 @@ public final class TaintingManager {
             ItemStack equipped = original.getItemStackFromSlot(slot);
             replacement.setItemStackToSlot(slot,
                     equipped.isEmpty() ? ItemStack.EMPTY : equipped.copy());
+        }
+    }
+
+    private static void clearEquipment(EntityLivingBase entity) {
+        for (EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {
+            if (!entity.getItemStackFromSlot(slot).isEmpty()) {
+                entity.setItemStackToSlot(slot, ItemStack.EMPTY);
+            }
         }
     }
 

@@ -26,8 +26,13 @@ import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.monster.EntityEnderman;
+import net.minecraft.entity.monster.EntityGolem;
+import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.entity.monster.EntityWitherSkeleton;
 import net.minecraft.entity.boss.EntityWither;
+import net.minecraft.entity.passive.EntityAnimal;
+import net.minecraft.entity.passive.EntityBat;
+import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityFireball;
@@ -104,7 +109,13 @@ public abstract class SickenedMobEntity extends EntityMob {
                         && !(target instanceof EntityWither)
                         && !(target instanceof EntityWitherSkeleton)
                         && !(target instanceof EntityCreeper)
-                        && !(target instanceof EntityEnderman)));
+                        && !(target instanceof EntityEnderman)
+                        && (target instanceof EntityVillager
+                        || target instanceof EntityGolem
+                        || target instanceof EntityMob
+                        || target instanceof EntitySlime
+                        || target instanceof EntityBat
+                        || target instanceof EntityAnimal)));
     }
 
     protected final void initStandardAnimalAI(double attackSpeed) {
@@ -310,12 +321,25 @@ public abstract class SickenedMobEntity extends EntityMob {
 
     @Override
     public boolean attackEntityAsMob(Entity entityIn) {
+        if (!infectTarget(entityIn)) return false;
         boolean attacked = super.attackEntityAsMob(entityIn);
         if (attacked && getHeldItemMainhand().isEmpty() && entityIn instanceof EntityLivingBase) {
             int difficulty = (int) world.getDifficultyForLocation(new BlockPos(this)).getAdditionalDifficulty();
             ((EntityLivingBase) entityIn).addPotionEffect(new PotionEffect(MobEffects.WITHER, 120 * difficulty));
         }
         return attacked;
+    }
+
+    /**
+     * 上游腐化生物的公共命中契约：可转换的 Mob 会在伤害结算前被替换，
+     * 本次攻击返回 false；没有转换时才继续执行普通伤害。
+     */
+    protected boolean infectTarget(Entity entityIn) {
+        if (!(entityIn instanceof EntityLiving)) return true;
+        if (!TaintingManager.convertEntity((EntityLiving) entityIn, false)) return true;
+        int healAmount = getInfectedHealAmount();
+        if (healAmount > 0) heal(healAmount);
+        return false;
     }
 
     @Override
@@ -345,12 +369,6 @@ public abstract class SickenedMobEntity extends EntityMob {
     @Override
     public void onKillEntity(EntityLivingBase victim) {
         super.onKillEntity(victim);
-        if (!world.isRemote && TaintingManager.convertEntity(victim, false)) {
-            int amount = getInfectedHealAmount();
-            if (amount > 0) {
-                heal(amount);
-            }
-        }
     }
 
     protected int getInfectedHealAmount() {
