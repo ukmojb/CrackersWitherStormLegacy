@@ -2,10 +2,7 @@
 
 将 [Cracker's Wither Storm Mod](https://www.curseforge.com/minecraft/mc-mods/wither-storm-mod)（Forge 1.20.1，版本 4.2.1）完整移植到 Minecraft 1.12.2 / CleanroomLoader 的社区移植版。
 
-模组 ID：`witherstormmod`
-模组名称：`Cracker's Wither Storm Legacy`
-
-## 重要：上游资源包要求（ARR 合规）
+## 如何食用与 ARR 相关声明
 
 上游模组受 **All Rights Reserved** 协议保护，本移植版**不包含**上游的任何纹理、声音、模型、结构、语言文件或数据文件。
 
@@ -30,6 +27,7 @@
 ## 环境要求
 
 - Minecraft 1.12.2
-- CleanroomLoader 0.6.6-alpha（Forge 1.12.2 分支）
-- Future MC（本移植依赖其提供的 1.13+ 方块/物品/生物，例如枯萎玫瑰、钟等）
+- CleanroomLoader 0.6.6-alpha及以上
+- Future MC（可选）
+- Crossbow（可选）
 - JEI（可选）
