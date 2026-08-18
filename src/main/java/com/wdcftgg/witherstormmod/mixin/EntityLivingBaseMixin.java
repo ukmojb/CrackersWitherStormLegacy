@@ -3,8 +3,6 @@ package com.wdcftgg.witherstormmod.mixin;
 import com.wdcftgg.witherstormmod.common.access.EntityLivingBaseExperienceAccess;
 import com.wdcftgg.witherstormmod.common.access.EntityLivingBaseDeathProtectionAccess;
 import com.wdcftgg.witherstormmod.common.entity.WitherStormEntity;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
@@ -14,6 +12,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -83,19 +82,17 @@ public abstract class EntityLivingBaseMixin implements EntityLivingBaseExperienc
         if (!entity.world.isRemote) witherstormmod$deathProtectionActive = false;
     }
 
-    @WrapOperation(
-            method = {"onDeathUpdate()V", "func_70609_aI()V"},
+    @Redirect(
+            method = "onDeathUpdate()V",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraftforge/event/ForgeEventFactory;getExperienceDrop(Lnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/entity/player/EntityPlayer;I)I",
                     remap = false),
-            remap = false,
             require = 1)
     private int witherstormmod$skipCapturedExperience(
-            EntityLivingBase entity, EntityPlayer player, int originalExperience,
-            Operation<Integer> originalOperation) {
+            EntityLivingBase entity, EntityPlayer player, int originalExperience) {
         if (!witherstormmod$skipNextExperienceDrop) {
-            return originalOperation.call(entity, player, originalExperience);
+            return ForgeEventFactory.getExperienceDrop(entity, player, originalExperience);
         }
         witherstormmod$skipNextExperienceDrop = false;
         return 0;
