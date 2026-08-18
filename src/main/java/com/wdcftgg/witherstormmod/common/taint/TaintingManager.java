@@ -3,6 +3,7 @@ package com.wdcftgg.witherstormmod.common.taint;
 import com.wdcftgg.witherstormmod.common.advancement.ModCriteriaTriggers;
 import com.wdcftgg.witherstormmod.api.common.event.SickenedMobConversionEvent;
 import com.wdcftgg.witherstormmod.common.entity.SickenedMobEntity;
+import com.wdcftgg.witherstormmod.common.init.ModSounds;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EntityLiving;
@@ -20,6 +21,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.village.Village;
+import net.minecraft.entity.passive.EntityVillager;
 import net.minecraftforge.common.MinecraftForge;
 
 import java.util.ArrayList;
@@ -86,7 +88,7 @@ public final class TaintingManager {
         // accepted by the world so a cancelled conversion leaves it intact.
         clearEquipment(original);
         transferRidingRelationships(original, replacement);
-        replacement.playSound(com.wdcftgg.witherstormmod.common.init.ModSounds.get("mob_infected"),
+        replacement.playSound(ModSounds.get("mob_infected"),
                 1.0F, 1.0F);
         original.setDead();
         MinecraftForge.EVENT_BUS.post(new SickenedMobConversionEvent.Post(
@@ -124,7 +126,7 @@ public final class TaintingManager {
         }
         if (!original.world.spawnEntity(replacement)) return false;
         transferRidingRelationships(original, replacement);
-        if (replacement instanceof net.minecraft.entity.passive.EntityVillager
+        if (replacement instanceof EntityVillager
                 && original.getConversionStarter() != null) {
             Village village = replacement.world.getVillageCollection().getNearestVillage(
                     new BlockPos(Math.floor(replacement.posX), Math.floor(replacement.posY),
@@ -133,10 +135,10 @@ public final class TaintingManager {
                 village.modifyPlayerReputation(original.getConversionStarter(), 5);
             }
         }
-        replacement.playSound(com.wdcftgg.witherstormmod.common.init.ModSounds.get("mob_cured"),
+        replacement.playSound(ModSounds.get("mob_cured"),
                 1.0F, 1.0F);
         if (original.getConversionStarter() != null && original.world instanceof WorldServer) {
-            net.minecraft.entity.Entity starter = original.world.getMinecraftServer()
+            Entity starter = original.world.getMinecraftServer()
                     .getPlayerList().getPlayerByUUID(original.getConversionStarter());
             if (starter instanceof EntityPlayerMP) {
                 ModCriteriaTriggers.CURED_SICKENED_MOB.trigger(

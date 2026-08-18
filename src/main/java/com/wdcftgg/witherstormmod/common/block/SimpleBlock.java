@@ -20,6 +20,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.world.World;
 import net.minecraft.world.Explosion;
+import net.minecraft.stats.StatList;
+import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -85,7 +87,7 @@ public class SimpleBlock extends Block {
                              @Nullable TileEntity tileEntity, ItemStack tool) {
         String name = getRegistryName() == null ? "" : getRegistryName().getPath();
         if ("tainted_leaves".equals(name) && tool.getItem() == Items.SHEARS) {
-            player.addStat(net.minecraft.stats.StatList.getBlockStats(this));
+            player.addStat(StatList.getBlockStats(this));
             player.addExhaustion(0.005F);
             if (!world.isRemote) spawnAsEntity(world, pos, new ItemStack(this));
             return;
@@ -94,7 +96,7 @@ public class SimpleBlock extends Block {
     }
 
     @Override
-    public boolean canEntityDestroy(IBlockState state, net.minecraft.world.IBlockAccess world,
+    public boolean canEntityDestroy(IBlockState state, IBlockAccess world,
                                     BlockPos pos, Entity entity) {
         return !(isBossImmuneBlock() && isDestructiveBoss(entity))
                 && super.canEntityDestroy(state, world, pos, entity);

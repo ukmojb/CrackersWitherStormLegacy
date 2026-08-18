@@ -34,6 +34,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.WorldEntitySpawner;
+import net.minecraft.entity.ai.attributes.IAttribute;
 import net.minecraftforge.event.ForgeEventFactory;
 
 import javax.annotation.Nullable;
@@ -736,7 +737,7 @@ public final class BowelsBossfightController {
     }
 
     private static void applyAttributeModifier(EntityLivingBase entity,
-                                               net.minecraft.entity.ai.attributes.IAttribute attribute,
+                                               IAttribute attribute,
                                                String name, double amount, int operation) {
         IAttributeInstance instance = entity.getEntityAttribute(attribute);
         if (instance != null) instance.applyModifier(new AttributeModifier(name, amount, operation));

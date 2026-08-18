@@ -54,6 +54,8 @@ import net.minecraft.item.ItemDoor;
 import net.minecraft.item.EnumRarity;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraft.client.renderer.block.statemap.StateMap;
+import net.minecraft.block.BlockLeaves;
+import net.minecraft.block.state.IBlockState;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -162,8 +164,8 @@ public final class ModBlocks {
             ModelLoader.setCustomModelResourceLocation(item, 0, inventoryModel);
             if (block instanceof TaintedLeavesBlock) {
                 ModelLoader.setCustomStateMapper(block, new StateMap.Builder()
-                        .ignore(net.minecraft.block.BlockLeaves.DECAYABLE,
-                                net.minecraft.block.BlockLeaves.CHECK_DECAY)
+                        .ignore(BlockLeaves.DECAYABLE,
+                                BlockLeaves.CHECK_DECAY)
                         .build());
             }
             if (block instanceof TaintedWallBlock) {
@@ -175,12 +177,12 @@ public final class ModBlocks {
     @SideOnly(Side.CLIENT)
     private static void mapHangingSignToParticleModel(Block block) {
         ModelLoader.setCustomStateMapper(block, mappedBlock -> {
-            Map<net.minecraft.block.state.IBlockState, ModelResourceLocation> locations =
-                    new LinkedHashMap<net.minecraft.block.state.IBlockState, ModelResourceLocation>();
+            Map<IBlockState, ModelResourceLocation> locations =
+                    new LinkedHashMap<IBlockState, ModelResourceLocation>();
             // The external upstream sign model has no geometry; it only supplies tainted-plank particles.
             ModelResourceLocation particleModel = new ModelResourceLocation(
                     Tags.MOD_ID + ":tainted_sign", "normal");
-            for (net.minecraft.block.state.IBlockState state
+            for (IBlockState state
                     : mappedBlock.getBlockState().getValidStates()) {
                 locations.put(state, particleModel);
             }

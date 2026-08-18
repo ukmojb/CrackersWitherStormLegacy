@@ -2,6 +2,8 @@ package com.wdcftgg.witherstormmod.common.tile;
 
 import com.wdcftgg.witherstormmod.common.beacon.SuperBeaconLogic;
 import com.wdcftgg.witherstormmod.common.init.ModSounds;
+import com.wdcftgg.witherstormmod.common.network.ModNetwork;
+import com.wdcftgg.witherstormmod.common.world.ChunkLoadingManager;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
@@ -42,7 +44,7 @@ public abstract class AbstractSuperBeaconTileEntity extends TileEntity {
     protected final void tickBeaconBase() {
         ticks++;
         if (world != null && !world.isRemote) {
-            com.wdcftgg.witherstormmod.common.network.ModNetwork.updateDistantSuperBeacon(this);
+            ModNetwork.updateDistantSuperBeacon(this);
         }
         if (hasReachedPowerUpClimax()) {
             activationTime++;
@@ -248,8 +250,8 @@ public abstract class AbstractSuperBeaconTileEntity extends TileEntity {
             playSound("withered_beacon_deactivate", 1.0F, 1.0F);
         }
         if (world != null && !world.isRemote) {
-            com.wdcftgg.witherstormmod.common.network.ModNetwork.removeDistantSuperBeacon(this);
-            com.wdcftgg.witherstormmod.common.world.ChunkLoadingManager.INSTANCE
+            ModNetwork.removeDistantSuperBeacon(this);
+            ChunkLoadingManager.INSTANCE
                     .releaseSuperBeacon(world, pos);
         }
         super.invalidate();

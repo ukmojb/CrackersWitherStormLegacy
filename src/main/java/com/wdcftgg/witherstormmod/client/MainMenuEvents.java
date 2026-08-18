@@ -19,6 +19,7 @@ public final class MainMenuEvents {
     @SubscribeEvent
     public static void chooseSplash(GuiOpenEvent event) {
         if (!(event.getGui() instanceof GuiMainMenu)) return;
+        PanoramaCustomizer.sync();
         String splash = UpstreamSplashes.choose(Minecraft.getMinecraft().getResourceManager());
         if (splash != null) ((GuiMainMenu) event.getGui()).splashText = splash;
     }

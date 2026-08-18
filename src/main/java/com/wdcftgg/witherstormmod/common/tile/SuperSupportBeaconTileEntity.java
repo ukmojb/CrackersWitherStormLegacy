@@ -1,6 +1,7 @@
 package com.wdcftgg.witherstormmod.common.tile;
 
 import com.wdcftgg.witherstormmod.common.beacon.SuperBeaconLogic;
+import com.wdcftgg.witherstormmod.common.network.ModNetwork;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -10,6 +11,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.entity.player.EntityPlayerMP;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -53,7 +55,7 @@ public class SuperSupportBeaconTileEntity extends AbstractSuperBeaconTileEntity 
             playSound("withered_beacon_activate", 1.0F, 1.0F);
             playSound("tremble", 10.0F, 1.0F);
             BlockPos mainPos = main.getPos();
-            com.wdcftgg.witherstormmod.common.network.ModNetwork.shakeNear(world,
+            ModNetwork.shakeNear(world,
                     mainPos.getX(), mainPos.getY(), mainPos.getZ(),
                     20.0D, 80.0F, 10.0F);
         }
@@ -109,7 +111,7 @@ public class SuperSupportBeaconTileEntity extends AbstractSuperBeaconTileEntity 
     }
 
     @Override
-    public void doPowerUp(net.minecraft.entity.player.EntityPlayerMP player) {
+    public void doPowerUp(EntityPlayerMP player) {
         super.doPowerUp(player);
     }
 

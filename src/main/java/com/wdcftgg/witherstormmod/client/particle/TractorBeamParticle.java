@@ -20,6 +20,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -115,9 +116,9 @@ public final class TractorBeamParticle extends Particle {
             float pitchOffset = (random.nextFloat() * spread - spread * 0.5F) * 0.017453292F;
             Vec3d variedDirection = direction.rotatePitch(pitchOffset).rotateYaw(yawOffset).normalize();
             Vec3d end = headPosition.add(variedDirection.scale(distance)).add(0.0D, 5.5D, 0.0D);
-            net.minecraft.util.math.RayTraceResult hit = source.world.rayTraceBlocks(
+            RayTraceResult hit = source.world.rayTraceBlocks(
                     headPosition, end, false, true, false);
-            if (hit == null || hit.typeOfHit != net.minecraft.util.math.RayTraceResult.Type.BLOCK) continue;
+            if (hit == null || hit.typeOfHit != RayTraceResult.Type.BLOCK) continue;
             BlockPos hitPosition = hit.getBlockPos();
             if (!WorldUtil.isBlockExposed(source.world, hitPosition)) continue;
             IBlockState state = source.world.getBlockState(hitPosition);

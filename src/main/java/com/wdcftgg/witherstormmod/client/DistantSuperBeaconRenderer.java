@@ -2,6 +2,7 @@ package com.wdcftgg.witherstormmod.client;
 
 import com.wdcftgg.witherstormmod.common.network.ModNetwork;
 import com.wdcftgg.witherstormmod.client.render.DistantProjection;
+import com.wdcftgg.witherstormmod.Tags;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntityBeaconRenderer;
@@ -10,13 +11,15 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@net.minecraftforge.fml.common.Mod.EventBusSubscriber(
-        modid = com.wdcftgg.witherstormmod.Tags.MOD_ID,
-        value = net.minecraftforge.fml.relauncher.Side.CLIENT)
+@Mod.EventBusSubscriber(
+        modid = Tags.MOD_ID,
+        value = Side.CLIENT)
 public final class DistantSuperBeaconRenderer {
     private static final Map<BlockPos, State> STATES = new HashMap<BlockPos, State>();
     private static World stateWorld;

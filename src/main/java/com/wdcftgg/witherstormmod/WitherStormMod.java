@@ -36,6 +36,7 @@ import com.wdcftgg.witherstormmod.common.world.ChunkLoadingManager;
 import com.wdcftgg.witherstormmod.common.world.WitherStormSpawnManager;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
@@ -46,9 +47,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
+import com.cleanroommc.assetmover.AssetMoverAPI;
+import net.minecraftforge.fml.relauncher.Side;
 
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION,
-        dependencies = "required-after:futuremc;required-after:crossbow",
+        dependencies = "required-after:futuremc;required-after:crossbow;required-after:assetmover",
         guiFactory = "com.wdcftgg.witherstormmod.client.config.WitherStormGuiFactory")
 public class WitherStormMod {
 
@@ -57,6 +62,18 @@ public class WitherStormMod {
 
     @Mod.Instance(Tags.MOD_ID)
     public static WitherStormMod INSTANCE;
+
+    public WitherStormMod() {
+        if (FMLCommonHandler.instance().getSide() != Side.CLIENT) return;
+        Map<String, String> panoramaAssets = new HashMap<String, String>();
+        for (int face = 1; face <= 5; face++) {
+            String path = "assets/minecraft/textures/gui/title/background/panorama_" + face + ".png";
+            panoramaAssets.put(path, path);
+        }
+        // Keep Mojang's vanilla faces outside this JAR; AssetMover downloads them
+        // into its own resource pack during construction, before preInit reloads assets.
+        AssetMoverAPI.fromMinecraft("1.20.1", panoramaAssets);
+    }
 
     @SidedProxy(
             clientSide = "com.wdcftgg.witherstormmod.common.proxy.ClientProxy",

@@ -185,7 +185,9 @@ public class WitherStormRenderer extends RenderLiving<WitherStormEntity> {
     @Override
     protected void applyRotations(WitherStormEntity entity, float ageInTicks,
                                   float rotationYaw, float partialTicks) {
-        GlStateManager.rotate(180.0F - rotationYaw, 0.0F, 1.0F, 0.0F);
+        // RenderLivingBase's rotationYaw can still be the tracker sample. Use the
+        // body-specific interpolation fed by the upstream-style rotation packet.
+        GlStateManager.rotate(180.0F - entity.getBodyYRotation(partialTicks), 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(entity.getBodyXRotation(partialTicks), 1.0F, 0.0F, 0.0F);
     }
 

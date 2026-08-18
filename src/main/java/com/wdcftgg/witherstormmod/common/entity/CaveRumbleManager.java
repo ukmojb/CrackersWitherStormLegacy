@@ -25,6 +25,7 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.WorldServer;
+import net.minecraft.util.EnumFacing;
 
 import java.util.Random;
 
@@ -126,7 +127,7 @@ public final class CaveRumbleManager {
 
     private static boolean isBlockExposed(WorldServer world, BlockPos position, IBlockState state) {
         if (state.getMaterial().isReplaceable()) return false;
-        for (net.minecraft.util.EnumFacing facing : net.minecraft.util.EnumFacing.values()) {
+        for (EnumFacing facing : EnumFacing.values()) {
             BlockPos neighbor = position.offset(facing);
             if (world.isAirBlock(neighbor) || world.getBlockState(neighbor).getMaterial().isReplaceable()) return true;
         }

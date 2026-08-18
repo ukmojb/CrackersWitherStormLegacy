@@ -14,6 +14,8 @@ import net.minecraft.potion.Potion;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
@@ -307,12 +309,12 @@ public class SuperBeaconScreen extends GuiContainer {
             }
             minecraft.getTextureManager().bindTexture(INVENTORY);
             int icon = effect.getStatusIconIndex();
-            net.minecraft.client.renderer.GlStateManager.pushMatrix();
-            net.minecraft.client.renderer.GlStateManager.translate(x, y, 0.0F);
-            net.minecraft.client.renderer.GlStateManager.scale(scale, scale, 1.0F);
-            net.minecraft.client.gui.Gui.drawModalRectWithCustomSizedTexture(0, 0, icon % 8 * 18,
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(x, y, 0.0F);
+            GlStateManager.scale(scale, scale, 1.0F);
+            Gui.drawModalRectWithCustomSizedTexture(0, 0, icon % 8 * 18,
                     198 + icon / 8 * 18, 18, 18, 256, 256);
-            net.minecraft.client.renderer.GlStateManager.popMatrix();
+            GlStateManager.popMatrix();
         }
     }
 }

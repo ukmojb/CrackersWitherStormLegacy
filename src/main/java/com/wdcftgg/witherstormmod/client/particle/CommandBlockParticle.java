@@ -4,6 +4,7 @@ import com.wdcftgg.witherstormmod.Tags;
 import com.wdcftgg.witherstormmod.common.entity.PowerfulExplosiveEntity;
 import com.wdcftgg.witherstormmod.common.entity.SupplementalEntities;
 import com.wdcftgg.witherstormmod.common.entity.SickenedEntities;
+import com.wdcftgg.witherstormmod.common.entity.WitherStormEntity;
 import com.wdcftgg.witherstormmod.common.network.ModNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
@@ -137,6 +138,30 @@ public final class CommandBlockParticle extends Particle {
             if (delta.lengthSquared() > 1.0E-6D) delta = delta.normalize().scale(0.2D);
             minecraft.effectRenderer.addEffect(new CommandBlockParticle(symbiont.world,
                     x, y, z, delta.x, delta.y, delta.z, sprites));
+        }
+    }
+
+    /** Upstream WitherStormEntity emits five command-block particles while below phase 3. */
+    public static void spawnForWitherStorm(WitherStormEntity storm) {
+        if (storm == null || storm.world == null || !storm.world.isRemote || storm.isDead
+                || storm.getPhase() >= 3) return;
+        Minecraft minecraft = Minecraft.getMinecraft();
+        TextureAtlasSprite[] sprites = resolveSprites(minecraft);
+        if (sprites == null) return;
+
+        Random random = storm.world.rand;
+        float angle = (storm.getBodyYRotation(1.0F) + 90.0F) * (float) (Math.PI / 180.0D);
+        double x = Math.sin(angle) * 0.3D + storm.posX;
+        double z = Math.cos(angle) * 0.3D + storm.posZ;
+        double y = storm.posY + 1.4D;
+        for (int i = 0; i < 5; i++) {
+            double startX = x + random.nextGaussian();
+            double startY = y + random.nextGaussian();
+            double startZ = z + random.nextGaussian();
+            Vec3d delta = new Vec3d(x, y, z).subtract(startX, startY, startZ);
+            if (delta.lengthSquared() > 1.0E-6D) delta = delta.normalize().scale(0.1D);
+            minecraft.effectRenderer.addEffect(new CommandBlockParticle(storm.world,
+                    startX, startY, startZ, delta.x, delta.y, delta.z, sprites));
         }
     }
 

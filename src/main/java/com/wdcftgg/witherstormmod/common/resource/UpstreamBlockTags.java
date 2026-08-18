@@ -27,6 +27,8 @@ import net.minecraft.block.BlockSign;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.block.BlockDoor;
+import net.minecraft.block.BlockTrapDoor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -303,8 +305,8 @@ public final class UpstreamBlockTags {
                     || block == Blocks.DIAMOND_BLOCK || block == Blocks.EMERALD_BLOCK;
         }
         if ("minecraft:stone_bricks".equals(tagName)) return block == Blocks.STONEBRICK;
-        if ("minecraft:doors".equals(tagName)) return block instanceof net.minecraft.block.BlockDoor;
-        if ("minecraft:trapdoors".equals(tagName)) return block instanceof net.minecraft.block.BlockTrapDoor;
+        if ("minecraft:doors".equals(tagName)) return block instanceof BlockDoor;
+        if ("minecraft:trapdoors".equals(tagName)) return block instanceof BlockTrapDoor;
         if ("minecraft:campfires".equals(tagName)) {
             ResourceLocation id = block.getRegistryName();
             return id != null && "futuremc".equals(id.getNamespace()) && id.getPath().contains("campfire");

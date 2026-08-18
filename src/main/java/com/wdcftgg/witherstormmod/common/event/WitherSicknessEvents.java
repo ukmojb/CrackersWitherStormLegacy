@@ -20,6 +20,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
@@ -28,6 +29,9 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.Event;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerChangedDimensionEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.ArrayList;
@@ -147,20 +151,17 @@ public final class WitherSicknessEvents {
     }
 
     @SubscribeEvent
-    public static void onPlayerLoggedIn(
-            net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent event) {
+    public static void onPlayerLoggedIn(PlayerLoggedInEvent event) {
         synchronizePlayer(event.player);
     }
 
     @SubscribeEvent
-    public static void onPlayerChangedDimension(
-            net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerChangedDimensionEvent event) {
+    public static void onPlayerChangedDimension(PlayerChangedDimensionEvent event) {
         synchronizePlayer(event.player);
     }
 
     @SubscribeEvent
-    public static void onPlayerRespawn(
-            net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent event) {
+    public static void onPlayerRespawn(PlayerRespawnEvent event) {
         synchronizePlayer(event.player);
     }
 
@@ -176,7 +177,7 @@ public final class WitherSicknessEvents {
         }
     }
 
-    private static void synchronizePlayer(net.minecraft.entity.player.EntityPlayer player) {
+    private static void synchronizePlayer(EntityPlayer player) {
         if (!(player instanceof EntityPlayerMP)) return;
         WitherSicknessTracker tracker = WitherSicknessCapability.get(player);
         if (tracker != null) {

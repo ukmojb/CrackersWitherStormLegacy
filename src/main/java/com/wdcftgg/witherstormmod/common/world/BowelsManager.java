@@ -22,6 +22,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.WorldServer;
 import net.minecraft.util.Rotation;
 import net.minecraft.world.gen.structure.template.Template;
+import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -426,7 +427,7 @@ public final class BowelsManager {
                     candidate = candidate.down();
                 }
                 BlockPos floor = candidate.down();
-                if (!world.isAirBlock(candidate) || !world.isSideSolid(floor, net.minecraft.util.EnumFacing.UP)
+                if (!world.isAirBlock(candidate) || !world.isSideSolid(floor, EnumFacing.UP)
                         || Math.sqrt(candidate.distanceSq(center)) <= 10.0D) continue;
                 if (!world.getEntitiesWithinAABB(SickenedEntities.TentacleEntity.class,
                         new AxisAlignedBB(candidate).grow(10.0D)).isEmpty()) continue;
@@ -593,7 +594,7 @@ public final class BowelsManager {
     }
 
     private static boolean hasVerticalSpace(WorldServer world, BlockPos floor, int height) {
-        if (!world.isSideSolid(floor, net.minecraft.util.EnumFacing.UP)) return false;
+        if (!world.isSideSolid(floor, EnumFacing.UP)) return false;
         for (int y = 1; y <= height; y++) {
             BlockPos pos = floor.up(y);
             if (!world.isAirBlock(pos) && !world.getBlockState(pos).getBlock().isReplaceable(world, pos)) return false;

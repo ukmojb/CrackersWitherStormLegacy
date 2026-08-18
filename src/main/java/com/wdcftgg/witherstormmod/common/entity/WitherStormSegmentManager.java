@@ -12,6 +12,7 @@ import com.wdcftgg.witherstormmod.common.resource.UpstreamEntityTags;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamItemTags;
 import com.wdcftgg.witherstormmod.common.util.TractorBeamHelper;
 import com.wdcftgg.witherstormmod.common.util.WorldUtil;
+import com.wdcftgg.witherstormmod.common.network.ModNetwork;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -293,7 +294,7 @@ final class WitherStormSegmentManager {
                     segment.posX, segment.posY + segment.getEyeHeight(), segment.posZ);
             if (preferSpecialTarget
                     && (UpstreamEntityTags.contains(UpstreamEntityTags.FAVOURABLE_MOBS, candidate)
-                    || candidate instanceof net.minecraft.entity.player.EntityPlayer)
+                    || candidate instanceof EntityPlayer)
                     && distance < nearestSpecialTargetDistance) {
                 nearestSpecialTarget = candidate;
                 nearestSpecialTargetDistance = distance;
@@ -903,7 +904,7 @@ final class WitherStormSegmentManager {
 
     private boolean countAttack(WitherStormEntity owner, int index, @Nullable Entity attacker) {
         HeadState state = heads[index];
-        com.wdcftgg.witherstormmod.common.network.ModNetwork.notifyHeadAttacked(segment, index);
+        ModNetwork.notifyHeadAttacked(segment, index);
         state.hits++;
         segment.setHeadFlag(shakeBit(index), true);
         if (state.hits < requiredHits(index)) {
@@ -991,7 +992,7 @@ final class WitherStormSegmentManager {
             pulled.motionZ = velocity.z;
             pulled.velocityChanged = true;
             if (target instanceof EntityPlayerMP) {
-                com.wdcftgg.witherstormmod.common.network.ModNetwork.setPlayerMotion(
+                ModNetwork.setPlayerMotion(
                         (EntityPlayerMP) target, pulled, velocity);
             }
         }

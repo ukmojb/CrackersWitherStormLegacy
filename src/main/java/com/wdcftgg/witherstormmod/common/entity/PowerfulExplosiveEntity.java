@@ -106,7 +106,7 @@ public abstract class PowerfulExplosiveEntity extends EntityTNTPrimed {
                 if (storm.isDeadOrPlayingDead()) continue;
                 int head = storm.findContainingTractorBeamHead(this, 4.0D);
                 if (head < 0) continue;
-                net.minecraft.util.math.Vec3d headPosition = storm.getHeadPosition(head, 1.0F);
+                Vec3d headPosition = storm.getHeadPosition(head, 1.0F);
                 if (headPosition == null) return;
                 if (getDistanceSq(headPosition.x, headPosition.y, headPosition.z) > 144.0D) {
                     if (getFuse() == 20) setFuse(80);

@@ -24,6 +24,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.Explosion;
+import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -101,7 +102,7 @@ public class SuperBeaconBlock extends BlockContainer {
     }
 
     @Override
-    public boolean canEntityDestroy(IBlockState state, net.minecraft.world.IBlockAccess world,
+    public boolean canEntityDestroy(IBlockState state, IBlockAccess world,
                                     BlockPos pos, Entity entity) {
         return !SimpleBlock.isDestructiveBoss(entity)
                 && super.canEntityDestroy(state, world, pos, entity);

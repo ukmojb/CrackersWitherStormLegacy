@@ -20,6 +20,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
+import net.minecraft.util.EnumFacing;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -81,7 +82,7 @@ public class FormidibombItem extends RarityBlockItem {
 
     @Override
     public boolean placeBlockAt(ItemStack stack, EntityPlayer player, World world, BlockPos pos,
-                                net.minecraft.util.EnumFacing side, float hitX, float hitY, float hitZ,
+                                EnumFacing side, float hitX, float hitY, float hitZ,
                                 IBlockState newState) {
         if (!super.placeBlockAt(stack, player, world, pos, side, hitX, hitY, hitZ, newState)) return false;
         TileEntity tile = world.getTileEntity(pos);

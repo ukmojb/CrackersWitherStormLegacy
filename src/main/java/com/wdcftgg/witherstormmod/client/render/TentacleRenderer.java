@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
 
 /** 1.12 equivalent of the upstream non-living tentacle renderer. */
 public final class TentacleRenderer extends RenderLivingBase<SickenedEntities.TentacleEntity> {
@@ -36,7 +37,7 @@ public final class TentacleRenderer extends RenderLivingBase<SickenedEntities.Te
         // upright for their entire vanilla 20-tick death window.
         if (entity.deathTime > 0) {
             float progress = (entity.deathTime + partialTicks - 1.0F) / 20.0F * 1.6F;
-            progress = net.minecraft.util.math.MathHelper.sqrt(Math.min(progress, 1.0F));
+            progress = MathHelper.sqrt(Math.min(progress, 1.0F));
             GlStateManager.rotate(progress * 90.0F, 0.0F, 0.0F, 1.0F);
         }
         GlStateManager.scale(-2.0F, -2.0F, 2.0F);

@@ -11,6 +11,8 @@
     "client.PigRendererMixin",
     "client.ModelBipedMixin",
     "client.LayerHeldItemMixin",
+    "client.ClassicBarHealthRendererMixin",
+    "client.GuiMainMenuPanoramaMixin",
     "client.FutureMcTridentRendererMixin",
     "client.RenderManagerMixin"
   ],

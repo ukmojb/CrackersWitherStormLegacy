@@ -12,6 +12,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -43,7 +44,7 @@ public class TaintedMushroomBlock extends BlockBush {
                 || soil.getBlock() == Blocks.DIRT
                 && soil.getValue(BlockDirt.VARIANT) == BlockDirt.DirtType.PODZOL
                 || world.getLightFromNeighbors(pos) < 13
-                && soil.getBlock().canSustainPlant(soil, world, pos.down(), net.minecraft.util.EnumFacing.UP, this);
+                && soil.getBlock().canSustainPlant(soil, world, pos.down(), EnumFacing.UP, this);
     }
 
     @Override

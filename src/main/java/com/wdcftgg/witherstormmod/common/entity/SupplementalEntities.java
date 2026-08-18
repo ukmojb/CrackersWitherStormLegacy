@@ -58,6 +58,9 @@ import net.minecraft.world.BossInfoServer;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.pathfinding.PathNavigateGround;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
+import net.minecraft.world.EnumDifficulty;
 import com.wdcftgg.witherstormmod.common.init.ModBlocks;
 import com.wdcftgg.witherstormmod.common.init.ModItems;
 import com.wdcftgg.witherstormmod.common.init.ModSounds;
@@ -68,6 +71,7 @@ import com.wdcftgg.witherstormmod.common.resource.UpstreamBlockTags;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamItemTags;
 import com.wdcftgg.witherstormmod.common.util.TractorBeamHelper;
 import com.wdcftgg.witherstormmod.common.util.WorldUtil;
+import com.wdcftgg.witherstormmod.Tags;
 
 import java.util.List;
 import java.util.UUID;
@@ -90,11 +94,33 @@ public final class SupplementalEntities {
     private SupplementalEntities() {
     }
 
-    public static class FlamingWitherSkullEntity extends EntityWitherSkull {
+    public static class FlamingWitherSkullEntity extends EntityWitherSkull
+            implements IEntityAdditionalSpawnData {
         public FlamingWitherSkullEntity(World world) { super(world); setSize(0.8F, 0.8F); }
         public FlamingWitherSkullEntity(World world, EntityLivingBase shooter, double accelerationX, double accelerationY, double accelerationZ) {
             super(world, shooter, accelerationX, accelerationY, accelerationZ);
             setSize(0.8F, 0.8F);
+        }
+
+        /**
+         * EntityWitherSkull's vanilla spawn packet does not carry the
+         * acceleration vector. The upstream projectile is an
+         * AbstractHurtingProjectile and explicitly synchronizes it; without
+         * the same data the 1.12 client waits for periodic position corrections
+         * and the skull visibly advances in steps.
+         */
+        @Override
+        public void writeSpawnData(ByteBuf buffer) {
+            buffer.writeDouble(accelerationX);
+            buffer.writeDouble(accelerationY);
+            buffer.writeDouble(accelerationZ);
+        }
+
+        @Override
+        public void readSpawnData(ByteBuf buffer) {
+            accelerationX = buffer.readDouble();
+            accelerationY = buffer.readDouble();
+            accelerationZ = buffer.readDouble();
         }
 
         @Override
@@ -129,8 +155,8 @@ public final class SupplementalEntities {
                 damaged = result.entityHit.attackEntityFrom(DamageSource.MAGIC, 8.0F);
             }
             if (damaged && result.entityHit instanceof EntityLivingBase
-                    && (world.getDifficulty() == net.minecraft.world.EnumDifficulty.NORMAL
-                    || world.getDifficulty() == net.minecraft.world.EnumDifficulty.HARD)) {
+                    && (world.getDifficulty() == EnumDifficulty.NORMAL
+                    || world.getDifficulty() == EnumDifficulty.HARD)) {
                 ((EntityLivingBase) result.entityHit).addPotionEffect(new PotionEffect(MobEffects.WITHER, 180, 1));
             }
         }
@@ -493,7 +519,7 @@ public final class SupplementalEntities {
         }
 
         private static boolean isNonAir(@Nullable IBlockState state) {
-            return state != null && state.getBlock() != net.minecraft.init.Blocks.AIR;
+            return state != null && state.getBlock() != Blocks.AIR;
         }
 
         /** 将一段方块区域转换为可移动的实体簇，并从世界中取走原方块。 */
@@ -516,7 +542,7 @@ public final class SupplementalEntities {
                     for (int z = minimum.getZ(); z <= maximum.getZ(); z++) {
                         BlockPos pos = new BlockPos(x, y, z);
                         IBlockState state = world.getBlockState(pos);
-                        if (state.getBlock() == net.minecraft.init.Blocks.AIR || state.getBlock().isReplaceable(world, pos)) continue;
+                        if (state.getBlock() == Blocks.AIR || state.getBlock().isReplaceable(world, pos)) continue;
                         TileEntity tile = world.getTileEntity(pos);
                         if (tile != null) addTileData(tile.writeToNBT(new NBTTagCompound()));
                         putBlock(pos.subtract(startPos), state);
@@ -672,10 +698,10 @@ public final class SupplementalEntities {
 
         private void spawnBlockDrop(IBlockState state, BlockPos position) {
             Block block = state.getBlock();
-            net.minecraft.item.Item item = net.minecraft.item.Item.getItemFromBlock(block);
-            if (item == net.minecraft.init.Items.AIR) return;
+            Item item = Item.getItemFromBlock(block);
+            if (item == Items.AIR) return;
             EntityItem dropped = new EntityItem(world, position.getX(), position.getY(), position.getZ(),
-                    new net.minecraft.item.ItemStack(item, 1, block.damageDropped(state)));
+                    new ItemStack(item, 1, block.damageDropped(state)));
             dropped.setDefaultPickupDelay();
             world.spawnEntity(dropped);
         }
@@ -700,7 +726,7 @@ public final class SupplementalEntities {
             if (antiStacking) {
                 BlockPos scan = base;
                 IBlockState scanState = world.getBlockState(scan);
-                for (int i = 0; i < 50 && scanState.getBlock() == net.minecraft.init.Blocks.AIR; i++) {
+                for (int i = 0; i < 50 && scanState.getBlock() == Blocks.AIR; i++) {
                     scan = scan.down();
                     scanState = world.getBlockState(scan);
                 }
@@ -1789,7 +1815,7 @@ public final class SupplementalEntities {
         private static boolean isLegacyCommandBlockTool(ItemStack stack) {
             if (stack == null || stack.isEmpty() || stack.getItem().getRegistryName() == null) return false;
             ResourceLocation id = stack.getItem().getRegistryName();
-            if (!com.wdcftgg.witherstormmod.Tags.MOD_ID.equals(id.getNamespace())) return false;
+            if (!Tags.MOD_ID.equals(id.getNamespace())) return false;
             String path = id.getPath();
             return path.equals("eye_of_the_storm") || path.equals("formidi_blade")
                     || path.matches("(?:wooden_|stone_|iron_|gold_)?command_block_(?:sword|pickaxe|axe|shovel|hoe)");

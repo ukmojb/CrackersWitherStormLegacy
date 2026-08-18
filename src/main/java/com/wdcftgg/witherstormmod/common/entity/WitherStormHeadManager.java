@@ -24,6 +24,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ForgeEventFactory;
 
@@ -413,8 +414,8 @@ public final class WitherStormHeadManager {
     private Entity resolveEntity(@Nullable java.util.UUID uuid) {
         if (uuid == null) return null;
         // 性能优化：服务端用 O(1) UUID 索引，避免活跃分心时每 tick 全量遍历实体列表
-        if (storm.world instanceof net.minecraft.world.WorldServer) {
-            Entity resolved = ((net.minecraft.world.WorldServer) storm.world).getEntityFromUuid(uuid);
+        if (storm.world instanceof WorldServer) {
+            Entity resolved = ((WorldServer) storm.world).getEntityFromUuid(uuid);
             if (resolved != null) return resolved;
         }
         for (Entity entity : storm.world.loadedEntityList) {
@@ -478,7 +479,7 @@ public final class WitherStormHeadManager {
                     storm.posX, storm.posY + storm.getEyeHeight(), storm.posZ);
             if (preferSpecialTarget
                     && (UpstreamEntityTags.contains(UpstreamEntityTags.FAVOURABLE_MOBS, candidate)
-                    || candidate instanceof net.minecraft.entity.player.EntityPlayer)
+                    || candidate instanceof EntityPlayer)
                     && current < specialTargetDistance) {
                 specialTargetDistance = current;
                 nearestSpecialTarget = candidate;
@@ -616,10 +617,10 @@ public final class WitherStormHeadManager {
         if (target != null) {
             lookAtPosition(index, head, new Vec3d(target.posX,
                     target.posY + target.getEyeHeight(), target.posZ), 10.0F,
-                    storm.getPhase() > 3 ? 50 : 3);
+                    storm.getPhase() > 3 ? 12 : 3);
         } else {
             lookAtPosition(index, head, getRandomLookPosition(head), 10.0F,
-                    storm.getPhase() >= 4 && head.injuryTicks <= 0 ? 50 : 3);
+                    storm.getPhase() >= 4 && head.injuryTicks <= 0 ? 12 : 3);
         }
     }
 
@@ -643,7 +644,8 @@ public final class WitherStormHeadManager {
 
     /** Late attached heads keep the existing mass-intersection guard. */
     private void constrainHeadYaw(int index, HeadState head) {
-        if (storm.isDeadOrPlayingDead() || storm.getPhase() <= 3) return;
+        if (storm.isDeadOrPlayingDead()
+                || (storm.getPhase() <= 3 && index != 0)) return;
         float relativeYaw = MathHelper.wrapDegrees(head.yaw - storm.renderYawOffset);
         head.yaw = storm.renderYawOffset + MathHelper.clamp(relativeYaw,
                 -MAXIMUM_HEAD_YAW, MAXIMUM_HEAD_YAW);
@@ -659,7 +661,7 @@ public final class WitherStormHeadManager {
             head.randomLookX = Math.cos(yaw) * 30.0D;
             head.randomLookY = Math.sin(pitch) * 30.0D;
             head.randomLookZ = Math.sin(yaw) * 30.0D;
-            head.randomLookTicks = (storm.getPhase() < 4 || head.injuryTicks > 0 ? 20 : 120)
+            head.randomLookTicks = (storm.getPhase() < 4 || head.injuryTicks > 0 ? 20 : 28)
                     + storm.getRNG().nextInt(20);
             head.randomLookInitialized = true;
         }

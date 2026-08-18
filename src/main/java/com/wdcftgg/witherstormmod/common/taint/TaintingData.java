@@ -40,6 +40,8 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.potion.PotionType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraft.block.BlockLeaves;
+import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
 import com.google.common.base.Optional;
@@ -165,15 +167,15 @@ public final class TaintingData {
         for (String propertyName : recipe.propertiesToCopy) {
             replacement = copyProperty(source, replacement, propertyName);
         }
-        if (source.getBlock() instanceof net.minecraft.block.BlockLeaves
-                && replacement.getBlock() instanceof net.minecraft.block.BlockLeaves) {
+        if (source.getBlock() instanceof BlockLeaves
+                && replacement.getBlock() instanceof BlockLeaves) {
             if (recipe.propertiesToCopy.contains("persistent")) {
-                replacement = replacement.withProperty(net.minecraft.block.BlockLeaves.DECAYABLE,
-                        source.getValue(net.minecraft.block.BlockLeaves.DECAYABLE));
+                replacement = replacement.withProperty(BlockLeaves.DECAYABLE,
+                        source.getValue(BlockLeaves.DECAYABLE));
             }
             if (recipe.propertiesToCopy.contains("distance")) {
-                replacement = replacement.withProperty(net.minecraft.block.BlockLeaves.CHECK_DECAY,
-                        source.getValue(net.minecraft.block.BlockLeaves.CHECK_DECAY));
+                replacement = replacement.withProperty(BlockLeaves.CHECK_DECAY,
+                        source.getValue(BlockLeaves.CHECK_DECAY));
             }
         }
         return replacement;
@@ -384,7 +386,7 @@ public final class TaintingData {
 
     private static BlockMatcher standingTorch() {
         return state -> state.getBlock() == Blocks.TORCH
-                && state.getValue(BlockTorch.FACING) == net.minecraft.util.EnumFacing.UP;
+                && state.getValue(BlockTorch.FACING) == EnumFacing.UP;
     }
 
     private static BlockMatcher wallTorch() {

@@ -1,6 +1,7 @@
 package com.wdcftgg.witherstormmod.common.item;
 
 import com.wdcftgg.witherstormmod.Tags;
+import com.wdcftgg.witherstormmod.common.init.ModItems;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
@@ -38,7 +39,7 @@ public class FormidiBladeItem extends CommandBlockSwordItem {
     }
 
     @Override
-    public void onUpdate(ItemStack stack, World world, net.minecraft.entity.Entity entity,
+    public void onUpdate(ItemStack stack, World world, Entity entity,
                          int slot, boolean selected) {
         NBTTagCompound tag = getBladeTag(stack, true);
         if (tag == null || !tag.hasKey(IS_CHARGED) || tag.getBoolean(IS_CHARGED)) return;
@@ -160,7 +161,7 @@ public class FormidiBladeItem extends CommandBlockSwordItem {
     }
 
     public static void registerPropertyOverrides() {
-        FormidiBladeItem item = (FormidiBladeItem) com.wdcftgg.witherstormmod.common.init.ModItems
+        FormidiBladeItem item = (FormidiBladeItem) ModItems
                 .get("formidi_blade");
         item.addPropertyOverride(ANIM_PROPERTY, (stack, world, entity) -> {
             EntityLivingBase living = entity instanceof EntityLivingBase

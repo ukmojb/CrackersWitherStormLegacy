@@ -90,6 +90,7 @@ import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -291,6 +292,7 @@ public final class WitherStormClientEvents {
         updateTractorBeamLoops(minecraft);
         spawnFormidibombParticles(minecraft);
         spawnSymbiontDragonFireballParticles(minecraft);
+        spawnWitherStormParticles(minecraft);
         spawnTractorBeamParticles(minecraft);
         updateFormidiBladeChargeSound(minecraft);
         updateSymbiontSpellLoops(minecraft);
@@ -795,6 +797,14 @@ public final class WitherStormClientEvents {
         }
     }
 
+    private static void spawnWitherStormParticles(Minecraft minecraft) {
+        for (Entity entity : minecraft.world.loadedEntityList) {
+            if (entity instanceof WitherStormEntity && !entity.isDead) {
+                CommandBlockParticle.spawnForWitherStorm((WitherStormEntity) entity);
+            }
+        }
+    }
+
     private static void updateWitherStormTrembleLoops(Minecraft minecraft) {
         Set<Integer> loadedStormIds = new HashSet<Integer>();
         SoundEvent trembleSound = ModSounds.get("wither_storm_tremble");
@@ -839,7 +849,7 @@ public final class WitherStormClientEvents {
         for (TileEntity tile : minecraft.world.loadedTileEntityList) {
             if (tile instanceof FormidibombTileEntity
                     && minecraft.player.getEntityBoundingBox().grow(50.0D).contains(
-                    new net.minecraft.util.math.Vec3d(tile.getPos()).add(0.5D, 0.5D, 0.5D))) {
+                    new Vec3d(tile.getPos()).add(0.5D, 0.5D, 0.5D))) {
                 currentSources.add((FormidibombTileEntity) tile);
             }
         }
@@ -929,7 +939,7 @@ public final class WitherStormClientEvents {
                 if (loops[head] != null && loops[head].isDonePlaying()) loops[head] = null;
                 if (beamSound == null || entity.isSilent() || provider.isDeadOrPlayingDead()
                         || !provider.tractorBeamActive(head) || loops[head] != null) continue;
-                net.minecraft.util.math.Vec3d closest = TractorBeamLoopSound.calculateClosestPoint(
+                Vec3d closest = TractorBeamLoopSound.calculateClosestPoint(
                         entity, provider, head, minecraft.player.getPositionVector());
                 if (minecraft.player.getDistanceSq(closest.x, closest.y, closest.z)
                         > TractorBeamLoopSound.MAXIMUM_DISTANCE * TractorBeamLoopSound.MAXIMUM_DISTANCE) continue;
@@ -968,7 +978,7 @@ public final class WitherStormClientEvents {
     @SubscribeEvent
     public static void modifyStormFogColors(EntityViewRenderEvent.FogColors event) {
         if (!WitherStormClientConfig.renderSkyAmbienceEffects) return;
-        net.minecraft.entity.Entity viewEntity =
+        Entity viewEntity =
                 Minecraft.getMinecraft().getRenderViewEntity();
         if (viewEntity == null) return;
         Vec3d blended = SkyAmbienceManager.INSTANCE.blendFogColor(viewEntity,
@@ -993,12 +1003,17 @@ public final class WitherStormClientEvents {
 
     @SubscribeEvent
     public static void renderBlindOverlay(RenderGameOverlayEvent.Pre event) {
-        if (event.getType() != RenderGameOverlayEvent.ElementType.HOTBAR) return;
+        // Draw the flash before the HUD pass.  Drawing during HOTBAR covers the
+        // slot background and makes the inventory look as if it disappeared.
+        if (event.getType() != RenderGameOverlayEvent.ElementType.ALL) return;
         float fade = ClientEffects.getBlindFade(event.getPartialTicks());
         if (fade <= 0.0F) return;
         int alpha = MathHelper.clamp(Math.round(fade * 255.0F), 0, 255);
         Gui.drawRect(0, 0, event.getResolution().getScaledWidth(), event.getResolution().getScaledHeight(),
                 alpha << 24 | 0xFFFFFF);
+        // Gui.drawRect leaves the OpenGL current color at the overlay alpha;
+        // reset it before vanilla draws the hotbar and inventory icons.
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     @SubscribeEvent
@@ -1043,6 +1058,9 @@ public final class WitherStormClientEvents {
         EntityPlayer player = minecraft.player;
         if (player == null || minecraft.gameSettings.hideGUI
                 || !player.isPotionActive(ModEffects.WITHER_SICKNESS)) return;
+        // Classic Bars owns the health overlay when installed; its optional mixin maps
+        // Wither Sickness to the configured Withered Colors palette.
+        if (Loader.isModLoaded("classicbar")) return;
         event.setCanceled(true);
 
         int tickCount = minecraft.ingameGUI.getUpdateCounter();

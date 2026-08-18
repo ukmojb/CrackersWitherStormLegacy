@@ -270,10 +270,10 @@ public final class SymbiontSpells {
         boolean protects = type.protectsCaster();
         double radius = type.getProtectionRadius();
         double strength = type.getProtectionStrength();
-        Optional<Supplier<net.minecraft.util.SoundEvent>> loop = type == Type.PULL
-                ? Optional.<Supplier<net.minecraft.util.SoundEvent>>of(
+        Optional<Supplier<SoundEvent>> loop = type == Type.PULL
+                ? Optional.<Supplier<SoundEvent>>of(
                 () -> ModSounds.get("withered_symbiont_pull"))
-                : Optional.<Supplier<net.minecraft.util.SoundEvent>>empty();
+                : Optional.<Supplier<SoundEvent>>empty();
         return new SpellType(
                 (entity, spellType) -> new ApiSpellAdapter(entity, type, spellType),
                 time, loop,

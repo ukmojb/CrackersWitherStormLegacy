@@ -37,6 +37,10 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.Constants;
 
 import java.util.ArrayList;
@@ -126,7 +130,7 @@ public class SuperBeaconTileEntity extends AbstractSuperBeaconTileEntity impleme
     @Override
     protected void applyEffect() {
         int amplifier = Math.max(0, beaconLevel - 1);
-        for (net.minecraft.entity.player.EntityPlayer player : world.playerEntities) {
+        for (EntityPlayer player : world.playerEntities) {
             if (player.getDistanceSq(pos.getX(), pos.getY(), pos.getZ())
                     <= SuperBeaconLogic.MAIN_EFFECT_RADIUS
                     * SuperBeaconLogic.MAIN_EFFECT_RADIUS) {
@@ -157,10 +161,10 @@ public class SuperBeaconTileEntity extends AbstractSuperBeaconTileEntity impleme
     }
 
     @Override
-    public void doPowerUp(net.minecraft.entity.player.EntityPlayerMP player) {
+    public void doPowerUp(EntityPlayerMP player) {
         super.doPowerUp(player);
         NBTTagCompound persistent = player.getEntityData().getCompoundTag(
-                net.minecraft.entity.player.EntityPlayer.PERSISTED_NBT_TAG);
+                EntityPlayer.PERSISTED_NBT_TAG);
         if (persistent.getBoolean("WitherStormActivatedSuperBeacon")
                 || connected.size() < SupportColor.values().length) return;
         poweringUpAnimation = SuperBeaconLogic.POWER_UP_ANIMATION_TIME;
@@ -189,8 +193,8 @@ public class SuperBeaconTileEntity extends AbstractSuperBeaconTileEntity impleme
     protected void doPoweringUpAnimation() {
         if (!world.isRemote && poweringUpAnimation == SuperBeaconLogic.POWER_UP_CLIMAX) {
             ModNetwork.shakeAll(world, 120.0F, 12.0F);
-            if (world instanceof net.minecraft.world.WorldServer) {
-                ((net.minecraft.world.WorldServer) world).spawnParticle(
+            if (world instanceof WorldServer) {
+                ((WorldServer) world).spawnParticle(
                         EnumParticleTypes.DRAGON_BREATH,
                         pos.getX(), pos.getY(), pos.getZ(), 200,
                         world.rand.nextGaussian(), world.rand.nextGaussian(), world.rand.nextGaussian(), 0.2D);
@@ -198,10 +202,10 @@ public class SuperBeaconTileEntity extends AbstractSuperBeaconTileEntity impleme
             for (EntityPlayerMP nearby : world.getEntitiesWithinAABB(EntityPlayerMP.class,
                     new AxisAlignedBB(pos).grow(64.0D))) {
                 NBTTagCompound persistent = nearby.getEntityData().getCompoundTag(
-                        net.minecraft.entity.player.EntityPlayer.PERSISTED_NBT_TAG);
+                        EntityPlayer.PERSISTED_NBT_TAG);
                 persistent.setBoolean("WitherStormActivatedSuperBeacon", true);
                 nearby.getEntityData().setTag(
-                        net.minecraft.entity.player.EntityPlayer.PERSISTED_NBT_TAG, persistent);
+                        EntityPlayer.PERSISTED_NBT_TAG, persistent);
                 ModCriteriaTriggers.ACTIVATE_SUPER_BEACON.trigger(nearby, connected.size());
             }
         }
@@ -336,7 +340,7 @@ public class SuperBeaconTileEntity extends AbstractSuperBeaconTileEntity impleme
         resummonClusters.add(cluster);
     }
 
-    private static boolean canUseResummonBlock(net.minecraft.world.World world, BlockPos blockPos,
+    private static boolean canUseResummonBlock(World world, BlockPos blockPos,
                                                 IBlockState state) {
         Block block = state.getBlock();
         if (UpstreamBlockTags.contains(UpstreamBlockTags.WITHER_STORM_BLOCK_BLACKLIST,
@@ -430,9 +434,9 @@ public class SuperBeaconTileEntity extends AbstractSuperBeaconTileEntity impleme
             shakeX = shakeZ = 0.0F;
             return;
         }
-        shakeX = net.minecraft.util.math.MathHelper.sin(resummonTicks * 4.0F) * 0.1F
+        shakeX = MathHelper.sin(resummonTicks * 4.0F) * 0.1F
                 + (world.rand.nextFloat() - 0.5F) * 0.05F;
-        shakeZ = net.minecraft.util.math.MathHelper.sin(resummonTicks * 3.0F) * 0.1F
+        shakeZ = MathHelper.sin(resummonTicks * 3.0F) * 0.1F
                 + (world.rand.nextFloat() - 0.5F) * 0.05F;
     }
 
@@ -609,9 +613,9 @@ public class SuperBeaconTileEntity extends AbstractSuperBeaconTileEntity impleme
     @Override public ItemStack removeStackFromSlot(int index) { ItemStack result = items.get(index); items.set(index, ItemStack.EMPTY); markAndNotify(); return result; }
     @Override public void setInventorySlotContents(int index, ItemStack stack) { items.set(index, stack); markAndNotify(); }
     @Override public int getInventoryStackLimit() { return 1; }
-    @Override public boolean isUsableByPlayer(net.minecraft.entity.player.EntityPlayer player) { return world.getTileEntity(pos) == this && player.getDistanceSq(pos) <= 64.0D; }
-    @Override public void openInventory(net.minecraft.entity.player.EntityPlayer player) { }
-    @Override public void closeInventory(net.minecraft.entity.player.EntityPlayer player) { }
+    @Override public boolean isUsableByPlayer(EntityPlayer player) { return world.getTileEntity(pos) == this && player.getDistanceSq(pos) <= 64.0D; }
+    @Override public void openInventory(EntityPlayer player) { }
+    @Override public void closeInventory(EntityPlayer player) { }
     @Override public boolean isItemValidForSlot(int index, ItemStack stack) { return !isDoingResummonAnimation(); }
     @Override public int[] getSlotsForFace(EnumFacing side) {
         int[] slots = new int[items.size()];

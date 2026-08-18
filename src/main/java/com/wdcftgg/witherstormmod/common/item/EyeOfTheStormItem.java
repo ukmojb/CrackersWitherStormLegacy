@@ -18,6 +18,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
+import net.minecraft.util.EnumFacing;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -94,7 +95,7 @@ public class EyeOfTheStormItem extends CommandBlockSwordItem {
         while (cursor.getY() >= minimumY) {
             BlockPos below = cursor.down();
             IBlockState belowState = owner.world.getBlockState(below);
-            if (belowState.isSideSolid(owner.world, below, net.minecraft.util.EnumFacing.UP)) {
+            if (belowState.isSideSolid(owner.world, below, EnumFacing.UP)) {
                 double offset = 0.0D;
                 IBlockState state = owner.world.getBlockState(cursor);
                 AxisAlignedBB collision = state.getCollisionBoundingBox(owner.world, cursor);

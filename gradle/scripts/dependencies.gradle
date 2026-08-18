@@ -32,7 +32,10 @@ dependencies {
     }
     modImplementation 'curse.maven:Fugue-1005815:8403977'
     modImplementation 'curse.maven:Crossbow-1304265:7330910'
-    modImplementation 'com.cleanroommc:assetmover:2.5'
+    modImplementation 'curse.maven:Classic Bars-317642:2861996'
+    if (use_asset_mover.toBoolean()) {
+        modImplementation "com.cleanroommc:assetmover:${asset_mover_version}"
+    }
 
     // Example - Dependency descriptor:
     // 'com.google.code.gson:gson:2.8.6' << group: com.google.code.gson, name:gson, version:2.8.6

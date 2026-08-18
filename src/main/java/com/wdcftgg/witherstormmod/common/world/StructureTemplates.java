@@ -4,6 +4,14 @@ import com.google.common.base.Optional;
 import com.wdcftgg.witherstormmod.WitherStormMod;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamResourceArchive;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockButton;
+import net.minecraft.block.BlockLadder;
+import net.minecraft.block.BlockLeaves;
+import net.minecraft.block.BlockPressurePlate;
+import net.minecraft.block.BlockRailBase;
+import net.minecraft.block.BlockSign;
+import net.minecraft.block.BlockTorch;
+import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -33,6 +41,9 @@ import java.util.Random;
 import java.util.Map;
 
 public final class StructureTemplates {
+
+    /** Radius used to approximate 1.20's terrain_adaptation=beard_thin. */
+    private static final int STORM_PLATFORM_BLEND_RADIUS = 4;
 
     private static final Map<String, TemplateData> CACHE = new HashMap<String, TemplateData>();
     private static final Map<String, List<WeightedTemplate>> BOWELS_POOLS = createBowelsPools();
@@ -76,21 +87,111 @@ public final class StructureTemplates {
     public static BlockPos placeStormSpawnPlatform(World world, String id, BlockPos origin, Rotation rotation) {
         TemplateData data = getData(id);
         if (data == null) return null;
+        // 1.20's TemplateStructurePiece uses the generation position as the
+        // horizontal pivot (size / 2, 0, size / 2), while 1.12's Template
+        // API treats its origin as the minimum corner.
+        BlockPos placementOrigin = getHorizontalCenteredOrigin(data.template, origin, rotation);
         PlacementSettings settings = new PlacementSettings().setMirror(Mirror.NONE).setRotation(rotation)
                 .setIgnoreEntities(false).setIgnoreStructureBlock(true);
-        data.template.addBlocksToWorld(world, origin, STORM_SPAWN_PLATFORM_PROCESSOR, settings, 2);
-        for (DataMarker marker : data.dataMarkers) {
-            if ("spawn_position".equals(marker.metadata)) {
-                BlockPos spawnPosition = Template.transformedBlockPos(settings, marker.pos).add(origin);
-                // Upstream Piece.handleDataMarker removes the structure block after recording it.
-                world.setBlockToAir(spawnPosition);
-                return spawnPosition;
+        List<PlacedFragileBlock> fragileBlocks = new ArrayList<PlacedFragileBlock>();
+        ITemplateProcessor processor = new ITemplateProcessor() {
+            @Override
+            public Template.BlockInfo processBlock(World targetWorld, BlockPos worldPos,
+                                                    Template.BlockInfo blockInfo) {
+                if (isFragileStructureBlock(blockInfo.blockState)) {
+                    // Mirror the 1.12 Template writer's own transform exactly.
+                    // The processor receives the already-transformed world
+                    // position, while the block state still needs the placement
+                    // rotation applied before it is written in the second pass.
+                    fragileBlocks.add(new PlacedFragileBlock(worldPos,
+                            blockInfo.blockState.withMirror(settings.getMirror())
+                                    .withRotation(settings.getRotation())));
+                    // Ladders are deliberately written after the complete
+                    // structure.  Placing them in the first template pass can
+                    // create an EntityItem before their support is present.
+                    if (blockInfo.blockState.getBlock() instanceof BlockLadder) {
+                        return null;
+                    }
+                }
+                return blockInfo;
+            }
+        };
+        data.template.addBlocksToWorld(world, placementOrigin, processor, settings, 2);
+        // Buttons and wall-mounted utility blocks can be processed before
+        // their support block by the 1.12 template writer and drop immediately.
+        // Reapply their rotated state after the full template is present.
+        for (PlacedFragileBlock fragile : fragileBlocks) {
+            if (fragile.state.getBlock() instanceof BlockLadder) continue;
+            if (world.isBlockLoaded(fragile.position)
+                    && world.getBlockState(fragile.position).getBlock() != fragile.state.getBlock()) {
+                world.setBlockState(fragile.position, fragile.state, 3);
             }
         }
+        blendStormPlatformTerrain(world, data.template, placementOrigin, rotation);
+        BlockPos spawnPosition = null;
+        for (DataMarker marker : data.dataMarkers) {
+            if ("spawn_position".equals(marker.metadata)) {
+                spawnPosition = Template.transformedBlockPos(settings, marker.pos).add(placementOrigin);
+                // Upstream Piece.handleDataMarker removes the structure block after recording it.
+                world.setBlockToAir(spawnPosition);
+                break;
+            }
+        }
+        // Place ladders last, after terrain blending and marker cleanup, so no
+        // later structure operation can trigger their support check.
+        for (PlacedFragileBlock fragile : fragileBlocks) {
+            if (!(fragile.state.getBlock() instanceof BlockLadder)
+                    || !world.isBlockLoaded(fragile.position)) continue;
+            world.setBlockState(fragile.position, fragile.state, 2);
+        }
+        if (spawnPosition != null) return spawnPosition;
         if ("auto_spawn_platform".equals(id)) {
             WitherStormMod.LOGGER.warn("Upstream automatic spawn platform has no spawn_position marker");
         }
+        // Platforms without a data marker use the generation position itself as
+        // the storm anchor; this is distinct from the 1.12 template origin.
         return origin;
+    }
+
+    /**
+     * 1.20 applies a beard-thin density adjustment while terrain is generated.
+     * Forge 1.12 runs this generator after terrain, so raise only low columns
+     * immediately outside the platform with a short, non-destructive slope.
+     * Higher terrain and all columns inside the template are left untouched.
+     */
+    private static void blendStormPlatformTerrain(World world, Template template, BlockPos placementOrigin,
+                                                   Rotation rotation) {
+        RelativeBounds bounds = getRelativeBounds(template, rotation);
+        int minX = placementOrigin.getX() + bounds.minX;
+        int maxX = placementOrigin.getX() + bounds.maxX;
+        int minZ = placementOrigin.getZ() + bounds.minZ;
+        int maxZ = placementOrigin.getZ() + bounds.maxZ;
+        int baseY = placementOrigin.getY();
+        int searchMinX = minX - STORM_PLATFORM_BLEND_RADIUS;
+        int searchMaxX = maxX + STORM_PLATFORM_BLEND_RADIUS;
+        int searchMinZ = minZ - STORM_PLATFORM_BLEND_RADIUS;
+        int searchMaxZ = maxZ + STORM_PLATFORM_BLEND_RADIUS;
+
+        for (int x = searchMinX; x <= searchMaxX; x++) {
+            for (int z = searchMinZ; z <= searchMaxZ; z++) {
+                if (x >= minX && x <= maxX && z >= minZ && z <= maxZ) continue;
+                int distance = Math.max(Math.max(minX - x, x - maxX), Math.max(minZ - z, z - maxZ));
+                if (distance <= 0 || distance > STORM_PLATFORM_BLEND_RADIUS) continue;
+                BlockPos column = new BlockPos(x, 0, z);
+                if (!world.isBlockLoaded(column)) continue;
+
+                int currentTop = world.getHeight(column).getY() - 1;
+                int targetTop = baseY - distance;
+                if (currentTop >= targetTop || targetTop < 0) continue;
+                IBlockState surface = world.getBlockState(new BlockPos(x, currentTop, z));
+                if (surface.getBlock() == Blocks.AIR || surface.getMaterial().isLiquid()) continue;
+
+                for (int y = currentTop + 1; y < targetTop; y++) {
+                    world.setBlockState(new BlockPos(x, y, z), Blocks.DIRT.getDefaultState(), 2);
+                }
+                world.setBlockState(new BlockPos(x, targetTop, z), surface, 2);
+            }
+        }
     }
 
     public static boolean remove(World world, String id, BlockPos origin, Rotation rotation) {
@@ -120,6 +221,11 @@ public final class StructureTemplates {
         return anchor.add(-bounds.centerX(), -bounds.centerY(), -bounds.centerZ());
     }
 
+    private static BlockPos getHorizontalCenteredOrigin(Template template, BlockPos anchor, Rotation rotation) {
+        RelativeBounds bounds = getRelativeBounds(template, rotation);
+        return anchor.add(-bounds.centerX(), 0, -bounds.centerZ());
+    }
+
     /** Bowels podium 的锚点位于模板顶部上方一格，水平轴仍按结构中心对齐。 */
     public static BlockPos getTopAnchoredFeatureOrigin(Template template, BlockPos anchor, Rotation rotation) {
         RelativeBounds bounds = getRelativeBounds(template, rotation);
@@ -139,6 +245,17 @@ public final class StructureTemplates {
 
     private static boolean cannotReplace(World world, BlockPos pos) {
         return FEATURE_CANNOT_REPLACE.contains(world.getBlockState(pos).getBlock());
+    }
+
+    private static boolean isFragileStructureBlock(IBlockState state) {
+        Block block = state.getBlock();
+        return block instanceof BlockButton
+                || block instanceof BlockLadder
+                || block instanceof BlockTorch
+                || block instanceof BlockTrapDoor
+                || block instanceof BlockPressurePlate
+                || block instanceof BlockRailBase
+                || block instanceof BlockSign;
     }
 
     private static RelativeBounds getRelativeBounds(Template template, Rotation rotation) {
@@ -259,6 +376,7 @@ public final class StructureTemplates {
         IBlockState state = block.getDefaultState();
         Map<String, String> properties = new HashMap<String, String>(mapping.properties);
         for (String key : modernProperties.getKeySet()) properties.put(key, modernProperties.getString(key));
+        normalizeLegacyProperties(block, properties);
         if (properties.containsKey("type") && block.getBlockState().getProperty("half") != null) {
             String type = properties.get("type");
             properties.put("half", "double".equals(type) ? "double" : type);
@@ -268,6 +386,42 @@ public final class StructureTemplates {
             if (value != null) state = apply(state, property, value);
         }
         return state;
+    }
+
+    /** Converts state keys whose 1.20 meaning differs from the 1.12 block API. */
+    private static void normalizeLegacyProperties(Block block, Map<String, String> properties) {
+        if (block instanceof BlockButton && properties.containsKey("face")) {
+            // Modern buttons split attachment (face) from facing.  In 1.12 the
+            // attachment is encoded directly in FACING: UP for floor buttons,
+            // DOWN for ceiling buttons, and the horizontal direction for walls.
+            String face = properties.get("face");
+            if ("floor".equals(face)) properties.put("facing", "up");
+            else if ("ceiling".equals(face)) properties.put("facing", "down");
+            properties.remove("face");
+        }
+        if (block instanceof BlockLeaves && properties.containsKey("persistent")) {
+            boolean persistent = Boolean.parseBoolean(properties.get("persistent"));
+            properties.put("decayable", Boolean.toString(!persistent));
+            properties.put("check_decay", "false");
+            properties.remove("persistent");
+            properties.remove("distance");
+        }
+        // Modern slabs use type=top/bottom/double; 1.12 uses half=top/bottom.
+        if (properties.containsKey("type")) {
+            String type = properties.get("type");
+            if ("double".equals(type)) properties.put("half", "double");
+            else if ("top".equals(type) || "bottom".equals(type)) properties.put("half", type);
+        }
+        // 1.12 does not expose these waterlogging/shape keys. They are simply
+        // ignored by the property loop below, but removing them avoids noisy
+        // conversion diagnostics in modded block implementations.
+        properties.remove("waterlogged");
+        properties.remove("shape");
+        properties.remove("distance");
+        properties.remove("honey_level");
+        properties.remove("signal_fire");
+        properties.remove("candles");
+        properties.remove("lit");
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -280,6 +434,10 @@ public final class StructureTemplates {
         if (name.startsWith("witherstormmod:")) return new Mapping(name);
         String path = name.substring(name.indexOf(':') + 1);
         if (path.equals("jigsaw") || path.equals("structure_block")) return new Mapping("minecraft:air");
+        // 1.20.1 still uses minecraft:grass for the short plant; 1.12 uses
+        // minecraft:tallgrass and also has a full grass block with the same
+        // legacy-facing name.
+        if (path.equals("grass")) return new Mapping("minecraft:tallgrass", "type", "grass");
         if (path.equals("wither_skeleton_skull"))
             return new Mapping("minecraft:skull", "facing", "up");
         if (path.equals("wither_skeleton_wall_skull")) return new Mapping("minecraft:skull");
@@ -294,9 +452,20 @@ public final class StructureTemplates {
             if (path.equals(wood + "_slab")) return new Mapping("minecraft:wooden_slab", "variant", wood, "half", "bottom");
             if (path.equals(wood + "_button")) return new Mapping("minecraft:wooden_button");
             if (path.equals(wood + "_pressure_plate")) return new Mapping("minecraft:wooden_pressure_plate");
+            if (path.equals(wood + "_door")) {
+                return new Mapping("oak".equals(wood)
+                        ? "minecraft:wooden_door" : "minecraft:" + wood + "_door");
+            }
             if (path.equals(wood + "_wall_sign")) return new Mapping("minecraft:wall_sign");
             if (path.equals(wood + "_sign")) return new Mapping("minecraft:standing_sign");
             if (path.equals(wood + "_trapdoor")) return new Mapping("minecraft:trapdoor");
+            if (path.equals(wood + "_fence")) {
+                return new Mapping("oak".equals(wood) ? "minecraft:fence" : "minecraft:" + wood + "_fence");
+            }
+            if (path.equals(wood + "_fence_gate")) {
+                return new Mapping("oak".equals(wood)
+                        ? "minecraft:fence_gate" : "minecraft:" + wood + "_fence_gate");
+            }
             if (path.equals(wood + "_log") || path.equals("stripped_" + wood + "_log") || path.equals(wood + "_wood")
                     || path.equals("stripped_" + wood + "_wood")) {
                 return i < 4 ? new Mapping("minecraft:log", "variant", wood) : new Mapping("minecraft:log2", "variant", wood);
@@ -304,6 +473,7 @@ public final class StructureTemplates {
         }
         if (path.equals("granite") || path.equals("diorite") || path.equals("andesite"))
             return new Mapping("minecraft:stone", "variant", path);
+        if (path.equals("smooth_sandstone")) return new Mapping("minecraft:sandstone", "variant", "smooth");
         if (path.equals("stone_slab") || path.equals("smooth_stone_slab")) return new Mapping("minecraft:stone_slab", "variant", "stone");
         if (path.equals("cobblestone_slab")) return new Mapping("minecraft:stone_slab", "variant", "cobblestone");
         if (path.equals("brick_slab")) return new Mapping("minecraft:stone_slab", "variant", "brick");
@@ -311,6 +481,9 @@ public final class StructureTemplates {
         if (path.equals("sandstone_slab")) return new Mapping("minecraft:stone_slab", "variant", "sandstone");
         if (path.equals("red_sandstone_slab")) return new Mapping("minecraft:stone_slab2", "variant", "red_sandstone");
         if (path.equals("purpur_slab")) return new Mapping("minecraft:purpur_slab");
+        if (path.equals("smooth_quartz_slab")) return new Mapping("minecraft:stone_slab", "variant", "quartz");
+        if (path.equals("smooth_sandstone_slab")) return new Mapping("minecraft:stone_slab", "variant", "sandstone");
+        if (path.equals("cut_sandstone")) return new Mapping("minecraft:sandstone", "variant", "cut");
         if (path.equals("stone_bricks")) return new Mapping("minecraft:stonebrick", "variant", "stonebrick");
         if (path.equals("cracked_stone_bricks")) return new Mapping("minecraft:stonebrick", "variant", "cracked_stonebrick");
         if (path.equals("chiseled_stone_bricks") || path.equals("infested_chiseled_stone_bricks"))
@@ -318,19 +491,45 @@ public final class StructureTemplates {
         if (path.equals("bricks")) return new Mapping("minecraft:brick_block");
         if (path.equals("cobweb")) return new Mapping("minecraft:web");
         if (path.equals("grass_block")) return new Mapping("minecraft:grass");
+        if (path.equals("coarse_dirt")) return new Mapping("minecraft:dirt", "variant", "coarse_dirt");
+        if (path.equals("podzol")) return new Mapping("minecraft:dirt", "variant", "podzol");
+        if (path.equals("rooted_dirt")) return new Mapping("minecraft:dirt");
+        if (path.equals("bedrock")) return new Mapping("minecraft:bedrock");
+        if (path.endsWith("_bed")) return new Mapping("minecraft:bed");
         if (path.equals("dirt_path")) return new Mapping("minecraft:grass_path");
+        if (path.equals("short_grass")) return new Mapping("minecraft:tallgrass", "type", "grass");
+        if (path.equals("fern")) return new Mapping("minecraft:tallgrass", "type", "fern");
+        if (path.equals("moss_carpet")) return new Mapping("minecraft:carpet", "color", "green");
         if (path.equals("wall_torch")) return new Mapping("minecraft:torch");
+        if (path.equals("redstone_wall_torch")) return new Mapping("minecraft:redstone_torch");
         if (path.equals("water_cauldron")) return new Mapping("minecraft:cauldron");
+        if (path.endsWith("_button")) return new Mapping("minecraft:wooden_button");
         if (path.equals("barrel")) return new Mapping("minecraft:chest");
         if (path.equals("blast_furnace") || path.equals("smoker")) return new Mapping("minecraft:furnace");
         if (path.equals("campfire")) return new Mapping("minecraft:netherrack");
+        if (path.equals("composter")) return new Mapping("minecraft:flower_pot");
         if (path.equals("beehive")) return new Mapping("minecraft:log");
-        if (path.contains("deepslate") || path.equals("tuff") || path.equals("blackstone") || path.equals("dripstone_block"))
+        if (path.equals("chain") || path.equals("lantern") || path.equals("soul_lantern"))
+            return new Mapping("minecraft:iron_bars");
+        if (path.equals("candle") || path.matches(".*_candle")) return new Mapping("minecraft:torch");
+        if (path.equals("glow_lichen") || path.equals("hanging_roots")) return new Mapping("minecraft:vine");
+        if (path.equals("lectern")) return new Mapping("minecraft:bookshelf");
+        if (path.endsWith("_wall")) return new Mapping("minecraft:cobblestone_wall");
+        if (path.endsWith("_wall_banner")) return new Mapping("minecraft:wall_banner");
+        if (path.endsWith("_banner")) return new Mapping("minecraft:standing_banner");
+        if (path.equals("mud_bricks")) return new Mapping("minecraft:brick_block");
+        if (path.contains("deepslate") || path.equals("tuff") || path.equals("blackstone")
+                || path.equals("dripstone_block") || path.equals("polished_deepslate"))
             return new Mapping("minecraft:stonebrick");
-        if (path.contains("candle") || path.equals("lantern") || path.equals("soul_lantern")) return new Mapping("minecraft:torch");
+        if (path.equals("polished_andesite")) return new Mapping("minecraft:stone", "variant", "smooth");
+        if (path.equals("smooth_quartz")) return new Mapping("minecraft:quartz_block");
+        if (path.equals("quartz_pillar")) return new Mapping("minecraft:quartz_block", "variant", "lines_y");
+        if (path.equals("damaged_anvil")) return new Mapping("minecraft:anvil");
         if (path.startsWith("potted_")) return new Mapping("minecraft:flower_pot");
-        if (path.equals("short_grass")) return new Mapping("minecraft:tallgrass", "type", "grass");
         if (path.equals("tall_grass")) return new Mapping("minecraft:double_plant", "variant", "double_grass");
+        if (path.equals("moss_block")) return new Mapping("minecraft:grass");
+        if (path.equals("mossy_stone_bricks")) return new Mapping("minecraft:stonebrick", "variant", "mossy_stonebrick");
+        if (path.equals("smooth_stone")) return new Mapping("minecraft:stone");
         String[] colors = {"white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray",
                 "silver", "cyan", "purple", "blue", "brown", "green", "red", "black"};
         for (String color : colors) {
@@ -341,6 +540,43 @@ public final class StructureTemplates {
             if (path.equals(color + "_concrete")) return new Mapping("minecraft:concrete", "color", color);
             if (path.equals(color + "_carpet")) return new Mapping("minecraft:carpet", "color", color);
         }
+        if (path.startsWith("light_gray_")) {
+            String suffix = path.substring("light_gray_".length());
+            if (suffix.equals("wool")) return new Mapping("minecraft:wool", "color", "silver");
+            if (suffix.equals("carpet")) return new Mapping("minecraft:carpet", "color", "silver");
+            if (suffix.equals("stained_glass")) return new Mapping("minecraft:stained_glass", "color", "silver");
+            if (suffix.equals("stained_glass_pane")) return new Mapping("minecraft:stained_glass_pane", "color", "silver");
+        }
+        if (path.endsWith("_stairs")) {
+            if (path.startsWith("brick_")) return new Mapping("minecraft:brick_stairs");
+            if (path.startsWith("stone_brick_") || path.startsWith("mossy_stone_brick_")) return new Mapping("minecraft:stone_brick_stairs");
+            if (path.startsWith("cobblestone_") || path.startsWith("mossy_cobblestone_")) return new Mapping("minecraft:stone_stairs");
+            if (path.startsWith("andesite_") || path.startsWith("diorite_") || path.startsWith("granite_")) return new Mapping("minecraft:stone_stairs");
+            if (path.startsWith("sandstone_")) return new Mapping("minecraft:sandstone_stairs");
+            if (path.startsWith("dark_prismarine_")) return new Mapping("minecraft:prismarine_stairs");
+            if (path.startsWith("smooth_quartz_")) return new Mapping("minecraft:quartz_stairs");
+            if (path.equals("polished_andesite_stairs")) return new Mapping("minecraft:stone_stairs");
+            if (path.startsWith("polished_") || path.startsWith("deepslate_") || path.startsWith("mud_brick_")) return new Mapping("minecraft:stone_brick_stairs");
+            if (path.startsWith("mangrove_")) return new Mapping("minecraft:jungle_stairs");
+        }
+        if (path.endsWith("_slab")) {
+            if (path.startsWith("andesite_") || path.startsWith("diorite_") || path.startsWith("granite_")
+                    || path.startsWith("cobblestone_") || path.startsWith("mossy_cobblestone_")) {
+                return new Mapping("minecraft:stone_slab", "variant", "stone");
+            }
+            if (path.startsWith("mossy_stone_brick_") || path.startsWith("deepslate_")
+                    || path.startsWith("polished_")) return new Mapping("minecraft:stone_slab", "variant", "stone_brick");
+            if (path.startsWith("mud_brick_")) return new Mapping("minecraft:stone_slab", "variant", "brick");
+        }
+        if (path.endsWith("_leaves")) {
+            String wood = path.substring(0, path.length() - "_leaves".length());
+            if (wood.equals("oak") || wood.equals("birch") || wood.equals("jungle"))
+                return new Mapping("minecraft:leaves", "variant", wood);
+            if (wood.equals("spruce") || wood.equals("acacia") || wood.equals("dark_oak"))
+                return new Mapping("minecraft:leaves2", "variant", wood);
+        }
+        if (path.equals("mangrove_wood") || path.startsWith("stripped_mangrove_wood"))
+            return new Mapping("minecraft:log2", "variant", "dark_oak");
         return new Mapping("minecraft:stone");
     }
 
@@ -524,6 +760,16 @@ public final class StructureTemplates {
             this.template = template;
             this.connectors = connectors;
             this.dataMarkers = dataMarkers;
+        }
+    }
+
+    private static final class PlacedFragileBlock {
+        private final BlockPos position;
+        private final IBlockState state;
+
+        private PlacedFragileBlock(BlockPos position, IBlockState state) {
+            this.position = position;
+            this.state = state;
         }
     }
 

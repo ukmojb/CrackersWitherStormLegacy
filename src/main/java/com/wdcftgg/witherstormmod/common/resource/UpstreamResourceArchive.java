@@ -102,6 +102,7 @@ public final class UpstreamResourceArchive {
                     || archive.getEntry("assets/witherstormmod/textures/particle/command_block_2.png") == null
                     || archive.getEntry("assets/witherstormmod/textures/particle/command_block_3.png") == null
                     || archive.getEntry("assets/witherstormmod/textures/particle/tractor_beam.png") == null
+                    || archive.getEntry("assets/witherstormmod/textures/gui/title/background/panorama_0.png") == null
                     || archive.getEntry("assets/witherstormmod/lang/en_us.json") == null
                     || archive.getEntry("data/witherstormmod/structures/bowels_podium.nbt") == null) {
                 throw new IOException("The external archive is not witherstormmod 4.2.1: " + file.getAbsolutePath());

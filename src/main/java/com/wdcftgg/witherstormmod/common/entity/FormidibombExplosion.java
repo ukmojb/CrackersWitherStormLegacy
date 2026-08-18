@@ -24,7 +24,9 @@ import net.minecraftforge.event.ForgeEventFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class FormidibombExplosion {
 
@@ -53,39 +55,31 @@ public final class FormidibombExplosion {
         ModNetwork.blindNear(world, x, y, z, 250.0D, 260, 40, 240);
 
         List<Drop> drops = new ArrayList<Drop>();
-        for (int dx = -radius; dx < radius; dx++) {
-            for (int dy = -radius; dy < radius; dy++) {
-                for (int dz = -radius; dz < radius; dz++) {
-                    if (MathHelper.sqrt(dx * dx + dy * dy * squish + dz * dz) >= radius) continue;
-                    int thickness = world.rand.nextInt(2);
-                    for (int offset = -thickness; offset <= thickness; offset++) {
-                        BlockPos pos = new BlockPos(dx + x, dy + y - offset, dz + z);
-                        IBlockState state = world.getBlockState(pos);
-                        if (state.getBlock() == Blocks.AIR) continue;
-                        Block block = state.getBlock();
+        Set<BlockPos> affectedBlocks = collectAffectedBlocks(world, explosion, x, y, z, radius, squish);
+        for (BlockPos pos : affectedBlocks) {
+            IBlockState state = world.getBlockState(pos);
+            if (state.getBlock() == Blocks.AIR) continue;
+            Block block = state.getBlock();
 
-                        if (block.canDropFromExplosion(explosion)) {
-                            NonNullList<ItemStack> blockDrops = NonNullList.create();
-                            block.getDrops(blockDrops, world, pos, state, 0);
-                            for (ItemStack stack : blockDrops) mergeDrop(drops, stack, pos);
-                        }
+            if (block.canDropFromExplosion(explosion)) {
+                NonNullList<ItemStack> blockDrops = NonNullList.create();
+                block.getDrops(blockDrops, world, pos, state, 0);
+                for (ItemStack stack : blockDrops) mergeDrop(drops, stack, pos);
+            }
 
-                        float remainingPower = radius * (0.7F + world.rand.nextFloat() * 0.6F);
-                        float resistance = source != null
-                                ? source.getExplosionResistance(explosion, world, pos, state)
-                                : block.getExplosionResistance(world, pos, null, explosion);
-                        remainingPower -= (resistance + 0.3F)
-                                * (WitherStormConfig.lowerBlockResistance ? 0.01F : 0.3F);
-                        if (remainingPower <= 0.0F
-                                || source != null && !source.canExplosionDestroyBlock(
-                                        explosion, world, pos, state, remainingPower)) continue;
+            float remainingPower = radius * (0.7F + world.rand.nextFloat() * 0.6F);
+            float resistance = source != null
+                    ? source.getExplosionResistance(explosion, world, pos, state)
+                    : block.getExplosionResistance(world, pos, null, explosion);
+            remainingPower -= (resistance + 0.3F)
+                    * (WitherStormConfig.lowerBlockResistance ? 0.01F : 0.3F);
+            if (remainingPower <= 0.0F
+                    || source != null && !source.canExplosionDestroyBlock(
+                    explosion, world, pos, state, remainingPower)) continue;
 
-                        block.onBlockExploded(world, pos, explosion);
-                        if (world.rand.nextInt(3) == 0 && world.isAirBlock(pos) && world.getBlockState(pos.down()).isFullBlock()) {
-                            world.setBlockState(pos, Blocks.FIRE.getDefaultState());
-                        }
-                    }
-                }
+            block.onBlockExploded(world, pos, explosion);
+            if (world.rand.nextInt(3) == 0 && world.isAirBlock(pos) && world.getBlockState(pos.down()).isFullBlock()) {
+                world.setBlockState(pos, Blocks.FIRE.getDefaultState());
             }
         }
 
@@ -120,6 +114,52 @@ public final class FormidibombExplosion {
         }
 
         for (Drop drop : drops) Block.spawnAsEntity(world, drop.pos, drop.stack);
+    }
+
+    /** Vanilla-style shell rays avoid the cubic million-block scan for radius 48+. */
+    private static Set<BlockPos> collectAffectedBlocks(World world, Explosion explosion,
+                                                       double x, double y, double z,
+                                                       int radius, int squish) {
+        Set<BlockPos> positions = new HashSet<BlockPos>();
+        int grid = 8;
+        double verticalScale = Math.sqrt(Math.max(1, squish));
+        for (int ix = -grid; ix <= grid; ix++) {
+            for (int iy = -grid; iy <= grid; iy++) {
+                for (int iz = -grid; iz <= grid; iz++) {
+                    if (Math.max(Math.max(Math.abs(ix), Math.abs(iy)), Math.abs(iz)) != grid) continue;
+                    double dx = ix;
+                    double dy = iy / verticalScale;
+                    double dz = iz;
+                    double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                    if (length < 1.0E-6D) continue;
+                    dx /= length;
+                    dy /= length * verticalScale;
+                    dz /= length;
+                    double px = x;
+                    double py = y;
+                    double pz = z;
+                    double power = radius * (0.7D + world.rand.nextDouble() * 0.6D);
+                    while (power > 0.0D) {
+                        BlockPos pos = new BlockPos(MathHelper.floor(px), MathHelper.floor(py), MathHelper.floor(pz));
+                        if (!world.isBlockLoaded(pos)) break;
+                        IBlockState state = world.getBlockState(pos);
+                        if (state.getBlock() != Blocks.AIR) positions.add(pos);
+                        Block block = state.getBlock();
+                        if (block != Blocks.AIR) {
+                            float resistance = block.getExplosionResistance(world, pos, null, explosion);
+                            power -= (resistance + 0.3D)
+                                    * (WitherStormConfig.lowerBlockResistance ? 0.01D : 0.3D);
+                        }
+                        // Vanilla explosion rays lose a small amount of power in air too.
+                        power -= 0.225D;
+                        px += dx * 0.3D;
+                        py += dy * 0.3D;
+                        pz += dz * 0.3D;
+                    }
+                }
+            }
+        }
+        return positions;
     }
 
     private static void mergeDrop(List<Drop> drops, ItemStack stack, BlockPos pos) {

@@ -10,11 +10,14 @@ import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import io.netty.buffer.ByteBuf;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 
 import java.util.List;
 
 /** 共生体施放的专用龙息弹，保留上游的凋零药水云和可持久化标记。 */
-public class SymbiontDragonFireballEntity extends EntityDragonFireball {
+public class SymbiontDragonFireballEntity extends EntityDragonFireball
+        implements IEntityAdditionalSpawnData {
     public SymbiontDragonFireballEntity(World world) {
         super(world);
         getEntityData().setBoolean("CreatedBySymbiont", true);
@@ -24,6 +27,21 @@ public class SymbiontDragonFireballEntity extends EntityDragonFireball {
                                        double accelerationX, double accelerationY, double accelerationZ) {
         super(world, shooter, accelerationX, accelerationY, accelerationZ);
         getEntityData().setBoolean("CreatedBySymbiont", true);
+    }
+
+    /** Keep the custom acceleration vector coherent on the initial spawn. */
+    @Override
+    public void writeSpawnData(ByteBuf buffer) {
+        buffer.writeDouble(accelerationX);
+        buffer.writeDouble(accelerationY);
+        buffer.writeDouble(accelerationZ);
+    }
+
+    @Override
+    public void readSpawnData(ByteBuf buffer) {
+        accelerationX = buffer.readDouble();
+        accelerationY = buffer.readDouble();
+        accelerationZ = buffer.readDouble();
     }
 
     @Override

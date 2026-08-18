@@ -38,7 +38,7 @@ public final class WorldUtil {
             cachedStormIndexWorld = world;
             cachedStormIndexTick = tick;
             List<WitherStormEntity> storms = new ArrayList<WitherStormEntity>();
-            for (net.minecraft.entity.Entity entity : world.loadedEntityList) {
+            for (Entity entity : world.loadedEntityList) {
                 if (entity instanceof WitherStormEntity && entity.isEntityAlive()) {
                     storms.add((WitherStormEntity) entity);
                 }

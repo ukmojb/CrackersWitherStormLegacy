@@ -56,6 +56,8 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 
@@ -371,7 +373,7 @@ public final class WitherStormAdminCommand extends CommandBase {
             if (args.length != 4) throw new WrongUsageException(USAGE);
             WitherStormEntity storm = storm(server, sender, args[3]);
             if ("pos".equals(args[2])) {
-                net.minecraft.util.math.Vec3d target = storm.getUltimateTargetPos();
+                Vec3d target = storm.getUltimateTargetPos();
                 if (target == null) {
                     sender.sendMessage(new TextComponentTranslation(
                             "commands.witherstormmod.ultimateTarget.get.pos.none",
@@ -930,9 +932,9 @@ public final class WitherStormAdminCommand extends CommandBase {
             if (!(entity instanceof SupplementalEntities.BlockClusterEntity)) {
                 return;
             }
-            net.minecraft.util.EnumFacing.Axis axis;
+            EnumFacing.Axis axis;
             try {
-                axis = net.minecraft.util.EnumFacing.Axis.valueOf(
+                axis = EnumFacing.Axis.valueOf(
                         args[3].toUpperCase(java.util.Locale.ROOT));
             } catch (IllegalArgumentException exception) {
                 throw new WrongUsageException(USAGE);

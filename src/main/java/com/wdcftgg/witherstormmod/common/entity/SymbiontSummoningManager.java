@@ -28,6 +28,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.WorldEntitySpawner;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.event.ForgeEventFactory;
 
@@ -171,7 +172,7 @@ public final class SymbiontSummoningManager {
                 double poofSpreadX = storm.getRNG().nextGaussian();
                 double poofSpreadY = storm.getRNG().nextGaussian();
                 double poofSpreadZ = storm.getRNG().nextGaussian();
-                world.spawnParticle(net.minecraft.util.EnumParticleTypes.EXPLOSION_NORMAL,
+                world.spawnParticle(EnumParticleTypes.EXPLOSION_NORMAL,
                         symbiont.posX, symbiont.posY, symbiont.posZ, 20,
                         poofSpreadX, poofSpreadY, poofSpreadZ, 0.01D);
             }

@@ -3,6 +3,7 @@ package com.wdcftgg.witherstormmod.mixin.client;
 import com.wdcftgg.witherstormmod.client.SkyAmbienceManager;
 import com.wdcftgg.witherstormmod.client.WitherStormClientConfig;
 import com.wdcftgg.witherstormmod.common.entity.DistantStormPart;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -90,7 +91,7 @@ public abstract class WorldMixin {
     @Inject(method = "getCloudColour", at = @At("RETURN"), cancellable = true)
     private void witherstormmod$blendStormCloudColor(
             float partialTicks, CallbackInfoReturnable<Vec3d> callback) {
-        Entity viewEntity = net.minecraft.client.Minecraft.getMinecraft().getRenderViewEntity();
+        Entity viewEntity = Minecraft.getMinecraft().getRenderViewEntity();
         if (viewEntity == null) return;
         Vec3d blended = SkyAmbienceManager.INSTANCE.blendCloudColor(
                 viewEntity, partialTicks, callback.getReturnValue());

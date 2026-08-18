@@ -96,6 +96,9 @@ public class CommonProxy {
     public void handleWitherStormLoop(ModNetwork.WitherStormLoopMessage message) {
     }
 
+    public void handleWitherStormRotation(int entityId, float xRotation, float yRotation) {
+    }
+
     public void handleWitherSicknessSync(int entityId, NBTTagCompound data) {
     }
 

@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.block.model.ItemTransformVec3f;
 import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.model.BakedModelWrapper;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
@@ -95,8 +96,8 @@ final class PhasometerModelCompatibility {
     private static TRSRTransformation transform(float rotationX, float rotationY, float rotationZ,
                                                   float translationX, float translationY,
                                                   float translationZ) {
-        net.minecraft.client.renderer.block.model.ItemTransformVec3f vanilla =
-                new net.minecraft.client.renderer.block.model.ItemTransformVec3f(
+        ItemTransformVec3f vanilla =
+                new ItemTransformVec3f(
                         new Vector3f(rotationX, rotationY, rotationZ),
                         new Vector3f(translationX / 16.0F, translationY / 16.0F,
                                 translationZ / 16.0F),

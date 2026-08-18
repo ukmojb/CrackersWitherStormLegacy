@@ -14,6 +14,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
+import org.lwjgl.opengl.GL11;
 
 public final class PhasometerOverlay {
 
@@ -190,7 +191,7 @@ public final class PhasometerOverlay {
             GlStateManager.depthMask(true);
             GlStateManager.enableDepth();
             GlStateManager.enableAlpha();
-            GlStateManager.alphaFunc(org.lwjgl.opengl.GL11.GL_GREATER, 0.1F);
+            GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1F);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }

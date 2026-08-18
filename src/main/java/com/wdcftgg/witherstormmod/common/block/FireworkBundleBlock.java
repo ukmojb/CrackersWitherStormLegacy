@@ -19,6 +19,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.block.Block;
 
 public class FireworkBundleBlock extends BlockContainer {
 
@@ -56,7 +57,7 @@ public class FireworkBundleBlock extends BlockContainer {
     }
 
     @Override
-    public void neighborChanged(IBlockState state, World world, BlockPos pos, net.minecraft.block.Block block, BlockPos fromPos) {
+    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block block, BlockPos fromPos) {
         if (world.isBlockPowered(pos)) beginFuse(world, pos);
     }
 

@@ -24,6 +24,7 @@ public class WitherStormLoopSound extends MovingSound {
     private WitherStormEntity storm;
     private Vec3d position;
     private float fade;
+    private float distanceVolume;
     private float dampen;
     private boolean stopping;
 
@@ -102,7 +103,8 @@ public class WitherStormLoopSound extends MovingSound {
         }
         float distance = (float) Math.sqrt(minecraft.player.getDistanceSq(xPosF, yPosF, zPosF));
         updateDampening(minecraft, distance);
-        float distanceVolume = MathHelper.clamp(1.0F - distance / attenuationDistance, 0.0F, 1.0F);
+        float targetDistanceVolume = MathHelper.clamp(1.0F - distance / attenuationDistance, 0.0F, 1.0F);
+        distanceVolume += MathHelper.clamp(targetDistanceVolume - distanceVolume, -0.035F, 0.035F);
         float unobstructedVolume = MathHelper.clamp(fade / FADE_TICKS, 0.0F, 1.0F);
         volume = Math.max(0.0F, unobstructedVolume - dampen * 0.02F) * distanceVolume;
     }

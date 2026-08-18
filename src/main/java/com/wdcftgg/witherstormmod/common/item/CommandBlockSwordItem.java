@@ -9,6 +9,7 @@ import com.google.common.collect.Multimap;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.ItemStack;
 
 public class CommandBlockSwordItem extends ItemSword {
     private final float attackDamage;
@@ -40,22 +41,22 @@ public class CommandBlockSwordItem extends ItemSword {
     }
 
     @Override
-    public EnumRarity getRarity(net.minecraft.item.ItemStack stack) {
+    public EnumRarity getRarity(ItemStack stack) {
         return EnumRarity.EPIC;
     }
 
     @Override
-    public boolean isEnchantable(net.minecraft.item.ItemStack stack) {
+    public boolean isEnchantable(ItemStack stack) {
         return getItemStackLimit(stack) == 1;
     }
 
     @Override
-    public boolean hasCustomEntity(net.minecraft.item.ItemStack stack) {
+    public boolean hasCustomEntity(ItemStack stack) {
         return FireResistantItemEntity.isFireResistant(stack);
     }
 
     @Override
-    public Entity createEntity(World world, Entity location, net.minecraft.item.ItemStack stack) {
+    public Entity createEntity(World world, Entity location, ItemStack stack) {
         return hasCustomEntity(stack) ? FireResistantItemEntity.create(world, location, stack) : null;
     }
 }

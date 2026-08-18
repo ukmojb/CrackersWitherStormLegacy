@@ -4,10 +4,12 @@ import com.wdcftgg.witherstormmod.Tags;
 import com.wdcftgg.witherstormmod.WitherStormMod;
 import com.wdcftgg.witherstormmod.common.entity.WitherStormEntity;
 import com.wdcftgg.witherstormmod.common.entity.SupplementalEntities;
+import com.wdcftgg.witherstormmod.common.tile.AbstractSuperBeaconTileEntity;
 import com.wdcftgg.witherstormmod.common.config.WitherStormConfig;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -142,9 +144,9 @@ public final class ChunkLoadingManager implements ForgeChunkManager.LoadingCallb
             }
         }
 
-        for (net.minecraft.tileentity.TileEntity tile : new ArrayList<net.minecraft.tileentity.TileEntity>(
+        for (TileEntity tile : new ArrayList<TileEntity>(
                 world.loadedTileEntityList)) {
-            if (tile instanceof com.wdcftgg.witherstormmod.common.tile.AbstractSuperBeaconTileEntity
+            if (tile instanceof AbstractSuperBeaconTileEntity
                     && !tile.isInvalid()) {
                 ChunkPos center = new ChunkPos(tile.getPos());
                 String key = beaconKey(tile.getPos());

@@ -1,6 +1,7 @@
 package com.wdcftgg.witherstormmod.client.jei;
 
 import com.wdcftgg.witherstormmod.Tags;
+import com.wdcftgg.witherstormmod.common.init.ModBlocks;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IGuiItemStackGroup;
@@ -24,7 +25,7 @@ abstract class AbstractSuperBeaconCategory<T extends SuperBeaconRecipeWrapper>
         this.background = guiHelper.createBlankDrawable(SuperBeaconLayout.WIDTH, SuperBeaconLayout.HEIGHT);
         this.icon = new BeaconIcon(
                 guiHelper.createDrawableIngredient(new ItemStack(
-                        com.wdcftgg.witherstormmod.common.init.ModBlocks.get("super_beacon"))),
+                        ModBlocks.get("super_beacon"))),
                 guiHelper.createDrawable(new ResourceLocation(Tags.MOD_ID, iconPath), 0, 0, 8, 8));
     }
 

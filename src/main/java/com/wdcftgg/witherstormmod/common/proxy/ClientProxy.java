@@ -189,7 +189,7 @@ public class ClientProxy extends CommonProxy {
     }
 
     @Override
-    public void handleStopSound(ResourceLocation sound, net.minecraft.util.SoundCategory category) {
+    public void handleStopSound(ResourceLocation sound, SoundCategory category) {
         Minecraft.getMinecraft().addScheduledTask(() ->
                 Minecraft.getMinecraft().getSoundHandler().stop(sound.toString(), category));
     }
@@ -317,6 +317,18 @@ public class ClientProxy extends CommonProxy {
     public void handleWitherStormLoop(ModNetwork.WitherStormLoopMessage message) {
         Minecraft.getMinecraft().addScheduledTask(
                 () -> WitherStormClientEvents.handleWitherStormLoop(message));
+    }
+
+    @Override
+    public void handleWitherStormRotation(int entityId, float xRotation, float yRotation) {
+        Minecraft.getMinecraft().addScheduledTask(() -> {
+            World world = Minecraft.getMinecraft().world;
+            if (world == null) return;
+            Entity entity = world.getEntityByID(entityId);
+            if (entity instanceof WitherStormEntity) {
+                ((WitherStormEntity) entity).lerpBodyRotationTo(xRotation, yRotation, 3);
+            }
+        });
     }
 
     @Override

@@ -11,6 +11,7 @@ import com.wdcftgg.witherstormmod.common.init.ModSounds;
 import com.wdcftgg.witherstormmod.common.network.ModNetwork;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamBlockTags;
 import com.wdcftgg.witherstormmod.common.taint.TaintingManager;
+import com.wdcftgg.witherstormmod.common.util.WorldUtil;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.Entity;
@@ -124,6 +125,7 @@ import net.minecraft.world.storage.loot.LootTable;
 import net.minecraft.village.MerchantRecipe;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.entity.passive.EntityParrot;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.ForgeModContainer;
@@ -638,9 +640,9 @@ public final class SickenedEntities {
         @Override
         public void copySpeciesDataFrom(EntityLivingBase original) {
             super.copySpeciesDataFrom(original);
-            if (original instanceof net.minecraft.entity.passive.EntityOcelot) {
-                net.minecraft.entity.passive.EntityOcelot cat =
-                        (net.minecraft.entity.passive.EntityOcelot) original;
+            if (original instanceof EntityOcelot) {
+                EntityOcelot cat =
+                        (EntityOcelot) original;
                 dataManager.set(CAT_VARIANT, cat.getTameSkin());
             }
             updateTamedHealthBenefit();
@@ -650,8 +652,8 @@ public final class SickenedEntities {
         @Override
         public void copySpeciesDataTo(EntityLivingBase cured) {
             super.copySpeciesDataTo(cured);
-            if (cured instanceof net.minecraft.entity.passive.EntityOcelot) {
-                ((net.minecraft.entity.passive.EntityOcelot) cured).setTameSkin(getCatVariant());
+            if (cured instanceof EntityOcelot) {
+                ((EntityOcelot) cured).setTameSkin(getCatVariant());
             }
         }
 
@@ -1219,17 +1221,17 @@ public final class SickenedEntities {
         @Override
         public void copySpeciesDataFrom(EntityLivingBase original) {
             super.copySpeciesDataFrom(original);
-            if (original instanceof net.minecraft.entity.passive.EntityParrot) {
+            if (original instanceof EntityParrot) {
                 dataManager.set(VARIANT,
-                        ((net.minecraft.entity.passive.EntityParrot) original).getVariant());
+                        ((EntityParrot) original).getVariant());
             }
         }
 
         @Override
         public void copySpeciesDataTo(EntityLivingBase cured) {
             super.copySpeciesDataTo(cured);
-            if (cured instanceof net.minecraft.entity.passive.EntityParrot) {
-                ((net.minecraft.entity.passive.EntityParrot) cured).setVariant(getParrotVariant());
+            if (cured instanceof EntityParrot) {
+                ((EntityParrot) cured).setVariant(getParrotVariant());
             }
         }
 
@@ -2569,9 +2571,9 @@ public final class SickenedEntities {
         @Override
         public void copySpeciesDataFrom(EntityLivingBase original) {
             super.copySpeciesDataFrom(original);
-            if (original instanceof net.minecraft.entity.passive.EntityWolf) {
+            if (original instanceof EntityWolf) {
                 dataManager.set(COLLAR_COLOR,
-                        ((net.minecraft.entity.passive.EntityWolf) original)
+                        ((EntityWolf) original)
                                 .getCollarColor().getDyeDamage());
             }
         }
@@ -2579,8 +2581,8 @@ public final class SickenedEntities {
         @Override
         public void copySpeciesDataTo(EntityLivingBase cured) {
             super.copySpeciesDataTo(cured);
-            if (cured instanceof net.minecraft.entity.passive.EntityWolf) {
-                ((net.minecraft.entity.passive.EntityWolf) cured).setCollarColor(getCollarColor());
+            if (cured instanceof EntityWolf) {
+                ((EntityWolf) cured).setCollarColor(getCollarColor());
             }
         }
 
@@ -4188,7 +4190,7 @@ public final class SickenedEntities {
                 int x = origin.getX() + rand.nextInt(diameter) - halfDiameter;
                 int z = origin.getZ() + rand.nextInt(diameter) - halfDiameter;
                 BlockPos cursor = new BlockPos(x,
-                        com.wdcftgg.witherstormmod.common.util.WorldUtil
+                        WorldUtil
                                 .getMotionBlockingHeightIgnoringLeaves(world, x, z), z);
                 if (Math.sqrt(cursor.distanceSq(origin)) > 6.0D
                         && WorldEntitySpawner.canCreatureTypeSpawnAtLocation(
@@ -4222,12 +4224,12 @@ public final class SickenedEntities {
         }
 
         private static void applySupportModifier(EntityLivingBase entity,
-                                                  net.minecraft.entity.ai.attributes.IAttribute attribute,
+                                                  IAttribute attribute,
                                                   String uuid, double amount) {
-            net.minecraft.entity.ai.attributes.IAttributeInstance instance =
+            IAttributeInstance instance =
                     entity.getEntityAttribute(attribute);
             if (instance != null) {
-                instance.applyModifier(new net.minecraft.entity.ai.attributes.AttributeModifier(
+                instance.applyModifier(new AttributeModifier(
                         UUID.fromString(uuid), "Wither storm support mob", amount, 0));
             }
         }

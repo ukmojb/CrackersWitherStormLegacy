@@ -51,6 +51,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.init.SoundEvents;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -194,7 +195,7 @@ public abstract class SickenedMobEntity extends EntityMob {
         for (int x = -4; x < 4 && found < 14; x++) {
             for (int y = -4; y < 4 && found < 14; y++) {
                 for (int z = -4; z < 4 && found < 14; z++) {
-                    net.minecraft.block.Block block = world.getBlockState(origin.add(x, y, z)).getBlock();
+                    Block block = world.getBlockState(origin.add(x, y, z)).getBlock();
                     if (block != Blocks.IRON_BARS && !(block instanceof BlockBed)) continue;
                     if (rand.nextFloat() < 0.3F) progress++;
                     found++;
@@ -211,7 +212,7 @@ public abstract class SickenedMobEntity extends EntityMob {
         dataManager.set(CONVERTING, true);
         int amplifier = Math.min(world.getDifficulty().getId() - 1, 0);
         addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, duration, amplifier));
-        playSound(net.minecraft.init.SoundEvents.ENTITY_ZOMBIE_VILLAGER_CURE, 1.0F + rand.nextFloat(), rand.nextFloat() * 0.7F + 0.3F);
+        playSound(SoundEvents.ENTITY_ZOMBIE_VILLAGER_CURE, 1.0F + rand.nextFloat(), rand.nextFloat() * 0.7F + 0.3F);
     }
 
     public void setConversionTime(int duration) {
@@ -415,34 +416,34 @@ public abstract class SickenedMobEntity extends EntityMob {
     protected SoundEvent getAmbientSound() {
         String type = getSickenedType();
         if ("sickened_bee".equals(type)) return registeredSound(
-                "futuremc:bee_passive", net.minecraft.init.SoundEvents.ENTITY_BAT_AMBIENT);
-        if ("sickened_cat".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_CAT_AMBIENT;
-        if ("sickened_chicken".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_CHICKEN_AMBIENT;
+                "futuremc:bee_passive", SoundEvents.ENTITY_BAT_AMBIENT);
+        if ("sickened_cat".equals(type)) return SoundEvents.ENTITY_CAT_AMBIENT;
+        if ("sickened_chicken".equals(type)) return SoundEvents.ENTITY_CHICKEN_AMBIENT;
         if ("sickened_cow".equals(type) || "sickened_mushroom_cow".equals(type)) {
-            return net.minecraft.init.SoundEvents.ENTITY_COW_AMBIENT;
+            return SoundEvents.ENTITY_COW_AMBIENT;
         }
-        if ("sickened_parrot".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_PARROT_AMBIENT;
-        if ("sickened_phantom".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_BAT_AMBIENT;
-        if ("sickened_pig".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_PIG_AMBIENT;
+        if ("sickened_parrot".equals(type)) return SoundEvents.ENTITY_PARROT_AMBIENT;
+        if ("sickened_phantom".equals(type)) return SoundEvents.ENTITY_BAT_AMBIENT;
+        if ("sickened_pig".equals(type)) return SoundEvents.ENTITY_PIG_AMBIENT;
         if ("sickened_pillager".equals(type) || "sickened_vindicator".equals(type)) {
-            return net.minecraft.init.SoundEvents.VINDICATION_ILLAGER_AMBIENT;
+            return SoundEvents.VINDICATION_ILLAGER_AMBIENT;
         }
-        if ("sickened_skeleton".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_SKELETON_AMBIENT;
-        if ("sickened_snow_golem".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_SNOWMAN_AMBIENT;
-        if ("sickened_spider".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_SPIDER_AMBIENT;
-        if ("sickened_villager".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_ZOMBIE_VILLAGER_AMBIENT;
+        if ("sickened_skeleton".equals(type)) return SoundEvents.ENTITY_SKELETON_AMBIENT;
+        if ("sickened_snow_golem".equals(type)) return SoundEvents.ENTITY_SNOWMAN_AMBIENT;
+        if ("sickened_spider".equals(type)) return SoundEvents.ENTITY_SPIDER_AMBIENT;
+        if ("sickened_villager".equals(type)) return SoundEvents.ENTITY_ZOMBIE_VILLAGER_AMBIENT;
         if ("sickened_wolf".equals(type)) {
             SickenedEntities.SickenedWolfEntity wolf =
                     (SickenedEntities.SickenedWolfEntity) this;
-            if (wolf.isSickenedAngry()) return net.minecraft.init.SoundEvents.ENTITY_WOLF_GROWL;
+            if (wolf.isSickenedAngry()) return SoundEvents.ENTITY_WOLF_GROWL;
             if (rand.nextInt(3) == 0) {
                 return wolf.isSickenedTamed() && getHealth() < 10.0F
-                        ? net.minecraft.init.SoundEvents.ENTITY_WOLF_WHINE
-                        : net.minecraft.init.SoundEvents.ENTITY_WOLF_PANT;
+                        ? SoundEvents.ENTITY_WOLF_WHINE
+                        : SoundEvents.ENTITY_WOLF_PANT;
             }
-            return net.minecraft.init.SoundEvents.ENTITY_WOLF_AMBIENT;
+            return SoundEvents.ENTITY_WOLF_AMBIENT;
         }
-        if ("sickened_zombie".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_ZOMBIE_AMBIENT;
+        if ("sickened_zombie".equals(type)) return SoundEvents.ENTITY_ZOMBIE_AMBIENT;
         return null;
     }
 
@@ -450,26 +451,26 @@ public abstract class SickenedMobEntity extends EntityMob {
     protected SoundEvent getHurtSound(DamageSource source) {
         String type = getSickenedType();
         if ("sickened_bee".equals(type)) return registeredSound(
-                "futuremc:bee_hurt", net.minecraft.init.SoundEvents.ENTITY_BAT_HURT);
-        if ("sickened_cat".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_CAT_HURT;
-        if ("sickened_chicken".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_CHICKEN_HURT;
+                "futuremc:bee_hurt", SoundEvents.ENTITY_BAT_HURT);
+        if ("sickened_cat".equals(type)) return SoundEvents.ENTITY_CAT_HURT;
+        if ("sickened_chicken".equals(type)) return SoundEvents.ENTITY_CHICKEN_HURT;
         if ("sickened_cow".equals(type) || "sickened_mushroom_cow".equals(type)) {
-            return net.minecraft.init.SoundEvents.ENTITY_COW_HURT;
+            return SoundEvents.ENTITY_COW_HURT;
         }
-        if ("sickened_creeper".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_CREEPER_HURT;
-        if ("sickened_iron_golem".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_IRONGOLEM_HURT;
-        if ("sickened_parrot".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_PARROT_HURT;
-        if ("sickened_phantom".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_BAT_HURT;
-        if ("sickened_pig".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_PIG_HURT;
+        if ("sickened_creeper".equals(type)) return SoundEvents.ENTITY_CREEPER_HURT;
+        if ("sickened_iron_golem".equals(type)) return SoundEvents.ENTITY_IRONGOLEM_HURT;
+        if ("sickened_parrot".equals(type)) return SoundEvents.ENTITY_PARROT_HURT;
+        if ("sickened_phantom".equals(type)) return SoundEvents.ENTITY_BAT_HURT;
+        if ("sickened_pig".equals(type)) return SoundEvents.ENTITY_PIG_HURT;
         if ("sickened_pillager".equals(type) || "sickened_vindicator".equals(type)) {
-            return net.minecraft.init.SoundEvents.ENTITY_VINDICATION_ILLAGER_HURT;
+            return SoundEvents.ENTITY_VINDICATION_ILLAGER_HURT;
         }
-        if ("sickened_skeleton".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_SKELETON_HURT;
-        if ("sickened_snow_golem".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_SNOWMAN_HURT;
-        if ("sickened_spider".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_SPIDER_HURT;
-        if ("sickened_villager".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_ZOMBIE_VILLAGER_HURT;
-        if ("sickened_wolf".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_WOLF_HURT;
-        if ("sickened_zombie".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_ZOMBIE_HURT;
+        if ("sickened_skeleton".equals(type)) return SoundEvents.ENTITY_SKELETON_HURT;
+        if ("sickened_snow_golem".equals(type)) return SoundEvents.ENTITY_SNOWMAN_HURT;
+        if ("sickened_spider".equals(type)) return SoundEvents.ENTITY_SPIDER_HURT;
+        if ("sickened_villager".equals(type)) return SoundEvents.ENTITY_ZOMBIE_VILLAGER_HURT;
+        if ("sickened_wolf".equals(type)) return SoundEvents.ENTITY_WOLF_HURT;
+        if ("sickened_zombie".equals(type)) return SoundEvents.ENTITY_ZOMBIE_HURT;
         return super.getHurtSound(source);
     }
 
@@ -477,26 +478,26 @@ public abstract class SickenedMobEntity extends EntityMob {
     protected SoundEvent getDeathSound() {
         String type = getSickenedType();
         if ("sickened_bee".equals(type)) return registeredSound(
-                "futuremc:bee_death", net.minecraft.init.SoundEvents.ENTITY_BAT_DEATH);
-        if ("sickened_cat".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_CAT_DEATH;
-        if ("sickened_chicken".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_CHICKEN_DEATH;
+                "futuremc:bee_death", SoundEvents.ENTITY_BAT_DEATH);
+        if ("sickened_cat".equals(type)) return SoundEvents.ENTITY_CAT_DEATH;
+        if ("sickened_chicken".equals(type)) return SoundEvents.ENTITY_CHICKEN_DEATH;
         if ("sickened_cow".equals(type) || "sickened_mushroom_cow".equals(type)) {
-            return net.minecraft.init.SoundEvents.ENTITY_COW_DEATH;
+            return SoundEvents.ENTITY_COW_DEATH;
         }
-        if ("sickened_creeper".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_CREEPER_DEATH;
-        if ("sickened_iron_golem".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_IRONGOLEM_DEATH;
-        if ("sickened_parrot".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_PARROT_DEATH;
-        if ("sickened_phantom".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_BAT_DEATH;
-        if ("sickened_pig".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_PIG_DEATH;
+        if ("sickened_creeper".equals(type)) return SoundEvents.ENTITY_CREEPER_DEATH;
+        if ("sickened_iron_golem".equals(type)) return SoundEvents.ENTITY_IRONGOLEM_DEATH;
+        if ("sickened_parrot".equals(type)) return SoundEvents.ENTITY_PARROT_DEATH;
+        if ("sickened_phantom".equals(type)) return SoundEvents.ENTITY_BAT_DEATH;
+        if ("sickened_pig".equals(type)) return SoundEvents.ENTITY_PIG_DEATH;
         if ("sickened_pillager".equals(type) || "sickened_vindicator".equals(type)) {
-            return net.minecraft.init.SoundEvents.VINDICATION_ILLAGER_DEATH;
+            return SoundEvents.VINDICATION_ILLAGER_DEATH;
         }
-        if ("sickened_skeleton".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_SKELETON_DEATH;
-        if ("sickened_snow_golem".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_SNOWMAN_DEATH;
-        if ("sickened_spider".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_SPIDER_DEATH;
-        if ("sickened_villager".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_ZOMBIE_VILLAGER_DEATH;
-        if ("sickened_wolf".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_WOLF_DEATH;
-        if ("sickened_zombie".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_ZOMBIE_DEATH;
+        if ("sickened_skeleton".equals(type)) return SoundEvents.ENTITY_SKELETON_DEATH;
+        if ("sickened_snow_golem".equals(type)) return SoundEvents.ENTITY_SNOWMAN_DEATH;
+        if ("sickened_spider".equals(type)) return SoundEvents.ENTITY_SPIDER_DEATH;
+        if ("sickened_villager".equals(type)) return SoundEvents.ENTITY_ZOMBIE_VILLAGER_DEATH;
+        if ("sickened_wolf".equals(type)) return SoundEvents.ENTITY_WOLF_DEATH;
+        if ("sickened_zombie".equals(type)) return SoundEvents.ENTITY_ZOMBIE_DEATH;
         return super.getDeathSound();
     }
 
@@ -513,18 +514,18 @@ public abstract class SickenedMobEntity extends EntityMob {
     @Nullable
     private SoundEvent getSpeciesStepSound() {
         String type = getSickenedType();
-        if ("sickened_chicken".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_CHICKEN_STEP;
+        if ("sickened_chicken".equals(type)) return SoundEvents.ENTITY_CHICKEN_STEP;
         if ("sickened_cow".equals(type) || "sickened_mushroom_cow".equals(type)) {
-            return net.minecraft.init.SoundEvents.ENTITY_COW_STEP;
+            return SoundEvents.ENTITY_COW_STEP;
         }
-        if ("sickened_iron_golem".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_IRONGOLEM_STEP;
-        if ("sickened_parrot".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_PARROT_STEP;
-        if ("sickened_pig".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_PIG_STEP;
-        if ("sickened_skeleton".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_SKELETON_STEP;
-        if ("sickened_spider".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_SPIDER_STEP;
-        if ("sickened_villager".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_ZOMBIE_VILLAGER_STEP;
-        if ("sickened_wolf".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_WOLF_STEP;
-        if ("sickened_zombie".equals(type)) return net.minecraft.init.SoundEvents.ENTITY_ZOMBIE_STEP;
+        if ("sickened_iron_golem".equals(type)) return SoundEvents.ENTITY_IRONGOLEM_STEP;
+        if ("sickened_parrot".equals(type)) return SoundEvents.ENTITY_PARROT_STEP;
+        if ("sickened_pig".equals(type)) return SoundEvents.ENTITY_PIG_STEP;
+        if ("sickened_skeleton".equals(type)) return SoundEvents.ENTITY_SKELETON_STEP;
+        if ("sickened_spider".equals(type)) return SoundEvents.ENTITY_SPIDER_STEP;
+        if ("sickened_villager".equals(type)) return SoundEvents.ENTITY_ZOMBIE_VILLAGER_STEP;
+        if ("sickened_wolf".equals(type)) return SoundEvents.ENTITY_WOLF_STEP;
+        if ("sickened_zombie".equals(type)) return SoundEvents.ENTITY_ZOMBIE_STEP;
         return null;
     }
 

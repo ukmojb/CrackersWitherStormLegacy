@@ -23,6 +23,8 @@ public class UpstreamResourcePack extends FileResourcePack {
             "assets/witherstormmod/textures/item/crossbow_mod_ender_pearl.png";
     private static final String CROSSBOW_ENDER_PEARL_TEXTURE =
             "assets/witherstormmod/textures/item/crossbow_ender_pearl.png";
+    private static final String TITLE_PANORAMA_FACE_0 =
+            "assets/witherstormmod/textures/gui/title/background/panorama_0.png";
 
     public UpstreamResourcePack(File resourcePackFile) {
         super(resourcePackFile);
@@ -47,6 +49,9 @@ public class UpstreamResourcePack extends FileResourcePack {
         }
         if (SoundResourceConverter.handles(name)) {
             return new ByteArrayInputStream(SoundResourceConverter.convert(readResource(name)));
+        }
+        if (TITLE_PANORAMA_FACE_0.equals(name)) {
+            return normalizedPanoramaTexture();
         }
         if (isModernDefinition(name)) {
             throw new FileNotFoundException(name);
@@ -134,6 +139,45 @@ public class UpstreamResourcePack extends FileResourcePack {
         } finally {
             image.flush();
             overlay.flush();
+        }
+    }
+
+    /**
+     * 1.12's title renderer builds mip levels from power-of-two cube faces. The
+     * upstream face is 1000x1000, so normalize it at the resource boundary rather
+     * than relying on the legacy texture loader's non-power-of-two behavior.
+     */
+    private InputStream normalizedPanoramaTexture() throws IOException {
+        BufferedImage image;
+        try (InputStream source = super.getInputStreamByName(TITLE_PANORAMA_FACE_0)) {
+            image = ImageIO.read(source);
+        }
+        if (image == null) {
+            throw new IOException("Unable to decode upstream title panorama");
+        }
+        int targetSize = nextPowerOfTwo(Math.max(image.getWidth(), image.getHeight()));
+        if (image.getWidth() == targetSize && image.getHeight() == targetSize) {
+            image.flush();
+            return super.getInputStreamByName(TITLE_PANORAMA_FACE_0);
+        }
+
+        BufferedImage normalized = new BufferedImage(
+                targetSize, targetSize, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = normalized.createGraphics();
+        try {
+            graphics.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+            graphics.drawImage(image, 0, 0, targetSize, targetSize, null);
+        } finally {
+            graphics.dispose();
+            image.flush();
+        }
+        try {
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            ImageIO.write(normalized, "png", output);
+            return new ByteArrayInputStream(output.toByteArray());
+        } finally {
+            normalized.flush();
         }
     }
 

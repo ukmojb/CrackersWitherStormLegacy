@@ -13,7 +13,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySkull;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
@@ -79,7 +78,11 @@ public final class WitherStormSummoningEvents {
         for (int index = 0; index < structure.length; index++) {
             BlockPos position = structure[index];
             removedStates[index] = world.getBlockState(position);
-            world.setBlockState(position, Blocks.AIR.getDefaultState(), 2);
+            // Remove the block and its tile entity in the same server tick.  A
+            // plain state update can leave skull/command-block visuals behind
+            // until the next chunk/tile-entity refresh on 1.12 clients.
+            world.setBlockToAir(position);
+            world.removeTileEntity(position);
             world.playEvent(2001, position, Block.getStateId(removedStates[index]));
         }
         WitherStormEntity storm = new WitherStormEntity(world);
@@ -90,8 +93,7 @@ public final class WitherStormSummoningEvents {
         storm.initializeStructureSummonYaw(yaw);
         storm.ignite();
         if (ModSounds.get("command_block_activates") != null) {
-            world.playSound(null, spawnPosition, ModSounds.get("command_block_activates"),
-                    SoundCategory.HOSTILE, 4.0F, 1.0F);
+            storm.playSound(ModSounds.get("command_block_activates"), 4.0F, 1.0F);
         }
         if (world.spawnEntity(storm)) {
             for (EntityPlayerMP player : world.getEntitiesWithinAABB(EntityPlayerMP.class,

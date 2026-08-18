@@ -25,7 +25,10 @@ public final class PanoramaCustomizer {
         if (panoramaPaths == null || panoramaPaths.length == 0 || originalFace == null) return;
         ResourceLocation desired = WitherStormClientConfig.customPanorama
                 ? CUSTOM_FACE : originalFace;
-        if (!desired.equals(panoramaPaths[0])) panoramaPaths[0] = desired;
+        if (!desired.equals(panoramaPaths[0])) {
+            panoramaPaths[0] = desired;
+            WitherStormMod.LOGGER.info("Main menu panorama face 0 set to {}", desired);
+        }
     }
 
     private static void resolvePanoramaPaths() {

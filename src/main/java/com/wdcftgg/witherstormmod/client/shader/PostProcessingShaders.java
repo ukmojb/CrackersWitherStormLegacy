@@ -14,6 +14,9 @@ import net.minecraft.client.shader.ShaderGroup;
 import net.minecraft.client.shader.ShaderLinkHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.renderer.GlStateManager;
+
+import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -74,13 +77,13 @@ public final class PostProcessingShaders implements IResourceManagerReloadListen
         // 1.12 ShaderGroup.render 结束后把光照、alpha test 与混合留在关闭状态，
         // 也不重置深度写入。显式恢复成 RenderWorldLastEvent 的进入状态，避免
         // 引信结束后下一帧继续携带后处理状态。
-        net.minecraft.client.renderer.GlStateManager.depthMask(true);
-        net.minecraft.client.renderer.GlStateManager.enableAlpha();
-        net.minecraft.client.renderer.GlStateManager.alphaFunc(org.lwjgl.opengl.GL11.GL_GREATER, 0.1F);
-        net.minecraft.client.renderer.GlStateManager.disableBlend();
-        net.minecraft.client.renderer.GlStateManager.disableLighting();
-        net.minecraft.client.renderer.GlStateManager.enableTexture2D();
-        net.minecraft.client.renderer.GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.depthMask(true);
+        GlStateManager.enableAlpha();
+        GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1F);
+        GlStateManager.disableBlend();
+        GlStateManager.disableLighting();
+        GlStateManager.enableTexture2D();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     @Override

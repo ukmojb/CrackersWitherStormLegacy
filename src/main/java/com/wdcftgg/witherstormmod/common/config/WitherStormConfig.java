@@ -674,7 +674,7 @@ public final class WitherStormConfig {
     public static boolean constantBlackhole = false;
 
     public static boolean isSummoningDimensionAllowed(int dimensionId) {
-        return com.wdcftgg.witherstormmod.common.config.ConfiguredListMatcher.allows(
+        return ConfiguredListMatcher.allows(
                 String.valueOf(dimensionId), summoningDimensions,
                 summoningDimensionListMode == ListMode.WHITELIST);
     }

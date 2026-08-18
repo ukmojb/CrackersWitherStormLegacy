@@ -27,6 +27,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -144,7 +145,7 @@ public class WitheredPhlegmBlock extends BlockContainer {
     @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip,
-                               net.minecraft.client.util.ITooltipFlag flag) {
+                               ITooltipFlag flag) {
         tooltip.add(TextFormatting.DARK_GRAY + I18n.format("description.withered_phlegm.use"));
     }
 

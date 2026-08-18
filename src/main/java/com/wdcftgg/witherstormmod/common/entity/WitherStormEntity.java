@@ -97,12 +97,15 @@ import com.wdcftgg.witherstormmod.common.util.EvolutionProfiler;
 import com.wdcftgg.witherstormmod.common.util.WorldUtil;
 import com.wdcftgg.witherstormmod.common.util.BossVisibility;
 import com.wdcftgg.witherstormmod.common.util.TractorBeamHelper;
+import com.wdcftgg.witherstormmod.common.advancement.EntityTrigger;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.BossInfo;
 import net.minecraft.world.BossInfoServer;
+import net.minecraft.entity.monster.EntitySlime;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ForgeEventFactory;
@@ -215,6 +218,7 @@ public class WitherStormEntity extends EntityMob
     private int recentlyRevivedTicks;
     private int trackedEntityTicks;
     private int destroyBlocksTick;
+    private int terrainDestructionCooldown;
     private int witherStormDeathTime;
     private int lastConsumedMass;
     private int entityConsumptionRadius = 16;
@@ -273,6 +277,12 @@ public class WitherStormEntity extends EntityMob
         stepHeight = 0.0F;
         setNoGravity(true);
         enablePersistence();
+    }
+
+    /** The 1.20 entity type uses the hostile sound source for entity-owned sounds. */
+    @Override
+    public SoundCategory getSoundCategory() {
+        return SoundCategory.HOSTILE;
     }
 
     public void ignite() {
@@ -424,6 +434,7 @@ public class WitherStormEntity extends EntityMob
         super.onLivingUpdate();
         profileEnd();
         spawnStormParticles();
+        if (!world.isRemote && isEntityAlive()) tickTerrainDestruction();
         profileStart("heads");
         headManager.tick();
         profileEnd();
@@ -858,7 +869,12 @@ public class WitherStormEntity extends EntityMob
 
     @Override
     public boolean canBeCollidedWith() {
-        return false;
+        // The upstream entity remains pickable. In 1.12.2 this method is also
+        // used by the client entity ray trace; returning false prevents the
+        // player attack packet from ever reaching attackEntityFrom(). Keep
+        // canBePushed() false separately so the storm is still non-colliding
+        // for movement physics.
+        return true;
     }
 
     /**
@@ -1275,6 +1291,18 @@ public class WitherStormEntity extends EntityMob
         bodyXRotation = updated;
         dataManager.set(BODY_X_ROTATION, bodyXRotation);
         if (landedOnBack) onFallOnBack();
+        ModNetwork.syncWitherStormRotation(this);
+    }
+
+    /**
+     * EntityLivingBase calls this after onLivingUpdate and normally derives
+     * renderYawOffset from movement.  The storm has its own target-driven body
+     * rotation, so allowing the vanilla pass to run would overwrite the value
+     * that was just interpolated (most visibly in phase 4).
+     */
+    @Override
+    protected float updateDistance(float yaw, float offset) {
+        return offset;
     }
 
     private void updateClientBodyRotation() {
@@ -1484,7 +1512,7 @@ public class WitherStormEntity extends EntityMob
     private boolean isEntityTicking(BlockPos position) {
         if (!(world instanceof WorldServer)) return world.isBlockLoaded(position);
         WorldServer serverWorld = (WorldServer) world;
-        net.minecraft.world.chunk.Chunk chunk = serverWorld.getChunkProvider().getLoadedChunk(
+        Chunk chunk = serverWorld.getChunkProvider().getLoadedChunk(
                 position.getX() >> 4, position.getZ() >> 4);
         return chunk != null && chunk.isLoaded() && !chunk.unloadQueued;
     }
@@ -1732,6 +1760,50 @@ public class WitherStormEntity extends EntityMob
                     if (!block.canEntityDestroy(state, world, position, this)
                             || !ForgeEventFactory.onEntityDestroyBlock(this, position, state)) continue;
                     destroyed = world.destroyBlock(position, true) || destroyed;
+                }
+            }
+        }
+        if (destroyed) world.playEvent(1022, getPosition(), 0);
+    }
+
+    /** Continuous terrain damage used by the moving storm, separate from the
+     * delayed hit reaction above.  The vanilla mob-griefing and Forge destroy
+     * hooks remain authoritative for every block. */
+    private void tickTerrainDestruction() {
+        if (terrainDestructionCooldown > 0) {
+            --terrainDestructionCooldown;
+            return;
+        }
+        if (getInvulnerableTicks() > 0
+                || isPlayDeadAiDisabled()
+                || !ForgeEventFactory.getMobGriefingEvent(world, this)) return;
+
+        terrainDestructionCooldown = getPhase() > 3 ? 3 : 2;
+        int radius = getPhase() > 3 ? Math.min(4, 1 + getPhase() / 2) : 2;
+        int minX = MathHelper.floor(posX) - radius;
+        int maxX = MathHelper.floor(posX) + radius;
+        int minZ = MathHelper.floor(posZ) - radius;
+        int maxZ = MathHelper.floor(posZ) + radius;
+        int minY = MathHelper.floor(getEntityBoundingBox().minY) - 1;
+        int maxY = Math.min(world.getHeight() - 1,
+                MathHelper.floor(getEntityBoundingBox().minY) + (getPhase() > 3 ? 5 : 3));
+        int limit = getPhase() > 3 ? 32 : 12;
+        boolean destroyed = false;
+        for (int x = minX; x <= maxX && limit > 0; x++) {
+            for (int z = minZ; z <= maxZ && limit > 0; z++) {
+                for (int y = minY; y <= maxY && limit > 0; y++) {
+                    BlockPos position = new BlockPos(x, y, z);
+                    if (!world.isBlockLoaded(position)) continue;
+                    IBlockState state = world.getBlockState(position);
+                    Block block = state.getBlock();
+                    if (block == Blocks.AIR || block == Blocks.BEDROCK || block == Blocks.BARRIER
+                            || block == Blocks.COMMAND_BLOCK || block == Blocks.CHAIN_COMMAND_BLOCK
+                            || block == Blocks.REPEATING_COMMAND_BLOCK
+                            || UpstreamBlockTags.contains(UpstreamBlockTags.WITHER_STORM_BLOCK_BLACKLIST, state)
+                            || !block.canEntityDestroy(state, world, position, this)
+                            || !ForgeEventFactory.onEntityDestroyBlock(this, position, state)) continue;
+                    destroyed = world.destroyBlock(position, true) || destroyed;
+                    --limit;
                 }
             }
         }
@@ -2025,7 +2097,8 @@ public class WitherStormEntity extends EntityMob
                 || ignoredTargetsManager.shouldIgnoreTarget(entity)
                 || isTargetedByMainHeadFamily(entity)
                 || isTargetInUseBySegment(entity)
-                || !canSeeWithCache(head, entity)) {
+                || (!(entity instanceof EntityPlayer && getPhase() >= 4)
+                && !canSeeWithCache(head, entity))) {
             return false;
         }
         if (!(entity instanceof EntityLivingBase)) return isTractorBeamPullableObject(entity);
@@ -2091,7 +2164,14 @@ public class WitherStormEntity extends EntityMob
                     * ascendSpeed, velocity.z);
         }
         EntityLivingBase attackTarget = getAttackTarget();
-        if (getPhase() < 4 && attackTarget != null) {
+        boolean targetInMainBeam = getPhase() < 4 && attackTarget != null
+                && tractorBeamActive(0)
+                && isInsideBeam(attackTarget, getHeadPosition(0, 1.0F),
+                headManager.getLookVector(0), 0);
+        if (targetInMainBeam) {
+            // Do not chase a target already caught by the main beam.
+            velocity = new Vec3d(velocity.x * 0.35D, velocity.y, velocity.z * 0.35D);
+        } else if (getPhase() < 4 && attackTarget != null) {
             double horizontalX = attackTarget.posX - posX;
             double horizontalZ = attackTarget.posZ - posZ;
             double horizontalDistance = Math.sqrt(horizontalX * horizontalX + horizontalZ * horizontalZ);
@@ -2230,14 +2310,14 @@ public class WitherStormEntity extends EntityMob
         for (Entity entity : absorbCandidates) {
             if (entity.isDead || entity.dimension != dimension
                     || !(entity instanceof EntityItem)
-                    && !(entity instanceof net.minecraft.entity.monster.EntitySlime
-                    && ((net.minecraft.entity.monster.EntitySlime) entity).isSmallSlime())
+                    && !(entity instanceof EntitySlime
+                    && ((EntitySlime) entity).isSmallSlime())
                     || trackedEntities.containsKey(entity.getUniqueID())
                     || rand.nextFloat() < 0.9F) continue;
             double distance = entity.getDistance(this);
             if (entity instanceof EntityItem) {
                 EntityItem itemEntity = (EntityItem) entity;
-                net.minecraft.item.ItemStack stack = itemEntity.getItem();
+                ItemStack stack = itemEntity.getItem();
                 if (getPhase() > 3 && WitherStormConfig.removeNearbyJunk
                         && UpstreamItemTags.contains(UpstreamItemTags.JUNK, stack)) {
                     if (!isInsideAny(entity.getPositionVector(), protectedDropAreas)) entity.setDead();
@@ -2277,7 +2357,7 @@ public class WitherStormEntity extends EntityMob
         return false;
     }
 
-    static boolean isProtectedFromConsumption(net.minecraft.item.ItemStack stack) {
+    static boolean isProtectedFromConsumption(ItemStack stack) {
         return stack.getItem() == ModItems.get("command_block_book")
                 || stack.getItem() == ModItems.get("withered_nether_star")
                 || UpstreamItemTags.contains(UpstreamItemTags.COMMAND_BLOCK_TOOLS, stack);
@@ -2294,7 +2374,8 @@ public class WitherStormEntity extends EntityMob
     private boolean isInsideBeam(Entity entity, Vec3d origin, Vec3d direction, int head) {
         double cutoff = headManager.getTractorBeamCutoff(head);
         return TractorBeamHelper.isInsideTractorBeam(
-                entity.getPositionVector(), origin, direction, cutoff, 4.0D);
+                entity.getPositionVector(), origin, direction, cutoff,
+                entity instanceof EntityPlayer && getPhase() >= 4 ? 6.0D : 4.0D);
     }
 
     public boolean tractorBeamActive(int head) {
@@ -2744,7 +2825,7 @@ public class WitherStormEntity extends EntityMob
         attractingFormidibomb = false;
     }
 
-    @javax.annotation.Nullable
+    @Nullable
     public SupplementalEntities.CommandBlockEntity getBowelsCommandBlock() {
         SupplementalEntities.CommandBlockEntity local = getPlayingDeadCommandBlockReference();
         if (local != null && !local.isDead) {
@@ -3114,8 +3195,8 @@ public class WitherStormEntity extends EntityMob
         if (entity == null || entity.world != world) return false;
         Vec3d start = getHeadPosition(head, 1.0F);
         Vec3d end = entity.getPositionEyes(1.0F);
-        net.minecraft.util.math.RayTraceResult hit = world.rayTraceBlocks(start, end, false, true, false);
-        return hit == null || hit.typeOfHit == net.minecraft.util.math.RayTraceResult.Type.MISS;
+        RayTraceResult hit = world.rayTraceBlocks(start, end, false, true, false);
+        return hit == null || hit.typeOfHit == RayTraceResult.Type.MISS;
     }
 
     /** 性能优化：同 tick 内缓存头部视线结果，同一 tick 内同一头对同一实体只做一次射线（检测机制不变）。 */
@@ -3290,7 +3371,11 @@ public class WitherStormEntity extends EntityMob
 
     @Override
     public boolean canBeAttackedWithItem() {
-        return shouldDoNothing() && getPhase() < 4;
+        // Let the attack packet reach attackEntityFrom; the server-side damage
+        // path owns the summoning invulnerability check.  Gating this on the
+        // client-side timer can discard legitimate phase 0-3 attacks when the
+        // synced timer is one tick behind.
+        return getPhase() < 4;
     }
 
     @Override
@@ -3329,7 +3414,7 @@ public class WitherStormEntity extends EntityMob
         return true;
     }
 
-    private void triggerNearby(com.wdcftgg.witherstormmod.common.advancement.EntityTrigger trigger,
+    private void triggerNearby(EntityTrigger trigger,
                                double range) {
         for (EntityPlayerMP player : world.getEntitiesWithinAABB(EntityPlayerMP.class,
                 getEntityBoundingBox().grow(range))) {

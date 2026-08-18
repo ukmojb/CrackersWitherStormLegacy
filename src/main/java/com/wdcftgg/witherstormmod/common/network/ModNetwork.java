@@ -77,6 +77,8 @@ public final class ModNetwork {
                 discriminator++, Side.CLIENT);
         CHANNEL.registerMessage(WitherStormLoopMessage.Handler.class, WitherStormLoopMessage.class,
                 discriminator++, Side.CLIENT);
+        CHANNEL.registerMessage(WitherStormRotationMessage.Handler.class,
+                WitherStormRotationMessage.class, discriminator++, Side.CLIENT);
         CHANNEL.registerMessage(UpdateDamagingProjectileMessage.Handler.class,
                 UpdateDamagingProjectileMessage.class, discriminator++, Side.CLIENT);
         CHANNEL.registerMessage(HeadAttackedMessage.Handler.class, HeadAttackedMessage.class,
@@ -209,7 +211,7 @@ public final class ModNetwork {
         CHANNEL.sendToServer(new SuperBeaconToggleAreaMessage(show));
     }
 
-    public static void sendSuperBeaconParticles(World world, net.minecraft.util.math.BlockPos position,
+    public static void sendSuperBeaconParticles(World world, BlockPos position,
                                                 int type) {
         if (world == null || world.isRemote || position == null) return;
         CHANNEL.sendToAllAround(new SuperBeaconParticlesMessage(position, type),
@@ -288,6 +290,13 @@ public final class ModNetwork {
         CHANNEL.sendToDimension(new WitherStormLoopMessage(storm.getEntityId(), storm.posX,
                         storm.posY, storm.posZ, storm.getPhase(), false),
                 storm.world.provider.getDimension());
+    }
+
+    /** Mirrors the upstream per-tick body-rotation packet used by all storm phases. */
+    public static void syncWitherStormRotation(WitherStormEntity storm) {
+        if (storm == null || storm.world == null || storm.world.isRemote) return;
+        CHANNEL.sendToAllTracking(new WitherStormRotationMessage(storm.getEntityId(),
+                storm.getXBodyRot(), storm.getBodyYRotation(1.0F)), storm);
     }
 
     public static final class ShakeScreenMessage implements IMessage {
@@ -667,18 +676,18 @@ public final class ModNetwork {
     }
 
     public static final class SuperBeaconParticlesMessage implements IMessage {
-        private net.minecraft.util.math.BlockPos position;
+        private BlockPos position;
         private int type;
 
         public SuperBeaconParticlesMessage() {
         }
 
-        public SuperBeaconParticlesMessage(net.minecraft.util.math.BlockPos position, int type) {
+        public SuperBeaconParticlesMessage(BlockPos position, int type) {
             this.position = position;
             this.type = type;
         }
 
-        public net.minecraft.util.math.BlockPos getPosition() {
+        public BlockPos getPosition() {
             return position;
         }
 
@@ -688,7 +697,7 @@ public final class ModNetwork {
 
         @Override
         public void fromBytes(ByteBuf buffer) {
-            position = net.minecraft.util.math.BlockPos.fromLong(buffer.readLong());
+            position = BlockPos.fromLong(buffer.readLong());
             type = buffer.readUnsignedByte();
         }
 
@@ -854,7 +863,7 @@ public final class ModNetwork {
     }
 
     public static final class DistantSuperBeaconMessage implements IMessage {
-        private net.minecraft.util.math.BlockPos position;
+        private BlockPos position;
         private int red;
         private int green;
         private int blue;
@@ -867,7 +876,7 @@ public final class ModNetwork {
         public DistantSuperBeaconMessage() {
         }
 
-        public DistantSuperBeaconMessage(net.minecraft.util.math.BlockPos position, int[] color,
+        public DistantSuperBeaconMessage(BlockPos position, int[] color,
                                          boolean active, int beamHeight, float thickness,
                                          float outerThickness, boolean removed) {
             this.position = position;
@@ -881,7 +890,7 @@ public final class ModNetwork {
             this.removed = removed;
         }
 
-        public net.minecraft.util.math.BlockPos getPosition() { return position; }
+        public BlockPos getPosition() { return position; }
         public int[] getColor() { return new int[] {red, green, blue}; }
         public boolean isActive() { return active; }
         public int getBeamHeight() { return beamHeight; }
@@ -891,7 +900,7 @@ public final class ModNetwork {
 
         @Override
         public void fromBytes(ByteBuf buffer) {
-            position = net.minecraft.util.math.BlockPos.fromLong(buffer.readLong());
+            position = BlockPos.fromLong(buffer.readLong());
             red = buffer.readUnsignedByte();
             green = buffer.readUnsignedByte();
             blue = buffer.readUnsignedByte();
@@ -976,6 +985,48 @@ public final class ModNetwork {
             @Override
             public IMessage onMessage(WitherStormLoopMessage message, MessageContext context) {
                 WitherStormMod.proxy.handleWitherStormLoop(message);
+                return null;
+            }
+        }
+    }
+
+    public static final class WitherStormRotationMessage implements IMessage {
+        private int entityId;
+        private float xRotation;
+        private float yRotation;
+
+        public WitherStormRotationMessage() {
+        }
+
+        public WitherStormRotationMessage(int entityId, float xRotation, float yRotation) {
+            this.entityId = entityId;
+            this.xRotation = xRotation;
+            this.yRotation = yRotation;
+        }
+
+        public int getEntityId() { return entityId; }
+        public float getXRotation() { return xRotation; }
+        public float getYRotation() { return yRotation; }
+
+        @Override
+        public void fromBytes(ByteBuf buffer) {
+            entityId = buffer.readInt();
+            xRotation = buffer.readFloat();
+            yRotation = buffer.readFloat();
+        }
+
+        @Override
+        public void toBytes(ByteBuf buffer) {
+            buffer.writeInt(entityId);
+            buffer.writeFloat(xRotation);
+            buffer.writeFloat(yRotation);
+        }
+
+        public static final class Handler implements IMessageHandler<WitherStormRotationMessage, IMessage> {
+            @Override
+            public IMessage onMessage(WitherStormRotationMessage message, MessageContext context) {
+                WitherStormMod.proxy.handleWitherStormRotation(message.entityId,
+                        message.xRotation, message.yRotation);
                 return null;
             }
         }
@@ -1142,7 +1193,7 @@ public final class ModNetwork {
                     player.world.playSound(null, player.posX, player.posY, player.posZ,
                             accepted ? SoundEvents.ENTITY_PLAYER_ATTACK_STRONG
                                     : SoundEvents.ENTITY_PLAYER_ATTACK_NODAMAGE,
-                            net.minecraft.util.SoundCategory.PLAYERS, 1.0F, 1.0F);
+                            SoundCategory.PLAYERS, 1.0F, 1.0F);
                 });
                 return null;
             }

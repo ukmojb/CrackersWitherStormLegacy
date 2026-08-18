@@ -10,7 +10,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -102,8 +101,7 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
         storm.setPosition(spawnPosition.getX() + 0.5D, spawnPosition.getY(), spawnPosition.getZ() + 0.5D);
         storm.makeInvulnerable();
         if (ModSounds.get("command_block_activates") != null) {
-            world.playSound(null, spawnPosition, ModSounds.get("command_block_activates"),
-                    SoundCategory.HOSTILE, 4.0F, 1.0F);
+            storm.playSound(ModSounds.get("command_block_activates"), 4.0F, 1.0F);
         }
         if (!world.spawnEntity(storm)) {
             WitherStormMod.LOGGER.error("Automatic Wither Storm spawn failed at {}", spawnPosition);

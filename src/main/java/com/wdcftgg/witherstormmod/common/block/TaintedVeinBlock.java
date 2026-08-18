@@ -13,6 +13,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.world.World;
+import net.minecraft.block.properties.PropertyBool;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -45,7 +46,7 @@ public class TaintedVeinBlock extends BlockVine {
         }
         if (!world.isRemote && EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, tool) > 0) {
             int connectedFaces = 0;
-            for (net.minecraft.block.properties.PropertyBool face : ALL_FACES) {
+            for (PropertyBool face : ALL_FACES) {
                 if (state.getValue(face)) connectedFaces++;
             }
             if (connectedFaces > 0) {

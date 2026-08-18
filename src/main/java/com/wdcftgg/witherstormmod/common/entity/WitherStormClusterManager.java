@@ -356,7 +356,7 @@ final class WitherStormClusterManager {
 
     private boolean hasNearbySymbiont(BlockPos position) {
         return !storm.world.getEntitiesWithinAABB(SickenedEntities.WitheredSymbiontEntity.class,
-                new net.minecraft.util.math.AxisAlignedBB(position).grow(15.0D),
+                new AxisAlignedBB(position).grow(15.0D),
                 SickenedMobEntity::isEntityAlive).isEmpty();
     }
 
