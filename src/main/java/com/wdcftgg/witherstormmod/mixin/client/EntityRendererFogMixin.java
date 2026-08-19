@@ -1,5 +1,6 @@
 package com.wdcftgg.witherstormmod.mixin.client;
 
+import com.wdcftgg.witherstormmod.client.OptifineCompat;
 import com.wdcftgg.witherstormmod.client.WitherStormClientConfig;
 import com.wdcftgg.witherstormmod.client.PhasometerOverlay;
 import net.minecraft.client.Minecraft;
@@ -37,7 +38,7 @@ public abstract class EntityRendererFogMixin {
     private void witherstormmod$extendFoglessWorldProjection(
             float fovY, float aspect, float nearPlane, float farPlane) {
         Project.gluPerspective(fovY, aspect, nearPlane,
-                witherstormmod$optifineShadersActive()
+                OptifineCompat.areShadersActive()
                         ? farPlane : DistantProjection.adjustWorldFarPlane(farPlane));
     }
 
@@ -52,7 +53,7 @@ public abstract class EntityRendererFogMixin {
                     shift = At.Shift.BEFORE))
     private void witherstormmod$applyPhasometerProjectionAfterCulling(
             int pass, float partialTicks, long finishTimeNano, CallbackInfo callback) {
-        if (witherstormmod$optifineShadersActive()) return;
+        if (OptifineCompat.areShadersActive()) return;
         witherstormmod$scopeFovScale = PhasometerOverlay.getFovScale(partialTicks);
         witherstormmod$setupWorldProjection(pass, partialTicks);
     }
@@ -64,7 +65,7 @@ public abstract class EntityRendererFogMixin {
     private void witherstormmod$renderWorldProjection(
             float fovY, float aspect, float nearPlane, float farPlane) {
         Project.gluPerspective(fovY * witherstormmod$scopeFovScale, aspect, nearPlane,
-                witherstormmod$optifineShadersActive()
+                OptifineCompat.areShadersActive()
                         ? farPlane : DistantProjection.adjustWorldFarPlane(farPlane));
     }
 
@@ -98,27 +99,12 @@ public abstract class EntityRendererFogMixin {
     @Inject(method = "setupFog", at = @At("RETURN"))
     private void witherstormmod$disableVanillaFog(int startCoords, float partialTicks,
                                                   CallbackInfo callback) {
-        if (!WitherStormClientConfig.disableVanillaFog || witherstormmod$optifineShadersActive()) return;
+        if (!WitherStormClientConfig.disableVanillaFog || OptifineCompat.areShadersActive()) return;
         GlStateManager.setFog(GlStateManager.FogMode.EXP);
         GlStateManager.setFogDensity(0.0F);
         // Keep the cached and actual GL state aligned even if another renderer used raw calls.
         GL11.glFogi(GL11.GL_FOG_MODE, GL11.GL_EXP);
         GL11.glFogf(GL11.GL_FOG_DENSITY, 0.0F);
         GlStateManager.disableFog();
-    }
-
-    @Unique
-    private static boolean witherstormmod$optifineShadersActive() {
-        try {
-            Class<?> config = Class.forName("optifine.Config");
-            try {
-                return Boolean.TRUE.equals(config.getMethod("isShaders").invoke(null));
-            } catch (ReflectiveOperationException ignored) {
-                Class<?> shaders = Class.forName("net.optifine.shaders.Shaders");
-                return shaders.getField("shaderPackLoaded").getBoolean(null);
-            }
-        } catch (ReflectiveOperationException ignored) {
-            return false;
-        }
     }
 }

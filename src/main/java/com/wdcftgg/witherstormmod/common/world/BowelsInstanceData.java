@@ -68,8 +68,18 @@ public class BowelsInstanceData extends WorldSavedData {
         return false;
     }
 
+    /** 上游 WitherStormBowelsManager.get：已完成实例不返回，重进时会创建新实例。 */
     @Nullable
     public Instance get(UUID stormUuid) {
+        for (Instance instance : instances) {
+            if (instance.stormUuid.equals(stormUuid) && !instance.completed) return instance;
+        }
+        return null;
+    }
+
+    /** 供死亡收尾等必须访问已完成实例的路径使用。 */
+    @Nullable
+    public Instance getIncludingCompleted(UUID stormUuid) {
         for (Instance instance : instances) if (instance.stormUuid.equals(stormUuid)) return instance;
         return null;
     }

@@ -5,6 +5,7 @@ import com.wdcftgg.witherstormmod.api.common.ai.symbiont.SymbiontSpell;
 import com.wdcftgg.witherstormmod.api.common.registry.WitherStormModRegistries;
 import com.wdcftgg.witherstormmod.WitherStormMod;
 import com.wdcftgg.witherstormmod.common.config.WitherStormConfig;
+import com.wdcftgg.witherstormmod.common.entity.ai.SickenedPillagerCrossbowGoal;
 import com.wdcftgg.witherstormmod.common.init.ModBlocks;
 import com.wdcftgg.witherstormmod.common.init.ModItems;
 import com.wdcftgg.witherstormmod.common.init.ModSounds;
@@ -145,6 +146,9 @@ import java.util.UUID;
 public final class SickenedEntities {
 
     private static final ResourceLocation FUTURE_MC_TRIDENT = new ResourceLocation("futuremc", "trident");
+    private static final ResourceLocation CROSSBOW_ID = new ResourceLocation("crossbow", "crossbow");
+    private static final ResourceLocation CROSSBOW_SHOOT_SOUND =
+            new ResourceLocation("crossbow", "items.crossbow.shoot");
 
     private SickenedEntities() {
     }
@@ -1866,10 +1870,17 @@ public final class SickenedEntities {
     }
 
     public static class SickenedPillagerEntity extends SickenedMobEntity implements IRangedAttackMob {
+        private static final DataParameter<Boolean> CHARGING = EntityDataManager.createKey(
+                SickenedPillagerEntity.class, DataSerializers.BOOLEAN);
+
         public SickenedPillagerEntity(World world) {
             super(world);
             setSize(0.6F, 1.95F);
-            setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+            // 上游腐化掠夺者继承原版掠夺者持弩；1.12 由必装的 Crossbow 模组提供弩物品，
+            // 注册表缺失时退回原版弓保证实体仍可生成。
+            Item crossbow = ForgeRegistries.ITEMS.getValue(CROSSBOW_ID);
+            setItemStackToSlot(EntityEquipmentSlot.MAINHAND,
+                    new ItemStack(crossbow != null ? crossbow : Items.BOW));
         }
         @Override protected double getSickenedHealth() { return 30.0D; }
         @Override protected double getSickenedSpeed() { return 0.37D; }
@@ -1879,9 +1890,15 @@ public final class SickenedEntities {
         @Override public String getSickenedType() { return "sickened_pillager"; }
 
         @Override
+        protected void entityInit() {
+            super.entityInit();
+            dataManager.register(CHARGING, false);
+        }
+
+        @Override
         protected void initEntityAI() {
             tasks.addTask(1, new EntityAISwimming(this));
-            tasks.addTask(2, new EntityAIAttackRangedBow<SickenedPillagerEntity>(this, 1.0D, 20, 15.0F));
+            tasks.addTask(2, new SickenedPillagerCrossbowGoal(this, 20, 15.0F));
             tasks.addTask(5, new EntityAIWanderAvoidWater(this, 0.8D));
             tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
             tasks.addTask(6, new EntityAILookIdle(this));
@@ -1892,7 +1909,22 @@ public final class SickenedEntities {
 
         @Override
         public void attackEntityWithRangedAttack(EntityLivingBase target, float distanceFactor) {
-            fireSickenedArrow(this, target, distanceFactor);
+            fireSickenedCrossbowBolt(this, target, distanceFactor);
+        }
+
+        /** 主手是否持有 Crossbow 模组的弩物品。 */
+        public boolean isHoldingCrossbow() {
+            Item crossbow = ForgeRegistries.ITEMS.getValue(CROSSBOW_ID);
+            return crossbow != null && getHeldItemMainhand().getItem() == crossbow;
+        }
+
+        /** 是否处于开火前的 25 tick 蓄力姿态，同步到客户端模型。 */
+        public boolean isCharging() {
+            return dataManager.get(CHARGING);
+        }
+
+        public void setCharging(boolean charging) {
+            dataManager.set(CHARGING, charging);
         }
 
         @Override public void setSwingingArms(boolean swingingArms) { }
@@ -3165,7 +3197,11 @@ public final class SickenedEntities {
         }
         @Override protected double getSickenedHealth() { return 80.0D; }
         @Override protected double getSickenedSpeed() { return 0.0D; }
-        @Override protected double getSickenedDamage() { return 12.0D; }
+        // 上游触手属性只显式设置生命/跟随/击退抗性/护甲(12)/攻击击退(1.5)；
+        // ATTACK_DAMAGE 未覆写，保持原版 Monster 默认 2.0。此前把护甲 12.0
+        // 误映射为攻击伤害，导致挥打伤害是上游的 6 倍。
+        @Override protected double getSickenedDamage() { return 2.0D; }
+        @Override protected double getSickenedArmor() { return 12.0D; }
         @Override protected double getSickenedFollowRange() { return 8.0D; }
         @Override protected double getSickenedKnockbackResistance() { return 0.0D; }
         @Override public String getSickenedType() { return "tentacle"; }
@@ -4761,6 +4797,28 @@ public final class SickenedEntities {
 
     private static void fireSickenedArrow(SickenedMobEntity shooter, EntityLivingBase target, float distanceFactor) {
         fireSickenedArrow(shooter, target, distanceFactor, 0.0F);
+    }
+
+    /** 弩式发射病化箭：初速 3.15、弹道更平，附魔与命中语义和弓版一致，播放弩射击声。 */
+    private static void fireSickenedCrossbowBolt(SickenedMobEntity shooter, EntityLivingBase target,
+                                                  float distanceFactor) {
+        EntityTippedArrow arrow = new EntityTippedArrow(shooter.world, shooter);
+        double dx = target.posX - shooter.posX;
+        double dy = target.getEntityBoundingBox().minY + target.height / 3.0F - arrow.posY;
+        double dz = target.posZ - shooter.posZ;
+        double arc = MathHelper.sqrt(dx * dx + dz * dz);
+        arrow.shoot(dx, dy + arc * 0.1D, dz, 3.15F, 14 - shooter.world.getDifficulty().getId() * 4);
+        arrow.setDamage(2.0D + distanceFactor * 2.0D);
+        ItemStack weapon = shooter.getHeldItemMainhand();
+        int power = EnchantmentHelper.getEnchantmentLevel(Enchantments.POWER, weapon);
+        if (power > 0) arrow.setDamage(arrow.getDamage() + power * 0.5D + 0.5D);
+        int punch = EnchantmentHelper.getEnchantmentLevel(Enchantments.PUNCH, weapon);
+        if (punch > 0) arrow.setKnockbackStrength(punch);
+        if (EnchantmentHelper.getEnchantmentLevel(Enchantments.FLAME, weapon) > 0) arrow.setFire(100);
+        SoundEvent shootSound = ForgeRegistries.SOUND_EVENTS.getValue(CROSSBOW_SHOOT_SOUND);
+        shooter.playSound(shootSound != null ? shootSound : SoundEvents.ENTITY_SKELETON_SHOOT,
+                1.0F, 1.0F);
+        shooter.world.spawnEntity(arrow);
     }
 
     private static void fireSickenedArrow(SickenedMobEntity shooter, EntityLivingBase target,

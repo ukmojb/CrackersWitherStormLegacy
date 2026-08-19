@@ -1,7 +1,7 @@
 package com.wdcftgg.witherstormmod.common.block;
 
 import com.wdcftgg.witherstormmod.common.init.ModCreativeTabs;
-import com.wdcftgg.witherstormmod.common.init.ModBlocks;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.BlockDirt;
 import net.minecraft.block.SoundType;
@@ -37,14 +37,17 @@ public class TaintedMushroomBlock extends BlockBush {
 
     @Override
     public boolean canBlockStay(World world, BlockPos pos, IBlockState state) {
+        if (pos.getY() < 0 || pos.getY() >= 256) return false;
         IBlockState soil = world.getBlockState(pos.down());
-        return soil.getBlock() == ModBlocks.get("tainted_flesh_block")
-                || soil.getBlock() == ModBlocks.get("infected_flesh_block")
-                || soil.getBlock() == Blocks.MYCELIUM
-                || soil.getBlock() == Blocks.DIRT
-                && soil.getValue(BlockDirt.VARIANT) == BlockDirt.DirtType.PODZOL
-                || world.getLightFromNeighbors(pos) < 13
-                && soil.getBlock().canSustainPlant(soil, world, pos.down(), EnumFacing.UP, this);
+        Block soilBlock = soil.getBlock();
+        // 上游 NonGrowableMushroomBlock.canSurvive：minecraft:mushroom_grow_block
+        // 标签（1.20 = 菌丝/灰化土/两种菌岩；1.12 无菌岩，映射为菌丝+灰化土），
+        // 否则要求光照 < 13 且土壤 canSustainPlant。
+        if (soilBlock == Blocks.MYCELIUM) return true;
+        if (soilBlock == Blocks.DIRT
+                && soil.getValue(BlockDirt.VARIANT) == BlockDirt.DirtType.PODZOL) return true;
+        return world.getLightFromNeighbors(pos) < 13
+                && soilBlock.canSustainPlant(soil, world, pos.down(), EnumFacing.UP, this);
     }
 
     @Override

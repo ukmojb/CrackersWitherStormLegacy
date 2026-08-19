@@ -25,7 +25,6 @@ import java.util.function.IntPredicate;
 public class WitherStormPhaseModel extends ModelBase {
     private static final int[] GEOMETRY_TO_HEAD = {2, 0, 1};
     private static final float[] HEAD_ANIMATION_OFFSETS = {0.0F, 175.0F, 100.0F};
-    private static final float MAXIMUM_LATE_HEAD_YAW = 80.0F;
 
     public enum Form {
         COMMAND_BLOCK,
@@ -340,12 +339,9 @@ public class WitherStormPhaseModel extends ModelBase {
     private static void animateStormHead(WitherStormEntity storm, ModelRenderer head,
                                          int index, float partialTicks) {
         if (head == null) return;
+        // 上游 HeadModel.setupAnimations 不做 ±80 钳制，此处保持相同语义。
         float relativeYaw = MathHelper.wrapDegrees(storm.getHeadYRotation(index, partialTicks)
                 - interpolateBodyYaw(storm, partialTicks));
-        if (storm.getPhase() > 3 && !storm.isDeadOrPlayingDead()) {
-            relativeYaw = MathHelper.clamp(relativeYaw,
-                    -MAXIMUM_LATE_HEAD_YAW, MAXIMUM_LATE_HEAD_YAW);
-        }
         head.rotateAngleY = relativeYaw * ((float) Math.PI / 180.0F) + (float) Math.PI;
         head.rotateAngleX = -storm.getHeadXRotation(index, partialTicks)
                 * ((float) Math.PI / 180.0F);

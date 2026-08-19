@@ -84,10 +84,13 @@ public class SickenedIllagerModel extends ModelBase {
         arms.rotationPointZ = -1.0F;
         arms.rotateAngleX = -0.75F;
         if (crossbowPose) {
+            // 蓄力时双手端平瞄准，空闲时轻微放下，对应上游掠夺者弩的充能/待机姿态。
+            float relax = entity instanceof SickenedEntities.SickenedPillagerEntity
+                    && ((SickenedEntities.SickenedPillagerEntity) entity).isCharging() ? 0.0F : 0.35F;
             rightArm.rotateAngleY = -0.3F + head.rotateAngleY;
             leftArm.rotateAngleY = 0.6F + head.rotateAngleY;
-            rightArm.rotateAngleX = -1.5708F + head.rotateAngleX;
-            leftArm.rotateAngleX = -1.5F + head.rotateAngleX;
+            rightArm.rotateAngleX = -1.5708F + head.rotateAngleX + relax;
+            leftArm.rotateAngleX = -1.5F + head.rotateAngleX + relax;
         } else if (isAggressive(entity)) {
             float swing = MathHelper.sin(swingProgress * (float) Math.PI);
             float eased = MathHelper.sin((1.0F - (1.0F - swingProgress) * (1.0F - swingProgress)) * (float) Math.PI);

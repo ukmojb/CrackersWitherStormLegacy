@@ -62,12 +62,10 @@ public final class SymbiontSummoningManager {
         if (timeTillCanSummonSymbiont > 0) --timeTillCanSummonSymbiont;
         if (!WitherStormConfig.canSummonSymbiont) return;
         int delay = MathHelper.clamp(WitherStormConfig.minimumSpawnCheckInterval, 1, 240) * 20;
-        // The multiplier is part of the interval, not the modulo result.
-        // Java's precedence makes `ticks % delay * multiplier` test a
-        // different (and much more frequent) schedule than the upstream
-        // `ticks % (delay * multiplier)` expression.
-        int randomizedDelay = delay * (storm.getRNG().nextInt(3) + 1);
-        if (storm.ticksExisted % randomizedDelay != 0) return;
+        // 上游字节码把随机乘数放在取模之外：`ticks % delay * (nextInt(3)+1) == 0`
+        // 数学上等价于每 delay tick 检查一次，且每 tick 都会消耗一次 RNG。
+        // 这里逐字保留该表达式与优先级，不再引入更稀疏的随机化间隔。
+        if (storm.ticksExisted % delay * (storm.getRNG().nextInt(3) + 1) != 0) return;
 
         List<EntityPlayer> players = storm.world.getEntitiesWithinAABB(EntityPlayer.class,
                 storm.getSearchBox(), player -> player != null && player.isEntityAlive());
@@ -122,9 +120,10 @@ public final class SymbiontSummoningManager {
     }
 
     public void summonSymbiont(EntityPlayer player) {
+        // 上游用 cos 算 X、sin 算 Z；此前移植写反会导致召唤点绕风暴旋转 90°。
         float angle = -(float) Math.atan2(player.posX - storm.posX, player.posZ - storm.posZ);
-        float spawnX = MathHelper.sin(angle) * 30.0F + (float) storm.posX;
-        float spawnZ = MathHelper.cos(angle) * 30.0F + (float) storm.posZ;
+        float spawnX = MathHelper.cos(angle) * 30.0F + (float) storm.posX;
+        float spawnZ = MathHelper.sin(angle) * 30.0F + (float) storm.posZ;
 
         for (int attempt = 0; attempt < 10; attempt++) {
             int randomX = MathHelper.floor(spawnX) + (int) (storm.getRNG().nextGaussian() * 10.0D) + 5;

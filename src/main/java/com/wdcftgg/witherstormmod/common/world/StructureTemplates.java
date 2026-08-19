@@ -43,7 +43,7 @@ import java.util.Map;
 public final class StructureTemplates {
 
     /** Radius used to approximate 1.20's terrain_adaptation=beard_thin. */
-    private static final int STORM_PLATFORM_BLEND_RADIUS = 4;
+    private static final int STORM_PLATFORM_BLEND_RADIUS = 6;
 
     private static final Map<String, TemplateData> CACHE = new HashMap<String, TemplateData>();
     private static final Map<String, List<WeightedTemplate>> BOWELS_POOLS = createBowelsPools();
@@ -154,10 +154,12 @@ public final class StructureTemplates {
     }
 
     /**
-     * 1.20 applies a beard-thin density adjustment while terrain is generated.
-     * Forge 1.12 runs this generator after terrain, so raise only low columns
-     * immediately outside the platform with a short, non-destructive slope.
-     * Higher terrain and all columns inside the template are left untouched.
+     * 1.20 通过 terrain_adaptation=beard_thin 在地形生成阶段对平台周边做双向
+     * 平滑：低于平台的柱列被抬升、高于平台的柱列被削低，形成连续过渡坡面。
+     * Forge 1.12 在地形生成后才运行本生成器，因此模板放置后在这里手动复刻：
+     * 抬升时用泥土填充、原地表方块封顶；削低时把原地表方块搬到坡面高度并清空
+     * 其上方方块，且不触碰 bedrock/刷怪笼/箱子/末地传送门框。坡形用 smoothstep
+     * 衰减，紧贴平台的柱列与平台底面齐平，向外逐渐过渡回原地形。
      */
     private static void blendStormPlatformTerrain(World world, Template template, BlockPos placementOrigin,
                                                    Rotation rotation) {
@@ -180,16 +182,37 @@ public final class StructureTemplates {
                 BlockPos column = new BlockPos(x, 0, z);
                 if (!world.isBlockLoaded(column)) continue;
 
+                double progress = distance / (double) (STORM_PLATFORM_BLEND_RADIUS + 1);
+                double smoothed = progress * progress * (3.0D - 2.0D * progress);
+                int targetTop = baseY - (int) Math.round(smoothed * STORM_PLATFORM_BLEND_RADIUS);
+                if (targetTop < 0) continue;
+
                 int currentTop = world.getHeight(column).getY() - 1;
-                int targetTop = baseY - distance;
-                if (currentTop >= targetTop || targetTop < 0) continue;
+                if (currentTop == targetTop) continue;
                 IBlockState surface = world.getBlockState(new BlockPos(x, currentTop, z));
                 if (surface.getBlock() == Blocks.AIR || surface.getMaterial().isLiquid()) continue;
 
-                for (int y = currentTop + 1; y < targetTop; y++) {
-                    world.setBlockState(new BlockPos(x, y, z), Blocks.DIRT.getDefaultState(), 2);
+                if (currentTop < targetTop) {
+                    // 抬升低洼：泥土填充到坡面下方，原地表方块封顶。
+                    for (int y = currentTop + 1; y < targetTop; y++) {
+                        world.setBlockState(new BlockPos(x, y, z), Blocks.DIRT.getDefaultState(), 2);
+                    }
+                    world.setBlockState(new BlockPos(x, targetTop, z), surface, 2);
+                } else {
+                    // 削平高坡：先确认坡面上方没有不可替换方块，再清空并把地表方块搬到坡面。
+                    boolean blocked = false;
+                    for (int y = targetTop + 1; y <= currentTop; y++) {
+                        if (cannotReplace(world, new BlockPos(x, y, z))) {
+                            blocked = true;
+                            break;
+                        }
+                    }
+                    if (blocked) continue;
+                    for (int y = currentTop; y > targetTop; y--) {
+                        world.setBlockToAir(new BlockPos(x, y, z));
+                    }
+                    world.setBlockState(new BlockPos(x, targetTop, z), surface, 2);
                 }
-                world.setBlockState(new BlockPos(x, targetTop, z), surface, 2);
             }
         }
     }

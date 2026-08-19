@@ -239,7 +239,9 @@ public final class BowelsBossfightController {
         if (instance.commandBlockUuid != null
                 && !instance.commandBlockUuid.equals(core.getUniqueID())) return;
         core.applyBowelsPodiumLiftPose(getExpectedCoreY(instance));
-        initializePhase(world, core, instance, instance.bossPhase);
+        // 重载只恢复结构状态，不重放白屏/震动/音效等瞬态阶段效果。
+        initPhase(world, core, instance, instance.bossPhase, true);
+        INITIALIZED_PHASES.put(core, instance.bossPhase);
     }
 
     public static void finishDeathRemoval(SupplementalEntities.CommandBlockEntity core) {
@@ -258,7 +260,8 @@ public final class BowelsBossfightController {
                 || storm.world.getMinecraftServer() == null) return false;
         WorldServer bowels = storm.world.getMinecraftServer().getWorld(BowelsDimensions.DIMENSION_ID);
         if (bowels == null) return false;
-        BowelsInstanceData.Instance instance = BowelsInstanceData.get(bowels).get(storm.getUniqueID());
+        BowelsInstanceData.Instance instance = BowelsInstanceData.get(bowels)
+                .getIncludingCompleted(storm.getUniqueID());
         if (instance == null || !instance.completed) return false;
         storm.finishBowelsDeath(findEntity(bowels, instance.killerUuid));
         return storm.isDead || storm.getHealth() <= 0.0F;
@@ -276,57 +279,63 @@ public final class BowelsBossfightController {
     private static void initializePhase(WorldServer world,
                                         SupplementalEntities.CommandBlockEntity core,
                                         BowelsInstanceData.Instance instance, int phase) {
-        initPhase(world, core, instance, phase);
+        initPhase(world, core, instance, phase, false);
         INITIALIZED_PHASES.put(core, phase);
     }
 
     private static void initPhase(WorldServer world, SupplementalEntities.CommandBlockEntity core,
-                                  BowelsInstanceData.Instance instance, int phase) {
+                                  BowelsInstanceData.Instance instance, int phase, boolean restored) {
         switch (phase) {
             case 1:
             case 6:
             case 12:
-                ModNetwork.shakeTracking(core, 240.0F, 12.0F);
-                core.awakenStructureTentacles(false);
-                play(world, core, "loud_tremble", SoundCategory.AMBIENT, 1.0F);
-                play(world, core, "bowels_loud_hurt", SoundCategory.HOSTILE, 1.0F);
-                if (core.getHealth() / core.getMaxHealth() >= 0.75F) {
-                    play(world, core, "wither_storm_reactivates", SoundCategory.HOSTILE, 64.0F);
+                if (!restored) {
+                    ModNetwork.shakeTracking(core, 240.0F, 12.0F);
+                    play(world, core, "loud_tremble", SoundCategory.AMBIENT, 1.0F);
+                    play(world, core, "bowels_loud_hurt", SoundCategory.HOSTILE, 1.0F);
+                    if (core.getHealth() / core.getMaxHealth() >= 0.75F) {
+                        play(world, core, "wither_storm_reactivates", SoundCategory.HOSTILE, 64.0F);
+                    }
                 }
+                core.awakenStructureTentacles(false);
                 break;
             case 2:
             case 7:
             case 13:
-                ModNetwork.shakeTracking(core, 120.0F, 12.0F);
+                if (!restored) {
+                    ModNetwork.shakeTracking(core, 120.0F, 12.0F);
+                    play(world, core, "loud_tremble", SoundCategory.AMBIENT, 1.0F);
+                }
                 core.createPodiumCluster();
-                play(world, core, "loud_tremble", SoundCategory.AMBIENT, 1.0F);
                 break;
             case 4:
-                activateWave(world, core, 1, 60);
+                activateWave(world, core, 1, 60, restored);
                 break;
             case 9:
-                ModNetwork.shakeTracking(core, 120.0F, 8.0F);
-                activateWave(world, core, 2, 60);
+                if (!restored) ModNetwork.shakeTracking(core, 120.0F, 8.0F);
+                activateWave(world, core, 2, 60, restored);
                 break;
             case 10:
                 core.curlStructureTentacles(false);
                 break;
             case 14:
-                ModNetwork.shakeTracking(core, 120.0F, 16.0F);
-                activateWave(world, core, 3, 80);
+                if (!restored) ModNetwork.shakeTracking(core, 120.0F, 16.0F);
+                activateWave(world, core, 3, 80, restored);
                 activateHeads(world, core);
                 break;
             case 15:
                 core.curlStructureTentacles(false);
                 break;
             case 17:
-                ModNetwork.shakeTracking(core, 240.0F, 14.0F);
-                // Keep the command-block break flash readable without hiding
-                // the HUD for the entire death transition.
-                ModNetwork.blindTracking(core, 80, 20, 40);
-                play(world, core, "loud_tremble", SoundCategory.AMBIENT, 5.0F);
-                play(world, core, "bowels_loud_hurt", SoundCategory.HOSTILE, 5.0F);
-                play(world, core, "command_block_destruct", SoundCategory.HOSTILE, 64.0F);
+                if (!restored) {
+                    ModNetwork.shakeTracking(core, 240.0F, 14.0F);
+                    // Keep the command-block break flash readable without hiding
+                    // the HUD for the entire death transition.
+                    ModNetwork.blindTracking(core, 80, 20, 40);
+                    play(world, core, "loud_tremble", SoundCategory.AMBIENT, 5.0F);
+                    play(world, core, "bowels_loud_hurt", SoundCategory.HOSTILE, 5.0F);
+                    play(world, core, "command_block_destruct", SoundCategory.HOSTILE, 64.0F);
+                }
                 for (SickenedEntities.TentacleEntity tentacle : world.getEntitiesWithinAABB(SickenedEntities.TentacleEntity.class,
                         core.getEntityBoundingBox().grow(50.0D))) {
                     tentacle.doIndefiniteAwakeAnimation();
@@ -366,13 +375,16 @@ public final class BowelsBossfightController {
         }
     }
 
-    private static void activateWave(WorldServer world, SupplementalEntities.CommandBlockEntity core, int wave, int particleCount) {
-        play(world, core, "command_block_activates", SoundCategory.HOSTILE, wave == 3 ? 6.0F : 5.0F);
-        ModNetwork.sendCommandBlockParticles(world,
-                new Vec3d(core.posX, core.posY + core.getEyeHeight(), core.posZ), particleCount,
-                core.getRNG().nextGaussian(), core.getRNG().nextGaussian(),
-                core.getRNG().nextGaussian(), 0.2D,
-                ModNetwork.COMMAND_BLOCK_PARTICLES_GAUSSIAN);
+    private static void activateWave(WorldServer world, SupplementalEntities.CommandBlockEntity core,
+                                     int wave, int particleCount, boolean restored) {
+        if (!restored) {
+            play(world, core, "command_block_activates", SoundCategory.HOSTILE, wave == 3 ? 6.0F : 5.0F);
+            ModNetwork.sendCommandBlockParticles(world,
+                    new Vec3d(core.posX, core.posY + core.getEyeHeight(), core.posZ), particleCount,
+                    core.getRNG().nextGaussian(), core.getRNG().nextGaussian(),
+                    core.getRNG().nextGaussian(), 0.2D,
+                    ModNetwork.COMMAND_BLOCK_PARTICLES_GAUSSIAN);
+        }
         if (wave > 1) awakenNearbyTentacles(world, core);
     }
 
@@ -701,17 +713,20 @@ public final class BowelsBossfightController {
     private static BlockPos randomNearbyPosition(WorldServer world,
                                                  SupplementalEntities.CommandBlockEntity core,
                                                  Entity entity, int diameter, int attempts) {
+        BlockPos start = core.getPosition();
         for (int attempt = 0; attempt < attempts; attempt++) {
-            int x = core.getPosition().getX() + core.getRNG().nextInt(diameter) - diameter / 2;
-            int z = core.getPosition().getZ() + core.getRNG().nextInt(diameter) - diameter / 2;
-            // Upstream samples the MOTION_BLOCKING_NO_LEAVES heightmap directly;
-            // starting at the core Y and walking downward selects a different
-            // cave floor in tall arenas.
-            BlockPos cursor = new BlockPos(x,
-                    WorldUtil.getMotionBlockingHeightIgnoringLeaves(world, x, z), z);
+            int x = start.getX() + core.getRNG().nextInt(diameter) - diameter / 2;
+            int z = start.getZ() + core.getRNG().nextInt(diameter) - diameter / 2;
+            // 上游 getRandomNearbyPos 从核心高度出发，向下最多 30 格寻找脚下有
+            // 实心方块的地板，不使用世界高度图。肠道维度由 0~255 的硬化肉填充，
+            // 高度图会直接指向世界顶部，导致生物生成在维度最顶端。
+            BlockPos cursor = new BlockPos(x, start.getY(), z);
+            for (int down = 0; down < 30 && world.isAirBlock(cursor.down()); down++) {
+                cursor = cursor.down();
+            }
             if (!WorldEntitySpawner.canCreatureTypeSpawnAtLocation(
                     EntityLiving.SpawnPlacementType.ON_GROUND, world, cursor)) continue;
-            if (Math.sqrt(cursor.distanceSq(core.getPosition())) <= 6.0D) continue;
+            if (Math.sqrt(cursor.distanceSq(start)) <= 6.0D) continue;
             if (!hasEnoughSpace(world, entity, cursor)) continue;
             return cursor;
         }

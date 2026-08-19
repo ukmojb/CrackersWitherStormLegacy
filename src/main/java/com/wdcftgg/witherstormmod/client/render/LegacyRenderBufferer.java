@@ -1,5 +1,6 @@
 package com.wdcftgg.witherstormmod.client.render;
 
+import com.wdcftgg.witherstormmod.client.OptifineCompat;
 import com.wdcftgg.witherstormmod.client.WitherStormClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -13,8 +14,6 @@ import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,9 +43,6 @@ public final class LegacyRenderBufferer implements IResourceManagerReloadListene
     private boolean configuredEnabled;
     private boolean configuredAsync;
     private long renderFrame;
-    private boolean optifineChecked;
-    private Method optifineShadersMethod;
-    private Field optifineShaderPackField;
 
     private LegacyRenderBufferer() {
     }
@@ -76,7 +72,7 @@ public final class LegacyRenderBufferer implements IResourceManagerReloadListene
 
     public boolean shouldUse() {
         return WitherStormClientConfig.vertexBufferRendering
-                && OpenGlHelper.vboSupported && !areOptifineShadersRunning();
+                && OpenGlHelper.vboSupported && !OptifineCompat.areShadersActive();
     }
 
     public boolean shouldBuildAsynchronously() {
@@ -150,36 +146,6 @@ public final class LegacyRenderBufferer implements IResourceManagerReloadListene
     public void shutdown() {
         invalidateAll();
         BUFFER_BUILDERS.shutdown();
-    }
-
-    private boolean areOptifineShadersRunning() {
-        discoverOptifineShaderState();
-        try {
-            if (optifineShadersMethod != null) {
-                return Boolean.TRUE.equals(optifineShadersMethod.invoke(null));
-            }
-            return optifineShaderPackField != null && optifineShaderPackField.getBoolean(null);
-        } catch (ReflectiveOperationException ignored) {
-            return false;
-        }
-    }
-
-    private synchronized void discoverOptifineShaderState() {
-        if (optifineChecked) return;
-        optifineChecked = true;
-        try {
-            Class<?> config = Class.forName("optifine.Config");
-            optifineShadersMethod = config.getMethod("isShaders");
-            return;
-        } catch (ReflectiveOperationException ignored) {
-            // 不同 1.12 OptiFine 构建的着色器状态入口不同，继续尝试备用字段。
-        }
-        try {
-            Class<?> shaders = Class.forName("net.optifine.shaders.Shaders");
-            optifineShaderPackField = shaders.getField("shaderPackLoaded");
-        } catch (ReflectiveOperationException ignored) {
-            optifineShaderPackField = null;
-        }
     }
 
     private synchronized void unregister(ManagedVertexBuffer buffer) {

@@ -1293,10 +1293,13 @@ public class WitherStormEntity extends EntityMob
     /** The phase-five landing is a terrain event in the upstream fight. */
     private void createFallingImpactCrater() {
         if (world.isRemote || !ForgeEventFactory.getMobGriefingEvent(world, this)) return;
-        int radius = MathHelper.clamp(4 + getPhase() / 2, 5, 8);
+        // 坑洞以风暴宽度为基准并锚定地表，保证在巨大的主体下仍清晰可见。
+        int radius = Math.max(8, MathHelper.ceil(width));
         int centerX = MathHelper.floor(posX);
-        int centerY = MathHelper.floor(getEntityBoundingBox().minY);
         int centerZ = MathHelper.floor(posZ);
+        int groundTop = Math.min(world.getActualHeight() - 1,
+                world.getHeight(new BlockPos(centerX, 0, centerZ)).getY() - 1);
+        int centerY = Math.min(groundTop, MathHelper.floor(getEntityBoundingBox().minY));
         boolean destroyed = false;
         for (int x = centerX - radius; x <= centerX + radius; x++) {
             for (int z = centerZ - radius; z <= centerZ + radius; z++) {
@@ -1808,7 +1811,9 @@ public class WitherStormEntity extends EntityMob
 
     /** Continuous terrain damage used by the moving storm, separate from the
      * delayed hit reaction above.  The vanilla mob-griefing and Forge destroy
-     * hooks remain authoritative for every block. */
+     * hooks remain authoritative for every block.  The damage column is anchored
+     * to the ground surface below the storm instead of its flying height, so a
+     * hovering storm actually carves the terrain beneath it. */
     private void tickTerrainDestruction() {
         if (terrainDestructionCooldown > 0) {
             --terrainDestructionCooldown;
@@ -1824,9 +1829,11 @@ public class WitherStormEntity extends EntityMob
         int maxX = MathHelper.floor(posX) + radius;
         int minZ = MathHelper.floor(posZ) - radius;
         int maxZ = MathHelper.floor(posZ) + radius;
-        int minY = MathHelper.floor(getEntityBoundingBox().minY) - 1;
-        int maxY = Math.min(world.getHeight() - 1,
-                MathHelper.floor(getEntityBoundingBox().minY) + (getPhase() > 3 ? 5 : 3));
+        // 以风暴正下方地表为中心，向下挖 1~2 层、向上覆盖地表植被层。
+        int groundTop = Math.min(world.getActualHeight() - 1,
+                world.getHeight(new BlockPos(MathHelper.floor(posX), 0, MathHelper.floor(posZ))).getY() - 1);
+        int minY = groundTop - (getPhase() > 3 ? 2 : 1);
+        int maxY = Math.min(world.getActualHeight() - 1, groundTop + 1);
         int limit = getPhase() > 3 ? 32 : 12;
         boolean destroyed = false;
         for (int x = minX; x <= maxX && limit > 0; x++) {
@@ -2143,7 +2150,7 @@ public class WitherStormEntity extends EntityMob
         }
         if (!(entity instanceof EntityLivingBase)) return isTractorBeamPullableObject(entity);
         EntityLivingBase living = (EntityLivingBase) entity;
-        return isValidStormTarget(living, false) && !isBlockingWithShield(living);
+        return isValidStormTarget(living) && !isBlockingWithShield(living);
     }
 
     private double getTractorPullSpeed(Entity entity) {
@@ -2244,12 +2251,11 @@ public class WitherStormEntity extends EntityMob
                         0.0D, horizontalZ / horizontalDistance * speed - velocity.z * 0.6D);
             }
         }
-        // Early phases hover over a caught target.  Keeping the previous
-        // horizontal momentum here made the body slide forward while the beam
-        // was pulling, leaving consumed entities behind the head.
+        // 前期主光束正在牵引目标时保持悬停：硬归零水平速度，而不是逐帧衰减，
+        // 否则上一 tick 的追逐动量仍会让身体在吸附过程中持续前移。
         if (getPhase() < 4 && tractorBeamActive(0)
                 && (getTarget(0) != null || getAttackTarget() != null)) {
-            velocity = new Vec3d(velocity.x * 0.12D, velocity.y, velocity.z * 0.12D);
+            velocity = new Vec3d(0.0D, velocity.y, 0.0D);
         }
         motionX = velocity.x;
         motionY = velocity.y;
@@ -3076,11 +3082,10 @@ public class WitherStormEntity extends EntityMob
         }
         return false;
     }
-    boolean isValidStormTarget(@Nullable EntityLivingBase entity, boolean allowInvisible) {
+    boolean isValidStormTarget(@Nullable EntityLivingBase entity) {
         if (!isStormTargetType(entity)
                 || entity == null || entity == this || !entity.isEntityAlive()
                 || entity.world != world || entity.dimension != dimension
-                || !allowInvisible && getPhase() > 3 && entity.isInvisible()
                 || getPhase() <= 3 && entity instanceof EntitySquid) {
             return false;
         }

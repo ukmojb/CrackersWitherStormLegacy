@@ -319,7 +319,7 @@ final class WitherStormSegmentManager {
         if (entity == null || entity == segment || entity == owner || !entity.isEntityAlive()
                 || entity.world != segment.world || entity.dimension != segment.dimension
                 || segment.isOnSameTeam(entity)
-                || !owner.isValidStormTarget(entity, false)
+                || !owner.isValidStormTarget(entity)
                 || ignoredTargets.shouldIgnoreTarget(entity)
                 || isTracking(entity)
                 || isPassengerTarget(entity)
@@ -365,7 +365,7 @@ final class WitherStormSegmentManager {
     private boolean isRevengeTargetApplicable(WitherStormEntity owner, EntityLivingBase entity) {
         double followDistance = segment.getEntityAttribute(
                 SharedMonsterAttributes.FOLLOW_RANGE).getAttributeValue() + 100.0D;
-        return owner.isValidStormTarget(entity, false)
+        return owner.isValidStormTarget(entity)
                 && !segment.isOnSameTeam(entity)
                 && segment.getDistanceSq(entity) <= followDistance * followDistance
                 && canSeeWithCache(0, entity);

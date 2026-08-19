@@ -41,7 +41,6 @@ import java.util.Random;
  */
 public final class WitherStormHeadManager {
     private static final int ENTITY_DISTRACTION_UNSEEN_LIMIT = 180;
-    private static final float MAXIMUM_HEAD_YAW = 80.0F;
     private static final double[][][] OFFSETS = {
             {{0, 3, 0}, {-1.3, 2.2, 0}, {1.3, 2.2, 0}},
             {{0, 3, 0}, {-1.3, 2.2, 0}, {1.3, 2.2, 0}},
@@ -99,7 +98,6 @@ public final class WitherStormHeadManager {
             } else {
                 if (runLookAi) updateLook(index, head);
                 else tickHeadLerp(head);
-                constrainHeadYaw(index, head);
                 storm.updateHeadRotation(index, head.yaw, head.pitch);
             }
             updateBeamCutoff(index, head);
@@ -515,7 +513,7 @@ public final class WitherStormHeadManager {
     private boolean isRevengeTargetApplicable(EntityLivingBase entity) {
         double followDistance = storm.getEntityAttribute(
                 SharedMonsterAttributes.FOLLOW_RANGE).getAttributeValue() + 100.0D;
-        return storm.isValidStormTarget(entity, false)
+        return storm.isValidStormTarget(entity)
                 && !storm.isOnSameTeam(entity)
                 && storm.getDistanceSq(entity) <= followDistance * followDistance
                 && storm.canSeeWithCache(0, entity);
@@ -552,7 +550,7 @@ public final class WitherStormHeadManager {
 
     /** 共享候选扫描使用的头无关过滤。 */
     private boolean isTargetApplicableUnfiltered(EntityLivingBase entity) {
-        if (entity == null || !storm.isValidStormTarget(entity, false)
+        if (entity == null || !storm.isValidStormTarget(entity)
                 || storm.isOnSameTeam(entity)
                 || storm.getIgnoredTargetsManager().shouldIgnoreTarget(entity)
                 || storm.isTrackedForConsumption(entity)
@@ -623,11 +621,13 @@ public final class WitherStormHeadManager {
             lookAtPosition(index, head, new Vec3d(target.posX,
                     target.posY + target.getEyeHeight(), target.posZ),
                     storm.getPhase() > 3 ? 4.0F : 10.0F,
-                    storm.getPhase() > 3 ? 24 : 3);
+                    // 上游 LookAtTargetGoal：phase>3 用 50 步、phase<=3 用 3 步。
+                    storm.getPhase() > 3 ? 50 : 3);
         } else {
             lookAtPosition(index, head, getRandomLookPosition(head),
                     storm.getPhase() > 3 ? 4.0F : 10.0F,
-                    storm.getPhase() >= 4 && head.injuryTicks <= 0 ? 30 : 3);
+                    // 上游 WitherStormLookRandomlyGoal：受伤或 phase<4 用 3 步，否则 50 步。
+                    storm.getPhase() < 4 || head.injuryTicks > 0 ? 3 : 50);
         }
     }
 
@@ -649,15 +649,6 @@ public final class WitherStormHeadManager {
         head.pitch += MathHelper.wrapDegrees(wantedPitch - head.pitch) / steps;
     }
 
-    /** Late attached heads keep the existing mass-intersection guard. */
-    private void constrainHeadYaw(int index, HeadState head) {
-        if (storm.isDeadOrPlayingDead()
-                || (storm.getPhase() <= 3 && index != 0)) return;
-        float relativeYaw = MathHelper.wrapDegrees(head.yaw - storm.renderYawOffset);
-        head.yaw = storm.renderYawOffset + MathHelper.clamp(relativeYaw,
-                -MAXIMUM_HEAD_YAW, MAXIMUM_HEAD_YAW);
-    }
-
     private Vec3d getRandomLookPosition(HeadState head) {
         if (!head.randomLookInitialized || head.randomLookTicks < 0) {
             float pitch = MathHelper.clamp(-storm.getRNG().nextInt(180), -140, -30)
@@ -668,7 +659,7 @@ public final class WitherStormHeadManager {
             head.randomLookX = Math.cos(yaw) * 30.0D;
             head.randomLookY = Math.sin(pitch) * 30.0D;
             head.randomLookZ = Math.sin(yaw) * 30.0D;
-            head.randomLookTicks = (storm.getPhase() < 4 || head.injuryTicks > 0 ? 20 : 28)
+            head.randomLookTicks = (storm.getPhase() < 4 || head.injuryTicks > 0 ? 20 : 120)
                     + storm.getRNG().nextInt(20);
             head.randomLookInitialized = true;
         }

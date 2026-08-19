@@ -66,6 +66,7 @@ import com.wdcftgg.witherstormmod.common.init.ModItems;
 import com.wdcftgg.witherstormmod.common.init.ModSounds;
 import com.wdcftgg.witherstormmod.common.network.ModNetwork;
 import com.wdcftgg.witherstormmod.common.world.BowelsBossfightController;
+import com.wdcftgg.witherstormmod.common.world.BowelsInstanceData;
 import com.wdcftgg.witherstormmod.common.world.ChunkLoadingManager;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamBlockTags;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamItemTags;
@@ -1967,6 +1968,23 @@ public final class SupplementalEntities {
             coreBossInfo.setVisible(isEntityAlive() && getCoreState() == CoreState.BOSSFIGHT
                     && (getHealth() < getMaxHealth()
                     || BowelsBossfightController.shouldShowBossBar(this)));
+            // 上游 CommandBlockEntity.tick 的 canonical 守卫：重复核心或失去归属
+            // 实例的核心必须移除全部外部血条观众，避免掉出内部空间后残留多条血条。
+            if (!isCanonicalBowelsCore()) {
+                for (EntityPlayerMP viewer : outsideBossBarViewers) coreBossInfo.removePlayer(viewer);
+                outsideBossBarViewers.clear();
+            }
+        }
+
+        /** 主世界核心恒为 canonical；肠道核心必须仍是其归属实例登记的当前核心。 */
+        private boolean isCanonicalBowelsCore() {
+            if (!isIndependentBowelsPart()) return true;
+            if (!(world instanceof WorldServer)) return true;
+            UUID ownerUuid = getOwnerUuid();
+            if (ownerUuid == null) return false;
+            BowelsInstanceData.Instance instance = BowelsInstanceData.get(world).get(ownerUuid);
+            return instance != null && (instance.commandBlockUuid == null
+                    || instance.commandBlockUuid.equals(getUniqueID()));
         }
 
         private void beginCoreStateTick() {
@@ -2557,6 +2575,10 @@ public final class SupplementalEntities {
         }
 
         private void clearBossBarState() {
+            // 1.12 只有 removePlayer 才会向客户端发送移除包；setVisible(false)
+            // 不会移除已在客户端显示的血条。
+            for (EntityPlayerMP viewer : directBossBarViewers) coreBossInfo.removePlayer(viewer);
+            for (EntityPlayerMP viewer : outsideBossBarViewers) coreBossInfo.removePlayer(viewer);
             coreBossInfo.setVisible(false);
             directBossBarViewers.clear();
             outsideBossBarViewers.clear();

@@ -1006,14 +1006,37 @@ public final class WitherStormClientEvents {
         // Draw the flash before the HUD pass.  Drawing during HOTBAR covers the
         // slot background and makes the inventory look as if it disappeared.
         if (event.getType() != RenderGameOverlayEvent.ElementType.ALL) return;
+        Minecraft minecraft = Minecraft.getMinecraft();
+        // 上游把白屏注册为 HUD 覆盖层：任何 GuiScreen（物品栏/容器）打开时都不绘制，
+        // 避免全屏白矩形进入容器 GUI 的混合状态并吞掉物品栏。
+        if (minecraft.currentScreen != null) return;
         float fade = ClientEffects.getBlindFade(event.getPartialTicks());
         if (fade <= 0.0F) return;
         int alpha = MathHelper.clamp(Math.round(fade * 255.0F), 0, 255);
-        Gui.drawRect(0, 0, event.getResolution().getScaledWidth(), event.getResolution().getScaledHeight(),
-                alpha << 24 | 0xFFFFFF);
-        // Gui.drawRect leaves the OpenGL current color at the overlay alpha;
-        // reset it before vanilla draws the hotbar and inventory icons.
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        boolean depthEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+        boolean depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
+        boolean blendEnabled = GL11.glIsEnabled(GL11.GL_BLEND);
+        try {
+            // 与上游 renderSolidOverlay 等价：显式管理深度与混合，不依赖
+            // Gui.drawRect 的局部恢复，避免残留状态破坏后续 HUD/GUI 渲染。
+            GlStateManager.disableDepth();
+            GlStateManager.depthMask(false);
+            GlStateManager.enableBlend();
+            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA,
+                    GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            Gui.drawRect(0, 0, event.getResolution().getScaledWidth(),
+                    event.getResolution().getScaledHeight(), alpha << 24 | 0xFFFFFF);
+        } finally {
+            GlStateManager.depthMask(depthMask);
+            if (depthEnabled) GlStateManager.enableDepth();
+            else GlStateManager.disableDepth();
+            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA,
+                    GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            if (!blendEnabled) GlStateManager.disableBlend();
+            // Gui.drawRect leaves the OpenGL current color at the overlay alpha;
+            // reset it before vanilla draws the hotbar and inventory icons.
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        }
     }
 
     @SubscribeEvent
@@ -1144,18 +1167,9 @@ public final class WitherStormClientEvents {
         if (optifineWarningShown || !WitherStormClientConfig.optifineWarning
                 || minecraft.player == null) return;
         optifineWarningShown = true;
-        if (!isOptifinePresent()) return;
+        if (!OptifineCompat.isLoaded()) return;
         minecraft.player.sendMessage(new TextComponentTranslation(
                 "chat.witherstormmod.optifine.notice"));
-    }
-
-    private static boolean isOptifinePresent() {
-        try {
-            Class.forName("optifine.Config");
-            return true;
-        } catch (ClassNotFoundException ignored) {
-            return false;
-        }
     }
 
     @SubscribeEvent

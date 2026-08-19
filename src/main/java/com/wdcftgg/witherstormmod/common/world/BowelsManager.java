@@ -109,7 +109,7 @@ public final class BowelsManager {
         WorldServer bowels = server.getWorld(BowelsDimensions.DIMENSION_ID);
         BowelsInstanceData.Instance instance = BowelsInstanceData.get(bowels).findContaining(player.getPosition());
         int destinationDimension = instance == null ? 0 : instance.originDimension;
-        BlockPos destination = instance == null ? server.getWorld(0).getSpawnPoint() : instance.origin.up(5);
+        BlockPos destination = getLeaveDestination(server, instance);
         releaseBossBarsForPlayer(bowels, player);
         playTransportSound(player);
         server.getPlayerList().transferPlayerToDimension(player, destinationDimension, new BowelsTeleporter(destination));
@@ -117,6 +117,23 @@ public final class BowelsManager {
         if (WitherStormConfig.bowelsFallResistance) {
             player.addPotionEffect(new PotionEffect(MobEffects.RESISTANCE, 120, 255, false, false));
         }
+    }
+
+    /** 上游掉出后返回风暴当前坐标上方 5 格（而非首次进入时的旧锚点），风暴缺失时回退出生点。 */
+    private static BlockPos getLeaveDestination(MinecraftServer server,
+                                                @Nullable BowelsInstanceData.Instance instance) {
+        WorldServer overworld = server.getWorld(0);
+        if (instance == null) {
+            return overworld == null ? BlockPos.ORIGIN : overworld.getSpawnPoint();
+        }
+        for (WorldServer world : server.worlds) {
+            if (world == null) continue;
+            Entity entity = world.getEntityFromUuid(instance.stormUuid);
+            if (entity instanceof WitherStormEntity && !entity.isDead) {
+                return ((WitherStormEntity) entity).getPosition().up(5);
+            }
+        }
+        return instance.origin.up(5);
     }
 
     private static void playTransportSound(EntityPlayerMP player) {
@@ -140,7 +157,7 @@ public final class BowelsManager {
         int destinationDimension = instance == null ? 0 : instance.originDimension;
         WorldServer destinationWorld = server.getWorld(destinationDimension);
         if (destinationWorld == null) return;
-        BlockPos destination = instance == null ? destinationWorld.getSpawnPoint() : instance.origin.up(5);
+        BlockPos destination = getLeaveDestination(server, instance);
         releaseBossBarsForPlayer(bowels, entity);
         Entity transferred = entity.changeDimension(destinationDimension, new BowelsTeleporter(destination));
         if (WitherStormConfig.bowelsFallResistance && transferred instanceof EntityLivingBase) {

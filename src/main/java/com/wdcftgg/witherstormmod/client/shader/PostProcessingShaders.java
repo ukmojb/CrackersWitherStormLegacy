@@ -3,6 +3,7 @@ package com.wdcftgg.witherstormmod.client.shader;
 import com.google.gson.JsonSyntaxException;
 import com.wdcftgg.witherstormmod.Tags;
 import com.wdcftgg.witherstormmod.WitherStormMod;
+import com.wdcftgg.witherstormmod.client.OptifineCompat;
 import com.wdcftgg.witherstormmod.client.WitherStormClientConfig;
 import com.wdcftgg.witherstormmod.common.entity.FormidibombSource;
 import net.minecraft.client.Minecraft;
@@ -61,7 +62,9 @@ public final class PostProcessingShaders implements IResourceManagerReloadListen
     }
 
     public void render(float partialTicks) {
-        if (!shouldRenderChromaticAberration()) return;
+        // OptiFine 着色器激活时其自己的后处理链独占主 framebuffer，1.12 ShaderGroup
+        // 会与之争抢并破坏画面，因此着色器激活期间跳过本模组色差后处理。
+        if (OptifineCompat.areShadersActive() || !shouldRenderChromaticAberration()) return;
         loadPendingEffect();
         if (aberrationEffect == null) return;
         resizeIfNeeded();

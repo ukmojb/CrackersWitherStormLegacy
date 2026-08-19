@@ -18,6 +18,7 @@ final class SoundResourceConverter {
     private static final String SOUNDS = "assets/witherstormmod/sounds.json";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Map<String, String> EVENT_REWRITES;
+    private static final Map<String, String> CATEGORY_REWRITES;
 
     static {
         Map<String, String> rewrites = new HashMap<String, String>();
@@ -31,6 +32,14 @@ final class SoundResourceConverter {
         rewrites.put("minecraft:block.beacon.deactivate",
                 "minecraft:block.end_portal_frame.fill");
         EVENT_REWRITES = Collections.unmodifiableMap(rewrites);
+
+        // 1.19.3 起 SoundSource 把 records/blocks/players 改为复数；1.12 的
+        // SoundCategory 仍使用单数 record/block/player，未映射会导致未知类别。
+        Map<String, String> categories = new HashMap<String, String>();
+        categories.put("records", "record");
+        categories.put("blocks", "block");
+        categories.put("players", "player");
+        CATEGORY_REWRITES = Collections.unmodifiableMap(categories);
     }
 
     private SoundResourceConverter() {
@@ -45,17 +54,27 @@ final class SoundResourceConverter {
                 new String(source, StandardCharsets.UTF_8)).getAsJsonObject();
         for (Map.Entry<String, JsonElement> definition : definitions.entrySet()) {
             if (!definition.getValue().isJsonObject()) continue;
-            JsonArray sounds = definition.getValue().getAsJsonObject().getAsJsonArray("sounds");
+            JsonObject event = definition.getValue().getAsJsonObject();
+            // 类别位于事件层；1.20 的复数类别名映射回 1.12 的单数 SoundCategory。
+            JsonElement category = event.get("category");
+            if (category != null && category.isJsonPrimitive()) {
+                String replacement = CATEGORY_REWRITES.get(category.getAsString());
+                if (replacement != null) {
+                    event.add("category", new JsonPrimitive(replacement));
+                }
+            }
+            JsonArray sounds = event.getAsJsonArray("sounds");
             if (sounds == null) continue;
             for (JsonElement sound : sounds) {
                 if (!sound.isJsonObject()) continue;
                 JsonObject object = sound.getAsJsonObject();
                 JsonElement type = object.get("type");
                 JsonElement name = object.get("name");
-                if (type == null || !"event".equals(type.getAsString()) || name == null) continue;
-                String replacement = EVENT_REWRITES.get(name.getAsString());
-                if (replacement != null) {
-                    object.add("name", new JsonPrimitive(replacement));
+                if (type != null && "event".equals(type.getAsString()) && name != null) {
+                    String replacement = EVENT_REWRITES.get(name.getAsString());
+                    if (replacement != null) {
+                        object.add("name", new JsonPrimitive(replacement));
+                    }
                 }
             }
         }
