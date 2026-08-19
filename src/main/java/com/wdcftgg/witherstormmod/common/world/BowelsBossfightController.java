@@ -136,6 +136,21 @@ public final class BowelsBossfightController {
         }
         if (!hurt) return false;
 
+        // Striking the core is an explicit upstream hazard. Push the attacker
+        // away from the command block after every accepted hit; relying on the
+        // generic entity damage path loses this because the core damage is
+        // handled by the phase controller above it.
+        Entity attacker = source == null ? null : source.getTrueSource();
+        if (attacker instanceof EntityLivingBase) {
+            double dx = attacker.posX - core.posX;
+            double dz = attacker.posZ - core.posZ;
+            double length = Math.sqrt(dx * dx + dz * dz);
+            if (length < 1.0E-4D) length = 1.0D;
+            ((EntityLivingBase) attacker).addVelocity(dx / length * 0.75D,
+                    0.25D, dz / length * 0.75D);
+            ((EntityLivingBase) attacker).velocityChanged = true;
+        }
+
         ModNetwork.sendCommandBlockParticles(world,
                 WorldUtil.centerOf(core.getEntityBoundingBox()), 100,
                 0.0D, 0.0D, 0.0D, 1.0D,
@@ -306,7 +321,9 @@ public final class BowelsBossfightController {
                 break;
             case 17:
                 ModNetwork.shakeTracking(core, 240.0F, 14.0F);
-                ModNetwork.blindTracking(core, 240, 120, 80);
+                // Keep the command-block break flash readable without hiding
+                // the HUD for the entire death transition.
+                ModNetwork.blindTracking(core, 80, 20, 40);
                 play(world, core, "loud_tremble", SoundCategory.AMBIENT, 5.0F);
                 play(world, core, "bowels_loud_hurt", SoundCategory.HOSTILE, 5.0F);
                 play(world, core, "command_block_destruct", SoundCategory.HOSTILE, 64.0F);

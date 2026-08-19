@@ -110,6 +110,7 @@ public final class BowelsManager {
         BowelsInstanceData.Instance instance = BowelsInstanceData.get(bowels).findContaining(player.getPosition());
         int destinationDimension = instance == null ? 0 : instance.originDimension;
         BlockPos destination = instance == null ? server.getWorld(0).getSpawnPoint() : instance.origin.up(5);
+        releaseBossBarsForPlayer(bowels, player);
         playTransportSound(player);
         server.getPlayerList().transferPlayerToDimension(player, destinationDimension, new BowelsTeleporter(destination));
         SymbiontSummoningManager.makeInvulnerable(player, 2400);
@@ -140,6 +141,7 @@ public final class BowelsManager {
         WorldServer destinationWorld = server.getWorld(destinationDimension);
         if (destinationWorld == null) return;
         BlockPos destination = instance == null ? destinationWorld.getSpawnPoint() : instance.origin.up(5);
+        releaseBossBarsForPlayer(bowels, entity);
         Entity transferred = entity.changeDimension(destinationDimension, new BowelsTeleporter(destination));
         if (WitherStormConfig.bowelsFallResistance && transferred instanceof EntityLivingBase) {
             ((EntityLivingBase) transferred).addPotionEffect(
@@ -161,7 +163,28 @@ public final class BowelsManager {
             }
         }
         for (Entity entity : new ArrayList<Entity>(event.world.loadedEntityList)) {
-            if (!entity.isDead && entity.posY < 50.0D) leave(entity);
+            if (entity.isDead) continue;
+            // The generated arena is centered at Y=96. A player can leave
+            // through a side opening without ever crossing the old Y=50 void
+            // threshold, so also treat positions outside the instance's
+            // horizontal bounds as an exit.
+            BowelsInstanceData.Instance instance = data.findContaining(entity.getPosition());
+            boolean belowArena = entity.posY < 50.0D;
+            boolean outsideArena = entity instanceof EntityPlayerMP
+                    && instance == null && !data.getInstances().isEmpty();
+            if (belowArena || outsideArena) leave(entity);
+        }
+    }
+
+    private static void releaseBossBarsForPlayer(WorldServer bowels, Entity entity) {
+        if (bowels == null || entity == null) return;
+        for (SupplementalEntities.CommandBlockEntity core : bowels.getEntities(
+                SupplementalEntities.CommandBlockEntity.class, candidate -> !candidate.isDead)) {
+            if (entity instanceof EntityPlayerMP) {
+                EntityPlayerMP player = (EntityPlayerMP) entity;
+                core.removeTrackingPlayer(player);
+                core.removeOutsideBossBarViewer(player);
+            }
         }
     }
 

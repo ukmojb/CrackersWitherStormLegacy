@@ -26,10 +26,24 @@ public abstract class RenderGlobalFogMixin {
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/world/WorldProvider;isSkyColored()Z"))
     private boolean witherstormmod$removeFoglessLowerSkySeam(WorldProvider provider) {
-        return !WitherStormClientConfig.disableVanillaFog && provider.isSkyColored();
+        return !shouldDisableFog() && provider.isSkyColored();
     }
 
     private static boolean shouldDisableFog() {
-        return WitherStormClientConfig.disableVanillaFog;
+        return WitherStormClientConfig.disableVanillaFog && !witherstormmod$optifineShadersActive();
+    }
+
+    private static boolean witherstormmod$optifineShadersActive() {
+        try {
+            Class<?> config = Class.forName("optifine.Config");
+            try {
+                return Boolean.TRUE.equals(config.getMethod("isShaders").invoke(null));
+            } catch (ReflectiveOperationException ignored) {
+                Class<?> shaders = Class.forName("net.optifine.shaders.Shaders");
+                return shaders.getField("shaderPackLoaded").getBoolean(null);
+            }
+        } catch (ReflectiveOperationException ignored) {
+            return false;
+        }
     }
 }

@@ -225,8 +225,11 @@ final class WitherStormSegmentManager {
 
     private void readSyncedHeadRotations() {
         for (int head = 0; head < heads.length; head++) {
-            heads[head].yaw = segment.getSyncedHeadYaw(head);
-            heads[head].pitch = segment.getSyncedHeadPitch(head);
+            float maximum = segment.getPhase() > 3 ? 5.0F : 8.0F;
+            heads[head].yaw = smoothSyncedRotation(heads[head].yaw,
+                    segment.getSyncedHeadYaw(head), maximum);
+            heads[head].pitch = smoothSyncedRotation(heads[head].pitch,
+                    segment.getSyncedHeadPitch(head), maximum);
         }
     }
 
@@ -569,10 +572,10 @@ final class WitherStormSegmentManager {
                     ? new Vec3d(target.posX, target.posY + target.getEyeHeight(), target.posZ) : null;
             if (targetPosition != null) {
                 lookAtPosition(owner, head, state, targetPosition,
-                        state.isDistracted() ? 10 : owner.getPhase() > 3 ? 50 : 3);
+                        state.isDistracted() ? 10 : owner.getPhase() > 3 ? 70 : 3);
             } else {
                 lookAtPosition(owner, head, state, getRandomLookPosition(owner, state, bodyYaw),
-                        owner.getPhase() >= 4 && state.injuryTicks <= 0 ? 50 : 3);
+                        owner.getPhase() >= 4 && state.injuryTicks <= 0 ? 70 : 3);
             }
             constrainHeadYaw(state, bodyYaw);
             segment.updateHeadRotation(head, state.yaw, state.pitch);
@@ -589,8 +592,9 @@ final class WitherStormSegmentManager {
         float wantedYaw = (float) (MathHelper.atan2(deltaZ, deltaX) * 180.0D / Math.PI) - 90.0F;
         float wantedPitch = (float) (-(MathHelper.atan2(deltaY, horizontal) * 180.0D / Math.PI));
         if (head == 0) {
-            state.yaw = rotateTowards(state.yaw, wantedYaw, 10.0F);
-            state.pitch = rotateTowards(state.pitch, wantedPitch, 10.0F);
+            float maximum = owner.getPhase() > 3 ? 4.0F : 10.0F;
+            state.yaw = rotateTowards(state.yaw, wantedYaw, maximum);
+            state.pitch = rotateTowards(state.pitch, wantedPitch, maximum);
             return;
         }
         int steps = Math.max(1, additionalHeadSteps);
@@ -672,6 +676,11 @@ final class WitherStormSegmentManager {
     private static float rotateTowards(float current, float wanted, float maximum) {
         float delta = MathHelper.clamp(MathHelper.wrapDegrees(wanted - current), -maximum, maximum);
         return MathHelper.wrapDegrees(current + delta);
+    }
+
+    private static float smoothSyncedRotation(float current, float target, float maximumChange) {
+        return current + MathHelper.clamp(MathHelper.wrapDegrees(target - current),
+                -maximumChange, maximumChange);
     }
 
     private void tickHeads(WitherStormEntity owner) {
@@ -1331,7 +1340,8 @@ final class WitherStormSegmentManager {
 
     private boolean isInsideBeam(Entity entity, Vec3d origin, Vec3d direction, double cutoff) {
         return TractorBeamHelper.isInsideTractorBeam(
-                entity.getPositionVector(), origin, direction, cutoff, 4.0D);
+                entity.getPositionVector(), origin, direction, cutoff,
+                entity instanceof EntityPlayer && segment.getPhase() >= 4 ? 8.0D : 4.0D);
     }
 
     boolean canSee(int head, Entity entity) {

@@ -3634,7 +3634,12 @@ public final class SickenedEntities {
 
             @Override
             protected AxisAlignedBB getTargetableArea(double targetDistance) {
-                return tentacle.getEntityBoundingBox().grow(targetDistance);
+                // The arena's outer tentacles are anchored outside the normal
+                // root hitbox. Use the full reach of the structure appendage
+                // so players at the wall edge can still be selected and
+                // mounted by StrangleGoal.
+                double extraReach = tentacle.isCommandBlockStructureTentacle() ? 12.0D : 0.0D;
+                return tentacle.getEntityBoundingBox().grow(targetDistance + extraReach);
             }
 
             @Override

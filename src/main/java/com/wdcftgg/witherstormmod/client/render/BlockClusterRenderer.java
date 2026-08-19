@@ -59,6 +59,15 @@ public class BlockClusterRenderer extends Render<SupplementalEntities.BlockClust
     public void doRender(SupplementalEntities.BlockClusterEntity entity, double x, double y, double z,
                          float entityYaw, float partialTicks) {
         if (entity.getBlocks().isEmpty()) return;
+        // Render from the cluster's client-owned interpolation instead of the
+        // raw EntityTracker sample supplied by RenderManager. This is the
+        // positional counterpart of the storm body's getBodyYRotation path.
+        double trackedX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
+        double trackedY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
+        double trackedZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
+        x += entity.getClientRenderX(partialTicks) - trackedX;
+        y += entity.getClientRenderY(partialTicks) - trackedY;
+        z += entity.getClientRenderZ(partialTicks) - trackedZ;
         bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
         BlockRendererDispatcher dispatcher = Minecraft.getMinecraft().getBlockRendererDispatcher();
         GlStateManager.pushMatrix();

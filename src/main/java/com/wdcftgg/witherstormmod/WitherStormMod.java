@@ -53,6 +53,7 @@ import com.cleanroommc.assetmover.AssetMoverAPI;
 import net.minecraftforge.fml.relauncher.Side;
 
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION,
+        acceptableRemoteVersions = "[1.0.0-beta3]",
         dependencies = "required-after:futuremc;required-after:crossbow;required-after:assetmover",
         guiFactory = "com.wdcftgg.witherstormmod.client.config.WitherStormGuiFactory")
 public class WitherStormMod {

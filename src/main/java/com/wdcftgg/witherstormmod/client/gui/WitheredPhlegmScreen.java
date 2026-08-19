@@ -5,6 +5,8 @@ import com.wdcftgg.witherstormmod.common.inventory.WitheredPhlegmContainer;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
 public class WitheredPhlegmScreen extends GuiContainer {
@@ -43,5 +45,15 @@ public class WitheredPhlegmScreen extends GuiContainer {
         int left = (width - xSize) / 2;
         int top = (height - ySize) / 2;
         drawTexturedModalRect(left, top, 0, 0, xSize, ySize);
+    }
+
+    /** Keep the container's item tooltip path explicit for custom 25-slot GUIs. */
+    @Override
+    protected void renderHoveredToolTip(int mouseX, int mouseY) {
+        Slot slot = getSlotUnderMouse();
+        if (slot != null && slot.getHasStack()) {
+            ItemStack stack = slot.getStack();
+            renderToolTip(stack, mouseX, mouseY);
+        }
     }
 }

@@ -219,6 +219,8 @@ public class WitherStormEntity extends EntityMob
     private int trackedEntityTicks;
     private int destroyBlocksTick;
     private int terrainDestructionCooldown;
+    /** Prevents the landing impact from being emitted more than once per fall. */
+    private boolean fallingImpactHandled;
     private int witherStormDeathTime;
     private int lastConsumedMass;
     private int entityConsumptionRadius = 16;
@@ -1202,6 +1204,7 @@ public class WitherStormEntity extends EntityMob
             playSoundToEveryone(ModSounds.get("wither_storm_reactivates"), 10.0F, 1.0F);
         }
         if (!world.isRemote && state == PlayDeadState.FALLING) {
+            fallingImpactHandled = false;
             headManager.onStartFalling();
             triggerNearby(ModCriteriaTriggers.PLAY_DEAD, 100.0D);
         } else if (!world.isRemote && state == PlayDeadState.PLAYING_DEAD) {
@@ -1239,7 +1242,13 @@ public class WitherStormEntity extends EntityMob
                 ensureSegments();
                 playSoundToEveryone(ModSounds.get("wither_storm_splits"), 1.0F, 1.0F);
             }
-            if (onGround) setPlayDeadState(PlayDeadState.PLAYING_DEAD);
+            if (onGround) {
+                if (!fallingImpactHandled && getPhase() >= 5) {
+                    fallingImpactHandled = true;
+                    createFallingImpactCrater();
+                }
+                setPlayDeadState(PlayDeadState.PLAYING_DEAD);
+            }
         } else if (getPlayDeadState() == PlayDeadState.PLAYING_DEAD) {
             motionX = motionY = motionZ = 0.0D;
             if (isOnBack()) {
@@ -1279,6 +1288,37 @@ public class WitherStormEntity extends EntityMob
         motionX *= 0.91D;
         motionY = (motionY - 0.08D) * 0.98D;
         motionZ *= 0.91D;
+    }
+
+    /** The phase-five landing is a terrain event in the upstream fight. */
+    private void createFallingImpactCrater() {
+        if (world.isRemote || !ForgeEventFactory.getMobGriefingEvent(world, this)) return;
+        int radius = MathHelper.clamp(4 + getPhase() / 2, 5, 8);
+        int centerX = MathHelper.floor(posX);
+        int centerY = MathHelper.floor(getEntityBoundingBox().minY);
+        int centerZ = MathHelper.floor(posZ);
+        boolean destroyed = false;
+        for (int x = centerX - radius; x <= centerX + radius; x++) {
+            for (int z = centerZ - radius; z <= centerZ + radius; z++) {
+                double distance = Math.sqrt((x - posX) * (x - posX) + (z - posZ) * (z - posZ));
+                if (distance > radius) continue;
+                int depth = Math.max(1, (int) Math.ceil((radius - distance) * 0.45D));
+                for (int y = centerY - depth; y <= centerY + 1; y++) {
+                    BlockPos position = new BlockPos(x, y, z);
+                    if (!world.isBlockLoaded(position)) continue;
+                    IBlockState state = world.getBlockState(position);
+                    Block block = state.getBlock();
+                    if (block == Blocks.AIR || block == Blocks.BEDROCK || block == Blocks.BARRIER
+                            || block == Blocks.COMMAND_BLOCK || block == Blocks.CHAIN_COMMAND_BLOCK
+                            || block == Blocks.REPEATING_COMMAND_BLOCK
+                            || UpstreamBlockTags.contains(UpstreamBlockTags.WITHER_STORM_BLOCK_BLACKLIST, state)
+                            || !block.canEntityDestroy(state, world, position, this)
+                            || !ForgeEventFactory.onEntityDestroyBlock(this, position, state)) continue;
+                    destroyed = world.destroyBlock(position, true) || destroyed;
+                }
+            }
+        }
+        if (destroyed) world.playEvent(1022, getPosition(), 0);
     }
 
     private void updateBodyRotation() {
@@ -2204,6 +2244,13 @@ public class WitherStormEntity extends EntityMob
                         0.0D, horizontalZ / horizontalDistance * speed - velocity.z * 0.6D);
             }
         }
+        // Early phases hover over a caught target.  Keeping the previous
+        // horizontal momentum here made the body slide forward while the beam
+        // was pulling, leaving consumed entities behind the head.
+        if (getPhase() < 4 && tractorBeamActive(0)
+                && (getTarget(0) != null || getAttackTarget() != null)) {
+            velocity = new Vec3d(velocity.x * 0.12D, velocity.y, velocity.z * 0.12D);
+        }
         motionX = velocity.x;
         motionY = velocity.y;
         motionZ = velocity.z;
@@ -2375,7 +2422,7 @@ public class WitherStormEntity extends EntityMob
         double cutoff = headManager.getTractorBeamCutoff(head);
         return TractorBeamHelper.isInsideTractorBeam(
                 entity.getPositionVector(), origin, direction, cutoff,
-                entity instanceof EntityPlayer && getPhase() >= 4 ? 6.0D : 4.0D);
+                entity instanceof EntityPlayer && getPhase() >= 4 ? 8.0D : 4.0D);
     }
 
     public boolean tractorBeamActive(int head) {

@@ -1275,6 +1275,8 @@ public final class ModNetwork {
         private double accelerationX;
         private double accelerationY;
         private double accelerationZ;
+        private boolean validProjectileUpdate;
+        private int legacyHead = -1;
 
         public UpdateDamagingProjectileMessage() {
         }
@@ -1284,14 +1286,27 @@ public final class ModNetwork {
             accelerationX = projectile.accelerationX;
             accelerationY = projectile.accelerationY;
             accelerationZ = projectile.accelerationZ;
+            validProjectileUpdate = true;
         }
 
         @Override
         public void fromBytes(ByteBuf buffer) {
             entityId = buffer.readInt();
+            // UpdateDamagingProjectile was inserted immediately before
+            // HeadAttacked. Older multiplayer servers therefore send the old
+            // five-byte HeadAttacked payload under this discriminator.
+            if (buffer.readableBytes() == 1) {
+                legacyHead = buffer.readUnsignedByte();
+                return;
+            }
+            if (buffer.readableBytes() < Double.BYTES * 3) {
+                buffer.skipBytes(buffer.readableBytes());
+                return;
+            }
             accelerationX = buffer.readDouble();
             accelerationY = buffer.readDouble();
             accelerationZ = buffer.readDouble();
+            validProjectileUpdate = true;
         }
 
         @Override
@@ -1307,8 +1322,12 @@ public final class ModNetwork {
             @Override
             public IMessage onMessage(UpdateDamagingProjectileMessage message,
                                       MessageContext context) {
-                WitherStormMod.proxy.handleDamagingProjectileSync(message.entityId,
-                        message.accelerationX, message.accelerationY, message.accelerationZ);
+                if (message.legacyHead >= 0) {
+                    WitherStormMod.proxy.handleHeadAttacked(message.entityId, message.legacyHead);
+                } else if (message.validProjectileUpdate) {
+                    WitherStormMod.proxy.handleDamagingProjectileSync(message.entityId,
+                            message.accelerationX, message.accelerationY, message.accelerationZ);
+                }
                 return null;
             }
         }

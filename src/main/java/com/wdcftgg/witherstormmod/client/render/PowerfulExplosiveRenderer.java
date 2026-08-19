@@ -74,10 +74,12 @@ public class PowerfulExplosiveRenderer<T extends PowerfulExplosiveEntity> extend
             GlStateManager.disableOutlineMode();
             GlStateManager.disableColorMaterial();
         } else if (shouldFlash(entity, formidibomb)) {
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
             GlStateManager.disableTexture2D();
             GlStateManager.disableLighting();
             GlStateManager.enableBlend();
-            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.DST_ALPHA);
+            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA,
+                    GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             GlStateManager.color(1.0F, 1.0F, 1.0F, flashAlpha);
             GlStateManager.doPolygonOffset(-3.0F, -3.0F);
             GlStateManager.enablePolygonOffset();
@@ -88,6 +90,7 @@ public class PowerfulExplosiveRenderer<T extends PowerfulExplosiveEntity> extend
             GlStateManager.disableBlend();
             GlStateManager.enableLighting();
             GlStateManager.enableTexture2D();
+            GL11.glPopAttrib();
         }
         GlStateManager.popMatrix();
         super.doRender(entity, x, y, z, entityYaw, partialTicks);
@@ -111,6 +114,7 @@ public class PowerfulExplosiveRenderer<T extends PowerfulExplosiveEntity> extend
         BufferBuilder buffer = tessellator.getBuffer();
 
         RenderHelper.disableStandardItemLighting();
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GlStateManager.disableTexture2D();
         GlStateManager.shadeModel(GL11.GL_SMOOTH);
         GlStateManager.enableBlend();
@@ -149,6 +153,7 @@ public class PowerfulExplosiveRenderer<T extends PowerfulExplosiveEntity> extend
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.enableTexture2D();
         GlStateManager.enableAlpha();
+        GL11.glPopAttrib();
         RenderHelper.enableStandardItemLighting();
     }
 

@@ -89,8 +89,13 @@ public final class WitherStormHeadManager {
             head.yawO = head.yaw;
             head.pitchO = head.pitch;
             if (storm.world.isRemote) {
-                head.yaw = storm.getSyncedHeadYaw(index);
-                head.pitch = storm.getSyncedHeadPitch(index);
+                // EntityDataManager packets are not guaranteed every render
+                // tick. Interpolate toward the authoritative angle instead of
+                // snapping, which otherwise makes beams strobe in phases 4-7.
+                head.yaw = smoothSyncedRotation(head.yaw, storm.getSyncedHeadYaw(index),
+                        storm.getPhase() > 3 ? 5.0F : 8.0F);
+                head.pitch = smoothSyncedRotation(head.pitch, storm.getSyncedHeadPitch(index),
+                        storm.getPhase() > 3 ? 5.0F : 8.0F);
             } else {
                 if (runLookAi) updateLook(index, head);
                 else tickHeadLerp(head);
@@ -616,11 +621,13 @@ public final class WitherStormHeadManager {
         }
         if (target != null) {
             lookAtPosition(index, head, new Vec3d(target.posX,
-                    target.posY + target.getEyeHeight(), target.posZ), 10.0F,
-                    storm.getPhase() > 3 ? 12 : 3);
+                    target.posY + target.getEyeHeight(), target.posZ),
+                    storm.getPhase() > 3 ? 4.0F : 10.0F,
+                    storm.getPhase() > 3 ? 24 : 3);
         } else {
-            lookAtPosition(index, head, getRandomLookPosition(head), 10.0F,
-                    storm.getPhase() >= 4 && head.injuryTicks <= 0 ? 12 : 3);
+            lookAtPosition(index, head, getRandomLookPosition(head),
+                    storm.getPhase() > 3 ? 4.0F : 10.0F,
+                    storm.getPhase() >= 4 && head.injuryTicks <= 0 ? 30 : 3);
         }
     }
 
@@ -1077,6 +1084,11 @@ public final class WitherStormHeadManager {
         float delta = MathHelper.wrapDegrees(wanted - current);
         delta = MathHelper.clamp(delta, -max, max);
         return current + delta;
+    }
+
+    private static float smoothSyncedRotation(float current, float target, float maximumChange) {
+        return current + MathHelper.clamp(MathHelper.wrapDegrees(target - current),
+                -maximumChange, maximumChange);
     }
 
     private static final class HeadState {

@@ -118,6 +118,10 @@ public final class SupplementalEntities {
 
         @Override
         public void readSpawnData(ByteBuf buffer) {
+            // Builds predating projectile interpolation did not append this
+            // vector to Forge's entity-spawn packet. Keep their packets
+            // readable instead of disconnecting a multiplayer client.
+            if (buffer.readableBytes() < Double.BYTES * 3) return;
             accelerationX = buffer.readDouble();
             accelerationY = buffer.readDouble();
             accelerationZ = buffer.readDouble();
@@ -344,6 +348,8 @@ public final class SupplementalEntities {
     }
 
     public static class BlockClusterEntity extends Entity {
+        private static final int CLIENT_RENDER_INTERPOLATION_STEPS = 3;
+        private static final double CLIENT_RENDER_SNAP_DISTANCE_SQUARED = 64.0D * 64.0D;
         private static final DataParameter<NBTTagCompound> CLUSTER_DATA =
                 EntityDataManager.createKey(BlockClusterEntity.class, DataSerializers.COMPOUND_TAG);
         private static final DataParameter<Float> PITCH_VELOCITY =
@@ -392,6 +398,17 @@ public final class SupplementalEntities {
         private double tractorBeamDistanceThreshold;
         private final List<NBTTagCompound> tileData = new ArrayList<NBTTagCompound>();
         private BlockPos startPos = BlockPos.ORIGIN;
+        private boolean clientRenderPositionInitialized;
+        private double clientRenderX;
+        private double clientRenderY;
+        private double clientRenderZ;
+        private double previousClientRenderX;
+        private double previousClientRenderY;
+        private double previousClientRenderZ;
+        private double clientRenderTargetX;
+        private double clientRenderTargetY;
+        private double clientRenderTargetZ;
+        private int clientRenderPositionSteps;
 
         public BlockClusterEntity(World world) {
             super(world);
@@ -605,8 +622,51 @@ public final class SupplementalEntities {
             return previousClusterYaw + (clusterYaw - previousClusterYaw) * partialTicks;
         }
 
+        public double getClientRenderX(float partialTicks) {
+            return clientRenderPositionInitialized
+                    ? previousClientRenderX + (clientRenderX - previousClientRenderX) * partialTicks
+                    : lastTickPosX + (posX - lastTickPosX) * partialTicks;
+        }
+
+        public double getClientRenderY(float partialTicks) {
+            return clientRenderPositionInitialized
+                    ? previousClientRenderY + (clientRenderY - previousClientRenderY) * partialTicks
+                    : lastTickPosY + (posY - lastTickPosY) * partialTicks;
+        }
+
+        public double getClientRenderZ(float partialTicks) {
+            return clientRenderPositionInitialized
+                    ? previousClientRenderZ + (clientRenderZ - previousClientRenderZ) * partialTicks
+                    : lastTickPosZ + (posZ - lastTickPosZ) * partialTicks;
+        }
+
+        @Override
+        public void setPositionAndRotationDirect(double x, double y, double z, float yaw, float pitch,
+                                                 int positionIncrements, boolean teleport) {
+            if (world.isRemote) {
+                initializeClientRenderPosition();
+                clientRenderTargetX = x;
+                clientRenderTargetY = y;
+                clientRenderTargetZ = z;
+                double deltaX = x - clientRenderX;
+                double deltaY = y - clientRenderY;
+                double deltaZ = z - clientRenderZ;
+                if (teleport || deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ
+                        > CLIENT_RENDER_SNAP_DISTANCE_SQUARED) {
+                    setClientRenderPosition(x, y, z);
+                    clientRenderPositionSteps = 0;
+                } else {
+                    clientRenderPositionSteps = CLIENT_RENDER_INTERPOLATION_STEPS;
+                }
+            }
+            // Keep the logical entity at the server-authoritative position;
+            // only its renderer follows the smoothed coordinates above.
+            super.setPositionAndRotationDirect(x, y, z, yaw, pitch, positionIncrements, teleport);
+        }
+
         @Override
         public void onUpdate() {
+            if (world.isRemote) beginClientRenderTick();
             prevPosX = posX;
             prevPosY = posY;
             prevPosZ = posZ;
@@ -629,11 +689,18 @@ public final class SupplementalEntities {
                 clusterYaw += dataManager.get(YAW_VELOCITY);
             }
             if (!hasNoGravity()) motionY -= 0.04D;
-            move(MoverType.SELF, motionX, motionY, motionZ);
+            // Pulled clusters receive an authoritative position every tracker
+            // update. Predicting that same motion on the client makes each
+            // correction look like the cluster rebounds. Their dedicated
+            // render position interpolates those samples instead.
+            if (!world.isRemote || physicsEnabled()) {
+                move(MoverType.SELF, motionX, motionY, motionZ);
+            }
             noClip = !physicsEnabled();
             time++;
             super.onUpdate();
             if (world.isRemote) {
+                updateClientRenderPosition();
                 updateFadeAmount();
                 return;
             }
@@ -649,6 +716,40 @@ public final class SupplementalEntities {
             } else if (posY + clusterSizeY <= 0.0D || time > 600) {
                 discardOrDrop();
             }
+        }
+
+        private void initializeClientRenderPosition() {
+            if (clientRenderPositionInitialized) return;
+            clientRenderPositionInitialized = true;
+            clientRenderX = previousClientRenderX = clientRenderTargetX = posX;
+            clientRenderY = previousClientRenderY = clientRenderTargetY = posY;
+            clientRenderZ = previousClientRenderZ = clientRenderTargetZ = posZ;
+        }
+
+        private void beginClientRenderTick() {
+            initializeClientRenderPosition();
+            previousClientRenderX = clientRenderX;
+            previousClientRenderY = clientRenderY;
+            previousClientRenderZ = clientRenderZ;
+        }
+
+        private void updateClientRenderPosition() {
+            if (clientRenderPositionSteps > 0) {
+                clientRenderX += (clientRenderTargetX - clientRenderX) / clientRenderPositionSteps;
+                clientRenderY += (clientRenderTargetY - clientRenderY) / clientRenderPositionSteps;
+                clientRenderZ += (clientRenderTargetZ - clientRenderZ) / clientRenderPositionSteps;
+                --clientRenderPositionSteps;
+            } else {
+                clientRenderX = posX;
+                clientRenderY = posY;
+                clientRenderZ = posZ;
+            }
+        }
+
+        private void setClientRenderPosition(double x, double y, double z) {
+            clientRenderX = previousClientRenderX = x;
+            clientRenderY = previousClientRenderY = y;
+            clientRenderZ = previousClientRenderZ = z;
         }
 
         /** 上游方块簇跳过火焰、流体和脚步等普通实体基础逻辑，但仍允许传送门推进。 */
