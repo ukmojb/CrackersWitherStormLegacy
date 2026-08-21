@@ -81,11 +81,15 @@ public final class TractorBeamRenderer {
 
         GlStateManager.pushMatrix();
         GlStateManager.pushAttrib();
+        // 光束是发光效果，不应被原版雾按视角远近压暗；显式保存/恢复，
+        // 避免只依赖 pushAttrib 时 GlStateManager 的雾缓存与实际 GL 状态脱节。
+        boolean fogEnabled = GL11.glIsEnabled(GL11.GL_FOG);
         try {
             GlStateManager.disableTexture2D();
             GlStateManager.disableLighting();
             GlStateManager.disableAlpha();
             GlStateManager.disableCull();
+            GlStateManager.disableFog();
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
             GlStateManager.enableDepth();
@@ -104,6 +108,7 @@ public final class TractorBeamRenderer {
             }
             tessellator.draw();
         } finally {
+            if (fogEnabled) GlStateManager.enableFog();
             GlStateManager.popAttrib();
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.popMatrix();

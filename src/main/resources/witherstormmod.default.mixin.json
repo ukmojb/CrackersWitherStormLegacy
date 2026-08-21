@@ -6,6 +6,7 @@
   "client": [
     "client.MinecraftLifecycleMixin",
     "client.EntityRendererFogMixin",
+    "client.EntityRendererTurnMixin",
     "client.RenderGlobalFogMixin",
     "client.WorldMixin",
     "client.PigRendererMixin",

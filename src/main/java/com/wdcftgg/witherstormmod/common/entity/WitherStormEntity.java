@@ -218,9 +218,6 @@ public class WitherStormEntity extends EntityMob
     private int recentlyRevivedTicks;
     private int trackedEntityTicks;
     private int destroyBlocksTick;
-    private int terrainDestructionCooldown;
-    /** Prevents the landing impact from being emitted more than once per fall. */
-    private boolean fallingImpactHandled;
     private int witherStormDeathTime;
     private int lastConsumedMass;
     private int entityConsumptionRadius = 16;
@@ -436,7 +433,6 @@ public class WitherStormEntity extends EntityMob
         super.onLivingUpdate();
         profileEnd();
         spawnStormParticles();
-        if (!world.isRemote && isEntityAlive()) tickTerrainDestruction();
         profileStart("heads");
         headManager.tick();
         profileEnd();
@@ -1204,7 +1200,6 @@ public class WitherStormEntity extends EntityMob
             playSoundToEveryone(ModSounds.get("wither_storm_reactivates"), 10.0F, 1.0F);
         }
         if (!world.isRemote && state == PlayDeadState.FALLING) {
-            fallingImpactHandled = false;
             headManager.onStartFalling();
             triggerNearby(ModCriteriaTriggers.PLAY_DEAD, 100.0D);
         } else if (!world.isRemote && state == PlayDeadState.PLAYING_DEAD) {
@@ -1243,10 +1238,6 @@ public class WitherStormEntity extends EntityMob
                 playSoundToEveryone(ModSounds.get("wither_storm_splits"), 1.0F, 1.0F);
             }
             if (onGround) {
-                if (!fallingImpactHandled && getPhase() >= 5) {
-                    fallingImpactHandled = true;
-                    createFallingImpactCrater();
-                }
                 setPlayDeadState(PlayDeadState.PLAYING_DEAD);
             }
         } else if (getPlayDeadState() == PlayDeadState.PLAYING_DEAD) {
@@ -1288,40 +1279,6 @@ public class WitherStormEntity extends EntityMob
         motionX *= 0.91D;
         motionY = (motionY - 0.08D) * 0.98D;
         motionZ *= 0.91D;
-    }
-
-    /** The phase-five landing is a terrain event in the upstream fight. */
-    private void createFallingImpactCrater() {
-        if (world.isRemote || !ForgeEventFactory.getMobGriefingEvent(world, this)) return;
-        // 坑洞以风暴宽度为基准并锚定地表，保证在巨大的主体下仍清晰可见。
-        int radius = Math.max(8, MathHelper.ceil(width));
-        int centerX = MathHelper.floor(posX);
-        int centerZ = MathHelper.floor(posZ);
-        int groundTop = Math.min(world.getActualHeight() - 1,
-                world.getHeight(new BlockPos(centerX, 0, centerZ)).getY() - 1);
-        int centerY = Math.min(groundTop, MathHelper.floor(getEntityBoundingBox().minY));
-        boolean destroyed = false;
-        for (int x = centerX - radius; x <= centerX + radius; x++) {
-            for (int z = centerZ - radius; z <= centerZ + radius; z++) {
-                double distance = Math.sqrt((x - posX) * (x - posX) + (z - posZ) * (z - posZ));
-                if (distance > radius) continue;
-                int depth = Math.max(1, (int) Math.ceil((radius - distance) * 0.45D));
-                for (int y = centerY - depth; y <= centerY + 1; y++) {
-                    BlockPos position = new BlockPos(x, y, z);
-                    if (!world.isBlockLoaded(position)) continue;
-                    IBlockState state = world.getBlockState(position);
-                    Block block = state.getBlock();
-                    if (block == Blocks.AIR || block == Blocks.BEDROCK || block == Blocks.BARRIER
-                            || block == Blocks.COMMAND_BLOCK || block == Blocks.CHAIN_COMMAND_BLOCK
-                            || block == Blocks.REPEATING_COMMAND_BLOCK
-                            || UpstreamBlockTags.contains(UpstreamBlockTags.WITHER_STORM_BLOCK_BLACKLIST, state)
-                            || !block.canEntityDestroy(state, world, position, this)
-                            || !ForgeEventFactory.onEntityDestroyBlock(this, position, state)) continue;
-                    destroyed = world.destroyBlock(position, true) || destroyed;
-                }
-            }
-        }
-        if (destroyed) world.playEvent(1022, getPosition(), 0);
     }
 
     private void updateBodyRotation() {
@@ -1809,54 +1766,6 @@ public class WitherStormEntity extends EntityMob
         if (destroyed) world.playEvent(1022, getPosition(), 0);
     }
 
-    /** Continuous terrain damage used by the moving storm, separate from the
-     * delayed hit reaction above.  The vanilla mob-griefing and Forge destroy
-     * hooks remain authoritative for every block.  The damage column is anchored
-     * to the ground surface below the storm instead of its flying height, so a
-     * hovering storm actually carves the terrain beneath it. */
-    private void tickTerrainDestruction() {
-        if (terrainDestructionCooldown > 0) {
-            --terrainDestructionCooldown;
-            return;
-        }
-        if (getInvulnerableTicks() > 0
-                || isPlayDeadAiDisabled()
-                || !ForgeEventFactory.getMobGriefingEvent(world, this)) return;
-
-        terrainDestructionCooldown = getPhase() > 3 ? 3 : 2;
-        int radius = getPhase() > 3 ? Math.min(4, 1 + getPhase() / 2) : 2;
-        int minX = MathHelper.floor(posX) - radius;
-        int maxX = MathHelper.floor(posX) + radius;
-        int minZ = MathHelper.floor(posZ) - radius;
-        int maxZ = MathHelper.floor(posZ) + radius;
-        // 以风暴正下方地表为中心，向下挖 1~2 层、向上覆盖地表植被层。
-        int groundTop = Math.min(world.getActualHeight() - 1,
-                world.getHeight(new BlockPos(MathHelper.floor(posX), 0, MathHelper.floor(posZ))).getY() - 1);
-        int minY = groundTop - (getPhase() > 3 ? 2 : 1);
-        int maxY = Math.min(world.getActualHeight() - 1, groundTop + 1);
-        int limit = getPhase() > 3 ? 32 : 12;
-        boolean destroyed = false;
-        for (int x = minX; x <= maxX && limit > 0; x++) {
-            for (int z = minZ; z <= maxZ && limit > 0; z++) {
-                for (int y = minY; y <= maxY && limit > 0; y++) {
-                    BlockPos position = new BlockPos(x, y, z);
-                    if (!world.isBlockLoaded(position)) continue;
-                    IBlockState state = world.getBlockState(position);
-                    Block block = state.getBlock();
-                    if (block == Blocks.AIR || block == Blocks.BEDROCK || block == Blocks.BARRIER
-                            || block == Blocks.COMMAND_BLOCK || block == Blocks.CHAIN_COMMAND_BLOCK
-                            || block == Blocks.REPEATING_COMMAND_BLOCK
-                            || UpstreamBlockTags.contains(UpstreamBlockTags.WITHER_STORM_BLOCK_BLACKLIST, state)
-                            || !block.canEntityDestroy(state, world, position, this)
-                            || !ForgeEventFactory.onEntityDestroyBlock(this, position, state)) continue;
-                    destroyed = world.destroyBlock(position, true) || destroyed;
-                    --limit;
-                }
-            }
-        }
-        if (destroyed) world.playEvent(1022, getPosition(), 0);
-    }
-
     public void trackEntityToConsume(Entity entity) {
         if (entity == null || entity == this || entity.isDead || entity.dimension != dimension
                 || entity instanceof EntityPlayer || entity instanceof WitherStormEntity
@@ -2206,19 +2115,12 @@ public class WitherStormEntity extends EntityMob
         double ascendSpeed = getPhase() > 3 && !WitherStormConfig.dynamicFlyingHeight
                 ? 0.005D : 0.02D;
         double desiredHeight = getDesiredFlyingHeight();
-        if (posY < desiredHeight || !isArmored() && posY < desiredHeight + 5.0D) {
+        if (posY < desiredHeight || !onGround && posY < desiredHeight + 5.0D) {
             velocity = new Vec3d(velocity.x, (desiredHeight - posY)
                     * ascendSpeed, velocity.z);
         }
         EntityLivingBase attackTarget = getAttackTarget();
-        boolean targetInMainBeam = getPhase() < 4 && attackTarget != null
-                && tractorBeamActive(0)
-                && isInsideBeam(attackTarget, getHeadPosition(0, 1.0F),
-                headManager.getLookVector(0), 0);
-        if (targetInMainBeam) {
-            // Do not chase a target already caught by the main beam.
-            velocity = new Vec3d(velocity.x * 0.35D, velocity.y, velocity.z * 0.35D);
-        } else if (getPhase() < 4 && attackTarget != null) {
+        if (getPhase() < 4 && attackTarget != null) {
             double horizontalX = attackTarget.posX - posX;
             double horizontalZ = attackTarget.posZ - posZ;
             double horizontalDistance = Math.sqrt(horizontalX * horizontalX + horizontalZ * horizontalZ);
@@ -2250,12 +2152,6 @@ public class WitherStormEntity extends EntityMob
                 velocity = velocity.add(horizontalX / horizontalDistance * speed - velocity.x * 0.6D,
                         0.0D, horizontalZ / horizontalDistance * speed - velocity.z * 0.6D);
             }
-        }
-        // 前期主光束正在牵引目标时保持悬停：硬归零水平速度，而不是逐帧衰减，
-        // 否则上一 tick 的追逐动量仍会让身体在吸附过程中持续前移。
-        if (getPhase() < 4 && tractorBeamActive(0)
-                && (getTarget(0) != null || getAttackTarget() != null)) {
-            velocity = new Vec3d(0.0D, velocity.y, 0.0D);
         }
         motionX = velocity.x;
         motionY = velocity.y;
@@ -2290,8 +2186,10 @@ public class WitherStormEntity extends EntityMob
         }
         double movedX = posX - prevPosX;
         double movedZ = posZ - prevPosZ;
-        if (getAttackTarget() == null && getTarget(1) == null && getTarget(2) == null
-                && targetPosition != null && movedX * movedX + movedZ * movedZ > 2.5000003E-7D) {
+        boolean noHeadTarget = getAttackTarget() == null
+                && getTarget(1) == null && getTarget(2) == null;
+        if (noHeadTarget && targetPosition != null
+                && movedX * movedX + movedZ * movedZ > 2.5000003E-7D) {
             double deltaX = targetPosition.x - posX;
             double deltaZ = targetPosition.z - posZ;
             if (deltaX * deltaX + deltaZ * deltaZ > 0.0001D) {
@@ -2300,9 +2198,11 @@ public class WitherStormEntity extends EntityMob
                 renderYawOffset = rotateTowards(renderYawOffset, wantedYaw, 5.0F);
                 rotationYaw = renderYawOffset;
             }
-        } else if (motionX * motionX + motionZ * motionZ > 0.0025D) {
-            rotationYaw = (float) (MathHelper.atan2(motionZ, motionX) * 180.0D / Math.PI) - 90.0F;
-            renderYawOffset = rotationYaw;
+        } else {
+            // 对齐上游 WitherStormBodyController：有目标时身体跟随主头，而不是继续沿运动方向。
+            float headYaw = headManager.getYaw(0, 1.0F);
+            renderYawOffset = rotateTowards(renderYawOffset, headYaw, 10.0F);
+            rotationYaw = renderYawOffset;
         }
         dataManager.set(BODY_Y_ROTATION, renderYawOffset);
     }

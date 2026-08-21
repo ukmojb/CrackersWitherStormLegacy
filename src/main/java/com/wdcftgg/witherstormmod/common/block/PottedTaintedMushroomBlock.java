@@ -6,13 +6,10 @@ import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -57,21 +54,6 @@ public class PottedTaintedMushroomBlock extends Block {
             dropBlockAsItem(world, pos, state, 0);
             world.setBlockToAir(pos);
         }
-    }
-
-    @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player,
-                                    EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        if (!world.isRemote) {
-            ItemStack mushroom = new ItemStack(ModBlocks.get("tainted_mushroom"));
-            if (player.getHeldItem(hand).isEmpty()) {
-                player.setHeldItem(hand, mushroom);
-            } else if (!player.inventory.addItemStackToInventory(mushroom)) {
-                player.dropItem(mushroom, false);
-            }
-            world.setBlockState(pos, Blocks.FLOWER_POT.getDefaultState(), 3);
-        }
-        return true;
     }
 
     private static boolean hasPotSupport(World world, BlockPos pos) {

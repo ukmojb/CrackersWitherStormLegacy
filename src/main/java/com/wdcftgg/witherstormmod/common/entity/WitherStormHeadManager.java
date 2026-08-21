@@ -98,6 +98,7 @@ public final class WitherStormHeadManager {
             } else {
                 if (runLookAi) updateLook(index, head);
                 else tickHeadLerp(head);
+                constrainHeadYaw(index, head);
                 storm.updateHeadRotation(index, head.yaw, head.pitch);
             }
             updateBeamCutoff(index, head);
@@ -570,8 +571,10 @@ public final class WitherStormHeadManager {
     /** 选目标时对共享候选做的头部相关过滤（视线、其他头占用、背后、他光束）。 */
     private boolean isTargetApplicableForHead(int index, EntityLivingBase entity) {
         if (!storm.canSeeWithCache(index, entity)) return false;
+        // Upstream rejects entities already caught by another tractor beam in
+        // every phase. Target ownership and the forward-arc check are late-phase only.
+        if (storm.isInsideOtherTractorBeam(entity, index)) return false;
         if (storm.getPhase() > 3 && (isTargetedByAnotherHead(entity, index)
-                || storm.isInsideOtherTractorBeam(entity, index)
                 || storm.isEntityBehindBack(entity))) {
             return false;
         }
@@ -647,6 +650,15 @@ public final class WitherStormHeadManager {
         int steps = Math.max(1, additionalHeadSteps);
         head.yaw += MathHelper.wrapDegrees(wantedYaw - head.yaw) / steps;
         head.pitch += MathHelper.wrapDegrees(wantedPitch - head.pitch) / steps;
+    }
+
+    /**
+     * 阶段 0-3 的左右头必须沿用阶段 4+ 大头的身体前向弧约束，避免转入主体。
+     * 早期主头保持上游的自由转向；死亡或装死时保留脚本控制的头部姿态。
+     */
+    private void constrainHeadYaw(int index, HeadState head) {
+        head.yaw = WitherStormHeadYawConstraint.constrain(storm.getPhase(), index,
+                storm.isDeadOrPlayingDead(), head.yaw, storm.renderYawOffset);
     }
 
     private Vec3d getRandomLookPosition(HeadState head) {

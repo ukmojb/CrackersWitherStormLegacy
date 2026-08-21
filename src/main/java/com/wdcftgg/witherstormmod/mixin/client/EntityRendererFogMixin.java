@@ -43,6 +43,24 @@ public abstract class EntityRendererFogMixin {
     }
 
     /**
+     * OptiFine 光影在 setupCameraTransform 里用光影投影矩阵替换 gluPerspective，
+     * 普通 gluPerspective 的 FOV 缩放对光影不生效。这里直接缩放 FOV 来源，
+     * 让光影与 frustum 一起获得望远镜放大；非光影路径保持原逻辑不变。
+     */
+    @Redirect(method = "setupCameraTransform(FI)V", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/renderer/EntityRenderer;getFOVModifier(FZ)F"))
+    private float witherstormmod$scaleShaderSetupFov(EntityRenderer renderer,
+                                                     float partialTicks,
+                                                     boolean useFovSetting) {
+        float fov = getFOVModifier(partialTicks, useFovSetting);
+        if (OptifineCompat.areShadersActive()
+                && PhasometerOverlay.isFirstPersonScoping(mc)) {
+            fov *= PhasometerOverlay.getFovScale(partialTicks);
+        }
+        return fov;
+    }
+
+    /**
      * Keep terrain/entity visibility on the normal field of view, then switch only the
      * rendered projection to the phasometer zoom. Frustum's default constructor performs
      * a second clipping-helper sample, so the switch must happen after construction.

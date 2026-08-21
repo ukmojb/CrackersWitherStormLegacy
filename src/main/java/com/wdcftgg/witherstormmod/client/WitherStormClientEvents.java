@@ -290,14 +290,20 @@ public final class WitherStormClientEvents {
         updateFormidibombLoops(minecraft);
         updateCommandBlockLoops(minecraft);
         updateTractorBeamLoops(minecraft);
-        spawnFormidibombParticles(minecraft);
-        spawnSymbiontDragonFireballParticles(minecraft);
-        spawnWitherStormParticles(minecraft);
-        spawnTractorBeamParticles(minecraft);
+        // 粒子是每客户端 tick 补充的短生命周期对象；暂停时游戏 tick 冻结、
+        // EffectRenderer 不再老化粒子，但 ClientTickEvent.END 仍会推进，若继续
+        // 召唤会在暂停期间无限堆积，恢复后同帧爆发。原版粒子走服务端 tick 网络包，
+        // 暂停时服务端不 tick、不发包，因此没有这种堆积。这里对齐该行为。
+        if (!minecraft.isGamePaused()) {
+            spawnFormidibombParticles(minecraft);
+            spawnSymbiontDragonFireballParticles(minecraft);
+            spawnWitherStormParticles(minecraft);
+            spawnTractorBeamParticles(minecraft);
+            spawnCommandBlockItemParticles(minecraft);
+        }
         updateFormidiBladeChargeSound(minecraft);
         updateSymbiontSpellLoops(minecraft);
         updateSymbiontHeartbeatLoops(minecraft);
-        spawnCommandBlockItemParticles(minecraft);
         tickWitherSicknessTrackers(minecraft);
         updateWitherStormTrembleLoops(minecraft);
         updateWitherStormLoops(minecraft);
