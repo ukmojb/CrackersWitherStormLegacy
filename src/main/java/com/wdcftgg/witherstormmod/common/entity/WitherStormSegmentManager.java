@@ -571,11 +571,13 @@ final class WitherStormSegmentManager {
                     : target != null && target.isEntityAlive()
                     ? new Vec3d(target.posX, target.posY + target.getEyeHeight(), target.posZ) : null;
             if (targetPosition != null) {
+                // 上游分裂体继承主风暴的 LookAtTargetGoal：phase>3 用 50 步、phase<=3 用 3 步。
                 lookAtPosition(owner, head, state, targetPosition,
-                        state.isDistracted() ? 10 : owner.getPhase() > 3 ? 70 : 3);
+                        state.isDistracted() ? 10 : owner.getPhase() > 3 ? 50 : 3);
             } else {
+                // 上游 WitherStormLookRandomlyGoal：受伤或 phase<4 用 3 步，否则 50 步。
                 lookAtPosition(owner, head, state, getRandomLookPosition(owner, state, bodyYaw),
-                        owner.getPhase() >= 4 && state.injuryTicks <= 0 ? 70 : 3);
+                        owner.getPhase() >= 4 && state.injuryTicks <= 0 ? 50 : 3);
             }
             constrainHeadYaw(state, bodyYaw);
             segment.updateHeadRotation(head, state.yaw, state.pitch);
@@ -592,7 +594,9 @@ final class WitherStormSegmentManager {
         float wantedYaw = (float) (MathHelper.atan2(deltaZ, deltaX) * 180.0D / Math.PI) - 90.0F;
         float wantedPitch = (float) (-(MathHelper.atan2(deltaY, horizontal) * 180.0D / Math.PI));
         if (head == 0) {
-            float maximum = owner.getPhase() > 3 ? 4.0F : 10.0F;
+            // 上游主头 LookControl.setLookAt 用 getHeadRotSpeed()=10°/tick 转 yaw，
+            // WitherStormLookController.tick 对 pitch 复用同一 f_24938_(=10)，与阶段无关。
+            float maximum = 10.0F;
             state.yaw = rotateTowards(state.yaw, wantedYaw, maximum);
             state.pitch = rotateTowards(state.pitch, wantedPitch, maximum);
             return;
@@ -1339,9 +1343,9 @@ final class WitherStormSegmentManager {
     }
 
     private boolean isInsideBeam(Entity entity, Vec3d origin, Vec3d direction, double cutoff) {
+        // 上游对所有实体（含玩家）统一用 4.0 判定光束半径；8.0 会让玩家更难脱离。
         return TractorBeamHelper.isInsideTractorBeam(
-                entity.getPositionVector(), origin, direction, cutoff,
-                entity instanceof EntityPlayer && segment.getPhase() >= 4 ? 8.0D : 4.0D);
+                entity.getPositionVector(), origin, direction, cutoff, 4.0D);
     }
 
     boolean canSee(int head, Entity entity) {

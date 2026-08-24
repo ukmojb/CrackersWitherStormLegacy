@@ -623,12 +623,15 @@ public final class WitherStormHeadManager {
         if (target != null) {
             lookAtPosition(index, head, new Vec3d(target.posX,
                     target.posY + target.getEyeHeight(), target.posZ),
-                    storm.getPhase() > 3 ? 4.0F : 10.0F,
+                    // 上游主头 LookControl.setLookAt 用 getHeadRotSpeed()=10°/tick 转 yaw，
+                    // WitherStormLookController.tick 对 pitch 复用同一 f_24938_(=10)，与阶段无关。
+                    10.0F,
                     // 上游 LookAtTargetGoal：phase>3 用 50 步、phase<=3 用 3 步。
                     storm.getPhase() > 3 ? 50 : 3);
         } else {
             lookAtPosition(index, head, getRandomLookPosition(head),
-                    storm.getPhase() > 3 ? 4.0F : 10.0F,
+                    // 同上：主头 yaw/pitch 均为 10°/tick，不随阶段变化。
+                    10.0F,
                     // 上游 WitherStormLookRandomlyGoal：受伤或 phase<4 用 3 步，否则 50 步。
                     storm.getPhase() < 4 || head.injuryTicks > 0 ? 3 : 50);
         }

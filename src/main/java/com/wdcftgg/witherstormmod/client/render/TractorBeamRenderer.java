@@ -166,17 +166,27 @@ public final class TractorBeamRenderer {
                                                     int head, float partialTicks,
                                                     BeamShape shape) {
         Vec3d look = provider.getHeadDirectionForBeam(head, partialTicks);
-        if (look == null || look.lengthSquared() <= MINIMUM_DIRECTION_LENGTH) return null;
+        if (look == null || !isFinite(look)
+                || look.lengthSquared() <= MINIMUM_DIRECTION_LENGTH) return null;
         look = look.normalize();
+
+        // 头部起点和方向同时参与服务端牵引、粒子、覆盖层与声音判定。
+        // 已实现接口的实体直接复用这组插值后的权威几何，避免客户端再用模型
+        // 根节点重复推导时把三个头的光束漂移到同一世界坐标附近。
+        Vec3d authoritativeOrigin = provider.getHeadPositionForBeam(head, partialTicks);
+        if (authoritativeOrigin != null && isFinite(authoritativeOrigin)) {
+            return new BeamPose(authoritativeOrigin, look);
+        }
 
         if (!(entity instanceof EntityLivingBase)) return null;
         EntityLivingBase living = (EntityLivingBase) entity;
         float bodyYaw = interpolateRotation(living.prevRenderYawOffset,
                 living.renderYawOffset, partialTicks);
         float bodyPitch = getBodyPitch(entity, partialTicks);
-        float headYaw = (float) (MathHelper.atan2(-look.x, look.z) * 180.0D / Math.PI);
-        float headPitch = (float) (Math.asin(MathHelper.clamp(-look.y, -1.0D, 1.0D))
-                * 180.0D / Math.PI);
+        // 必须使用头部保存的原始 Euler 角。由 look 反解 pitch 会把 -140~-90
+        // 的随机注视折叠到另一组等价角度，方向看似不变，但 pivot/roll 的世界起点会错位。
+        float headYaw = getHeadYaw(entity, head, partialTicks, look);
+        float headPitch = getHeadPitch(entity, head, partialTicks, look);
         float relativeHeadYaw = MathHelper.wrapDegrees(headYaw - bodyYaw);
         if (shouldConstrainAttachedHeadYaw(entity)) {
             relativeHeadYaw = MathHelper.clamp(relativeHeadYaw,
@@ -199,6 +209,47 @@ public final class TractorBeamRenderer {
         Vec3d direction = forwardPoint.subtract(origin);
         return direction.lengthSquared() <= MINIMUM_DIRECTION_LENGTH
                 ? null : new BeamPose(origin, direction.normalize());
+    }
+
+    private static float getHeadYaw(Entity entity, int head, float partialTicks, Vec3d look) {
+        if (entity instanceof WitherStormEntity) {
+            return ((WitherStormEntity) entity).getHeadYRotation(head, partialTicks);
+        }
+        if (entity instanceof SupplementalEntities.WitherStormSegmentEntity) {
+            return ((SupplementalEntities.WitherStormSegmentEntity) entity)
+                    .getHeadYaw(head, partialTicks);
+        }
+        if (entity instanceof SupplementalEntities.WitherStormHeadEntity) {
+            SupplementalEntities.WitherStormHeadEntity independentHead =
+                    (SupplementalEntities.WitherStormHeadEntity) entity;
+            return interpolateRotation(independentHead.getHeadYRotO(head),
+                    independentHead.getHeadYRot(head), partialTicks);
+        }
+        return (float) (MathHelper.atan2(-look.x, look.z) * 180.0D / Math.PI);
+    }
+
+    private static float getHeadPitch(Entity entity, int head, float partialTicks, Vec3d look) {
+        if (entity instanceof WitherStormEntity) {
+            return ((WitherStormEntity) entity).getHeadXRotation(head, partialTicks);
+        }
+        if (entity instanceof SupplementalEntities.WitherStormSegmentEntity) {
+            return ((SupplementalEntities.WitherStormSegmentEntity) entity)
+                    .getHeadPitch(head, partialTicks);
+        }
+        if (entity instanceof SupplementalEntities.WitherStormHeadEntity) {
+            SupplementalEntities.WitherStormHeadEntity independentHead =
+                    (SupplementalEntities.WitherStormHeadEntity) entity;
+            return independentHead.getHeadXRotO(head)
+                    + (independentHead.getHeadXRot(head) - independentHead.getHeadXRotO(head))
+                    * partialTicks;
+        }
+        return (float) (Math.asin(MathHelper.clamp(-look.y, -1.0D, 1.0D))
+                * 180.0D / Math.PI);
+    }
+
+    private static boolean isFinite(Vec3d vector) {
+        return Double.isFinite(vector.x) && Double.isFinite(vector.y)
+                && Double.isFinite(vector.z);
     }
 
     private static Vec3d transformBeamPoint(Vec3d localPoint, Vec3d entityPosition,

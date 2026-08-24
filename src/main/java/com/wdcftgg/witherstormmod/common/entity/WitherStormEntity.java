@@ -2326,9 +2326,9 @@ public class WitherStormEntity extends EntityMob
 
     private boolean isInsideBeam(Entity entity, Vec3d origin, Vec3d direction, int head) {
         double cutoff = headManager.getTractorBeamCutoff(head);
+        // 上游对所有实体（含玩家）统一用 4.0 判定光束半径；8.0 会让玩家更难脱离。
         return TractorBeamHelper.isInsideTractorBeam(
-                entity.getPositionVector(), origin, direction, cutoff,
-                entity instanceof EntityPlayer && getPhase() >= 4 ? 8.0D : 4.0D);
+                entity.getPositionVector(), origin, direction, cutoff, 4.0D);
     }
 
     public boolean tractorBeamActive(int head) {
