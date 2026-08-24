@@ -31,3 +31,11 @@
 - Future MC（可选）
 - Crossbow（可选）
 - JEI（可选）
+
+## 部分问题
+
+Q: 引爆恐怖炸弹卡死了是为啥?
+A: 因为安装了opt,去把配置文件关闭chromaticAberration。
+
+Q: 为什么望远镜不放大?
+A: 因为安装了opt,去把光影关了。

@@ -2120,6 +2120,7 @@ public class WitherStormEntity extends EntityMob
                     * ascendSpeed, velocity.z);
         }
         EntityLivingBase attackTarget = getAttackTarget();
+        boolean horizontalSteering = false;
         if (getPhase() < 4 && attackTarget != null) {
             double horizontalX = attackTarget.posX - posX;
             double horizontalZ = attackTarget.posZ - posZ;
@@ -2127,6 +2128,7 @@ public class WitherStormEntity extends EntityMob
             if (horizontalDistance > 20.0D) {
                 velocity = velocity.add(horizontalX / horizontalDistance * 0.3D - velocity.x * 0.6D,
                         0.0D, horizontalZ / horizontalDistance * 0.3D - velocity.z * 0.6D);
+                horizontalSteering = true;
             }
         } else if (target != null) {
             double horizontalX = target.x - posX;
@@ -2151,7 +2153,12 @@ public class WitherStormEntity extends EntityMob
             if (horizontalDistance * horizontalDistance > minimumDistance) {
                 velocity = velocity.add(horizontalX / horizontalDistance * speed - velocity.x * 0.6D,
                         0.0D, horizontalZ / horizontalDistance * speed - velocity.z * 0.6D);
+                horizontalSteering = true;
             }
+        }
+        // 1.12 的 travel() 不会替飞行实体应用空气阻尼；没有水平追逐加速度时必须衰减旧速度，避免失去目标后沿旧方向永久滑行。
+        if (!horizontalSteering) {
+            velocity = new Vec3d(velocity.x * 0.91D, velocity.y, velocity.z * 0.91D);
         }
         motionX = velocity.x;
         motionY = velocity.y;

@@ -485,6 +485,7 @@ public final class UltimateTargetManager {
     private boolean isUltimateTargetCandidate(@Nullable EntityPlayer player) {
         return player != null && !player.isDead && player.world == storm.world
                 && player.dimension == storm.dimension && !player.isSpectator()
+                && !player.capabilities.disableDamage
                 && !isHiddenUltimateTarget(player);
     }
 
@@ -641,6 +642,8 @@ public final class UltimateTargetManager {
     public Vec3d getMovementTargetPos() {
         if (distracted && distractedPos != null) return new Vec3d(distractedPos);
         if (randomStrollPos != null) return new Vec3d(randomStrollPos);
+        // alternativeUltimateTarget 是上一个目标或随机游走的缓存点；没有当前目标时不能继续把它当作追逐点。
+        if (ultimateTarget == null && blockTargetOverride == null) return null;
         return getUltimateTargetPos();
     }
 
