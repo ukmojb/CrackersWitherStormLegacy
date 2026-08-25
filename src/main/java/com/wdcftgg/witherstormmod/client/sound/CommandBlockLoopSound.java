@@ -18,6 +18,7 @@ public final class CommandBlockLoopSound extends MovingSound {
         repeatDelay = 0;
         volume = 0.0F;
         pitch = 1.0F;
+        updatePosition();
     }
 
     @Override
@@ -34,12 +35,17 @@ public final class CommandBlockLoopSound extends MovingSound {
         float maximumHealth = Math.max(1.0F, commandBlock.getMaxHealth());
         pitch = 1.0F + MathHelper.clamp(
                 (maximumHealth - commandBlock.getHealth()) / maximumHealth, 0.0F, 1.0F) * 0.4F;
-        xPosF = (float) commandBlock.posX;
-        yPosF = (float) commandBlock.posY;
-        zPosF = (float) commandBlock.posZ;
+        updatePosition();
     }
 
     public void stop() {
         donePlaying = true;
+    }
+
+    /** 保证声音首次注册时就位于命令方块，而不是默认的世界原点。 */
+    private void updatePosition() {
+        xPosF = (float) commandBlock.posX;
+        yPosF = (float) commandBlock.posY;
+        zPosF = (float) commandBlock.posZ;
     }
 }

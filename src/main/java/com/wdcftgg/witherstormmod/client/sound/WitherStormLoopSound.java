@@ -50,6 +50,7 @@ public class WitherStormLoopSound extends MovingSound {
         attenuationType = AttenuationType.NONE;
         volume = 0.0F;
         pitch = 1.0F;
+        setPosition(position);
     }
 
     public void bindTo(@Nullable WitherStormEntity storm) {
@@ -57,7 +58,10 @@ public class WitherStormLoopSound extends MovingSound {
     }
 
     public void updatePosition(Vec3d position) {
-        if (position != null) this.position = position;
+        if (position != null) {
+            this.position = position;
+            setPosition(position);
+        }
     }
 
     public void requestStop() {
@@ -84,9 +88,7 @@ public class WitherStormLoopSound extends MovingSound {
                 position = storm.getPositionVector();
             }
         }
-        xPosF = (float) position.x;
-        yPosF = (float) position.y;
-        zPosF = (float) position.z;
+        setPosition(position);
         if (stopping) {
             if (fade > 0.0F) fade -= 1.0F;
             else {
@@ -127,5 +129,12 @@ public class WitherStormLoopSound extends MovingSound {
         if (obstructed && dampen < maximumDampening) dampen += 1.0F;
         else if (obstructed && dampen > maximumDampening) dampen -= 1.0F;
         else if (!obstructed && dampen > 0.0F) dampen -= 1.0F;
+    }
+
+    /** 在声音提交给 1.12 声音引擎前写入坐标，避免首帧被错误定位到世界原点。 */
+    private void setPosition(Vec3d position) {
+        xPosF = (float) position.x;
+        yPosF = (float) position.y;
+        zPosF = (float) position.z;
     }
 }

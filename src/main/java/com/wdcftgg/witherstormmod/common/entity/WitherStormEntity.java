@@ -3321,7 +3321,10 @@ public class WitherStormEntity extends EntityMob
     }
 
     public static float getSoundLoopAttenuationDistance(int phase) {
-        if (phase < 3) return 16.0F;
+        // 上游命令方块循环音的基础衰减距离为 16、资源音量为 3.0。
+        // 1.12 无法读取 attenuation_distance，因此手动衰减时必须把资源音量
+        // 对有效距离的扩展也计算进去，否则声音会在 16 格处直接消失。
+        if (phase < 3) return 48.0F;
         if (phase == 3) return 128.0F;
         return 1024.0F;
     }
