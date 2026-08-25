@@ -4,6 +4,7 @@ import com.wdcftgg.witherstormmod.Tags;
 import com.wdcftgg.witherstormmod.WitherStormMod;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityTracker;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityFireball;
@@ -12,6 +13,8 @@ import net.minecraft.network.play.server.SPacketEntityVelocity;
 import net.minecraft.potion.Potion;
 import com.wdcftgg.witherstormmod.common.entity.WitherStormEntity;
 import com.wdcftgg.witherstormmod.common.entity.SupplementalEntities;
+import com.wdcftgg.witherstormmod.common.entity.DistantStormTrackingResync;
+import com.wdcftgg.witherstormmod.common.util.StormDiagnosticLogger;
 import com.wdcftgg.witherstormmod.common.inventory.SuperBeaconContainer;
 import com.wdcftgg.witherstormmod.common.tile.AbstractSuperBeaconTileEntity;
 import net.minecraft.init.SoundEvents;
@@ -95,6 +98,10 @@ public final class ModNetwork {
                 AttackPlayingDeadCoreMessage.class, discriminator++, Side.SERVER);
         CHANNEL.registerMessage(CommandBlockTickParticlesMessage.Handler.class,
                 CommandBlockTickParticlesMessage.class, discriminator++, Side.CLIENT);
+        CHANNEL.registerMessage(ClientWorldReadyMessage.Handler.class,
+                ClientWorldReadyMessage.class, discriminator++, Side.SERVER);
+        CHANNEL.registerMessage(DiagnosticLoggingMessage.Handler.class,
+                DiagnosticLoggingMessage.class, discriminator++, Side.CLIENT);
         registered = true;
     }
 
@@ -209,6 +216,22 @@ public final class ModNetwork {
 
     public static void toggleSuperBeaconArea(boolean show) {
         CHANNEL.sendToServer(new SuperBeaconToggleAreaMessage(show));
+    }
+
+    public static void notifyClientWorldReady(int dimension) {
+        CHANNEL.sendToServer(new ClientWorldReadyMessage(dimension));
+    }
+
+    /** 将服务端诊断日志模式同步给指定客户端。 */
+    public static void syncDiagnosticLogging(EntityPlayerMP player) {
+        if (player != null) {
+            CHANNEL.sendTo(new DiagnosticLoggingMessage(StormDiagnosticLogger.isEnabled()), player);
+        }
+    }
+
+    /** 将服务端诊断日志模式同步给所有在线客户端。 */
+    public static void syncDiagnosticLogging() {
+        CHANNEL.sendToAll(new DiagnosticLoggingMessage(StormDiagnosticLogger.isEnabled()));
     }
 
     public static void sendSuperBeaconParticles(World world, BlockPos position,
@@ -670,6 +693,86 @@ public final class ModNetwork {
                         ((SuperBeaconContainer) player.openContainer).setShowArea(message.show);
                     }
                 });
+                return null;
+            }
+        }
+    }
+
+    /** 客户端完成 WorldClient 替换后，通知服务端重发可能提前到达的远距实体。 */
+    public static final class ClientWorldReadyMessage implements IMessage {
+        private int dimension;
+
+        public ClientWorldReadyMessage() {
+        }
+
+        public ClientWorldReadyMessage(int dimension) {
+            this.dimension = dimension;
+        }
+
+        @Override
+        public void fromBytes(ByteBuf buffer) {
+            dimension = buffer.readInt();
+        }
+
+        @Override
+        public void toBytes(ByteBuf buffer) {
+            buffer.writeInt(dimension);
+        }
+
+        public static final class Handler
+                implements IMessageHandler<ClientWorldReadyMessage, IMessage> {
+            @Override
+            public IMessage onMessage(final ClientWorldReadyMessage message,
+                                      final MessageContext context) {
+                final EntityPlayerMP player = context.getServerHandler().player;
+                player.getServerWorld().addScheduledTask(() -> {
+                    if (player.isDead || player.dimension != message.dimension
+                            || player.getServerWorld().provider.getDimension() != message.dimension) {
+                        StormDiagnosticLogger.warn(
+                                "[风暴诊断][忽略客户端维度就绪] 玩家={} 消息维度={} 玩家维度={} 世界维度={} 死亡={}",
+                                player.getName(), message.dimension, player.dimension,
+                                player.getServerWorld().provider.getDimension(), player.isDead);
+                        return;
+                    }
+                    EntityTracker tracker = player.getServerWorld().getEntityTracker();
+                    if (tracker instanceof DistantStormTrackingResync) {
+                        ((DistantStormTrackingResync) tracker)
+                                .witherstormmod$resyncDistantStorms(player);
+                    }
+                });
+                return null;
+            }
+        }
+    }
+
+    /** 服务端管理指令切换诊断模式时，同步更新客户端日志开关。 */
+    public static final class DiagnosticLoggingMessage implements IMessage {
+        private boolean enabled;
+
+        public DiagnosticLoggingMessage() {
+        }
+
+        public DiagnosticLoggingMessage(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @Override
+        public void fromBytes(ByteBuf buffer) {
+            enabled = buffer.readBoolean();
+        }
+
+        @Override
+        public void toBytes(ByteBuf buffer) {
+            buffer.writeBoolean(enabled);
+        }
+
+        public static final class Handler
+                implements IMessageHandler<DiagnosticLoggingMessage, IMessage> {
+            @Override
+            public IMessage onMessage(final DiagnosticLoggingMessage message,
+                                      MessageContext context) {
+                net.minecraft.client.Minecraft.getMinecraft().addScheduledTask(
+                        () -> StormDiagnosticLogger.setEnabled(message.enabled));
                 return null;
             }
         }

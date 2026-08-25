@@ -37,9 +37,7 @@ public abstract class EntityRendererFogMixin {
             target = "Lorg/lwjgl/util/glu/Project;gluPerspective(FFFF)V"))
     private void witherstormmod$extendFoglessWorldProjection(
             float fovY, float aspect, float nearPlane, float farPlane) {
-        Project.gluPerspective(fovY, aspect, nearPlane,
-                OptifineCompat.areShadersActive()
-                        ? farPlane : DistantProjection.adjustWorldFarPlane(farPlane));
+        Project.gluPerspective(fovY, aspect, nearPlane, farPlane);
     }
 
     /**
@@ -82,9 +80,7 @@ public abstract class EntityRendererFogMixin {
                     target = "Lorg/lwjgl/util/glu/Project;gluPerspective(FFFF)V"))
     private void witherstormmod$renderWorldProjection(
             float fovY, float aspect, float nearPlane, float farPlane) {
-        Project.gluPerspective(fovY * witherstormmod$scopeFovScale, aspect, nearPlane,
-                OptifineCompat.areShadersActive()
-                        ? farPlane : DistantProjection.adjustWorldFarPlane(farPlane));
+        Project.gluPerspective(fovY * witherstormmod$scopeFovScale, aspect, nearPlane, farPlane);
     }
 
     @Redirect(method = "renderCloudsCheck(Lnet/minecraft/client/renderer/RenderGlobal;FIDDD)V",
@@ -110,7 +106,7 @@ public abstract class EntityRendererFogMixin {
                 fov * witherstormmod$scopeFovScale,
                 (float) mc.displayWidth / (float) mc.displayHeight,
                 0.05F,
-                DistantProjection.adjustWorldFarPlane(farPlaneDistance * MathHelper.SQRT_2));
+                farPlaneDistance * MathHelper.SQRT_2);
         GlStateManager.matrixMode(GL11.GL_MODELVIEW);
     }
 

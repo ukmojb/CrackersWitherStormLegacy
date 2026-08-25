@@ -7,6 +7,7 @@ import com.wdcftgg.witherstormmod.client.WitherStormClientConfig;
 import com.wdcftgg.witherstormmod.common.config.WitherStormConfig;
 import com.wdcftgg.witherstormmod.common.init.ModDamageSources;
 import com.wdcftgg.witherstormmod.common.init.ModAttributes;
+import com.wdcftgg.witherstormmod.common.util.StormDiagnosticLogger;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.EnumPushReaction;
@@ -2286,31 +2287,64 @@ public final class SupplementalEntities {
         @Override
         public void addTrackingPlayer(EntityPlayerMP player) {
             if (player == null) return;
-            directBossBarViewers.add(player);
+            boolean added = directBossBarViewers.add(player);
             coreBossInfo.addPlayer(player);
+            if (added) {
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][核心直接观众加入] 核心id={} uuid={} BossBar={} 维度={} 玩家={} 玩家实例={} 玩家维度={} 直接={} 外部={}",
+                        getEntityId(), getUniqueID(), coreBossInfo.getUniqueId(), dimension,
+                        player.getName(), System.identityHashCode(player), player.dimension,
+                        directBossBarViewers.size(), outsideBossBarViewers.size());
+            }
         }
 
         @Override
         public void removeTrackingPlayer(EntityPlayerMP player) {
-            directBossBarViewers.remove(player);
+            boolean removed = directBossBarViewers.remove(player);
             if (!outsideBossBarViewers.contains(player)) coreBossInfo.removePlayer(player);
+            if (removed && player != null) {
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][核心直接观众移除] 核心id={} uuid={} BossBar={} 维度={} 玩家={} 玩家实例={} 玩家维度={} 直接={} 外部={}",
+                        getEntityId(), getUniqueID(), coreBossInfo.getUniqueId(), dimension,
+                        player.getName(), System.identityHashCode(player), player.dimension,
+                        directBossBarViewers.size(), outsideBossBarViewers.size());
+            }
         }
 
         public void addOutsideBossBarViewer(EntityPlayerMP player) {
             if (player == null) return;
-            outsideBossBarViewers.add(player);
+            if (player.world != world) {
+                removeOutsideBossBarViewer(player);
+                return;
+            }
+            boolean added = outsideBossBarViewers.add(player);
             coreBossInfo.addPlayer(player);
+            if (added) {
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][核心外部观众加入] 核心id={} uuid={} BossBar={} 维度={} 玩家={} 玩家实例={} 玩家维度={} 直接={} 外部={}",
+                        getEntityId(), getUniqueID(), coreBossInfo.getUniqueId(), dimension,
+                        player.getName(), System.identityHashCode(player), player.dimension,
+                        directBossBarViewers.size(), outsideBossBarViewers.size());
+            }
         }
 
         public void removeOutsideBossBarViewer(EntityPlayerMP player) {
-            outsideBossBarViewers.remove(player);
+            boolean removed = outsideBossBarViewers.remove(player);
             if (!directBossBarViewers.contains(player)) coreBossInfo.removePlayer(player);
+            if (removed && player != null) {
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][核心外部观众移除] 核心id={} uuid={} BossBar={} 维度={} 玩家={} 玩家实例={} 玩家维度={} 直接={} 外部={}",
+                        getEntityId(), getUniqueID(), coreBossInfo.getUniqueId(), dimension,
+                        player.getName(), System.identityHashCode(player), player.dimension,
+                        directBossBarViewers.size(), outsideBossBarViewers.size());
+            }
         }
 
         void synchronizeOutsideBossBarViewers(Iterable<EntityPlayerMP> players) {
             Set<EntityPlayerMP> desired = new HashSet<EntityPlayerMP>();
             for (EntityPlayerMP player : players) {
-                if (player != null) desired.add(player);
+                // BossInfo 包没有维度归属，跨世界发送会在重生后留下无法自动清理的血条。
+                if (player != null && player.world == world) desired.add(player);
             }
             for (EntityPlayerMP player : new HashSet<EntityPlayerMP>(outsideBossBarViewers)) {
                 if (!desired.contains(player)) removeOutsideBossBarViewer(player);
@@ -2577,6 +2611,10 @@ public final class SupplementalEntities {
         private void clearBossBarState() {
             // 1.12 只有 removePlayer 才会向客户端发送移除包；setVisible(false)
             // 不会移除已在客户端显示的血条。
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][核心血条清空] 核心id={} uuid={} BossBar={} 维度={} 直接={} 外部={}",
+                    getEntityId(), getUniqueID(), coreBossInfo.getUniqueId(), dimension,
+                    directBossBarViewers.size(), outsideBossBarViewers.size());
             for (EntityPlayerMP viewer : directBossBarViewers) coreBossInfo.removePlayer(viewer);
             for (EntityPlayerMP viewer : outsideBossBarViewers) coreBossInfo.removePlayer(viewer);
             coreBossInfo.setVisible(false);
@@ -4109,10 +4147,8 @@ public final class SupplementalEntities {
         public int getTotalHeads() { return 3; }
         boolean isPositionBehindBack(Vec3d position) {
             if (position == null) return false;
-            float angle = (float) (MathHelper.atan2(position.x - posX, position.z - posZ)
-                    * 180.0D / Math.PI);
-            float difference = MathHelper.wrapDegrees(-getSegmentBodyYaw() - angle + 180.0F);
-            return difference > 80.0F || difference < -80.0F;
+            return WitherStormHeadYawConstraint.isOutsideForwardArc(
+                    position.x - posX, position.z - posZ, getSegmentBodyYaw());
         }
         public boolean isEntityBehindBack(Entity entity) {
             return entity != null && isPositionBehindBack(entity.getPositionVector());

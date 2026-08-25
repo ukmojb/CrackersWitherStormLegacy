@@ -4,6 +4,7 @@ import com.wdcftgg.witherstormmod.Tags;
 import com.wdcftgg.witherstormmod.common.config.WitherStormConfig;
 import com.wdcftgg.witherstormmod.common.entity.SupplementalEntities;
 import com.wdcftgg.witherstormmod.common.entity.WitherStormEntity;
+import com.wdcftgg.witherstormmod.common.network.ModNetwork;
 import com.wdcftgg.witherstormmod.common.taint.TaintingManager;
 import net.minecraft.entity.projectile.EntityFishHook;
 import net.minecraft.entity.projectile.EntityPotion;
@@ -57,6 +58,9 @@ public final class WitherStormUtilEvents {
     @SubscribeEvent
     public static void onPlayerLoggedIn(
             PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.player instanceof EntityPlayerMP) {
+            ModNetwork.syncDiagnosticLogging((EntityPlayerMP) event.player);
+        }
         if (!WitherStormConfig.flyingEnabledWarning
                 || !(event.player instanceof EntityPlayerMP)) return;
         EntityPlayerMP player = (EntityPlayerMP) event.player;

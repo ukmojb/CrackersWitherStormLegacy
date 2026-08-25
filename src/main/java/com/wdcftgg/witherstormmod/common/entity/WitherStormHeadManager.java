@@ -9,6 +9,7 @@ import com.wdcftgg.witherstormmod.common.network.ModNetwork;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamBlockTags;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamEntityTags;
 import com.wdcftgg.witherstormmod.common.util.TractorBeamHelper;
+import com.wdcftgg.witherstormmod.common.util.StormDiagnosticLogger;
 import com.wdcftgg.witherstormmod.common.util.WorldUtil;
 import net.minecraft.entity.item.EntityFireworkRocket;
 import net.minecraft.entity.Entity;
@@ -147,8 +148,10 @@ public final class WitherStormHeadManager {
                 heads[index].target = null;
                 storm.updateWatchedTargetId(index, 0);
             }
+            targetCandidates = java.util.Collections.emptyList();
             storm.setAttackTarget(null);
             idleTargetTicks = 0;
+            logPlayerTargetingDiagnostics("风暴无敌、死亡或装死，头部选敌未运行");
             return;
         }
         tickDistractions();
@@ -170,6 +173,11 @@ public final class WitherStormHeadManager {
             EntityLivingBase target = head.injuryTicks > 0 || head.isDistracted() ? null
                     : selectTarget(index, targetCandidates);
             if (head.target != target) {
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][主体头目标切换] 风暴={} 阶段={} tick={} 头={} 原目标={} 新目标={} 启用={} 受伤剩余={} 分心剩余={}",
+                        storm.getUniqueID(), storm.getPhase(), storm.ticksExisted, index,
+                        describeEntity(head.target), describeEntity(target), enabled,
+                        head.injuryTicks, head.distractionTicks);
                 head.target = target;
                 head.targetUnseenTicks = 0;
                 head.lastTargetPosition = null;
@@ -249,6 +257,7 @@ public final class WitherStormHeadManager {
                 head.nextHeadUpdate = storm.ticksExisted + 40 + storm.getRNG().nextInt(20);
             }
         }
+        logPlayerTargetingDiagnostics(null);
         tickMainTargetTimeout();
     }
 
@@ -308,6 +317,10 @@ public final class WitherStormHeadManager {
                 head.distractionPosition = position;
                 head.distractionTicks = 120 + storm.getRNG().nextInt(60);
                 storm.setHeadDistractionFlag(index, true);
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][主体头分心开始] 风暴={} 阶段={} tick={} 头={} 类型=方块 位置={} 时长={} 原目标={}",
+                        storm.getUniqueID(), storm.getPhase(), storm.ticksExisted, index,
+                        position, head.distractionTicks, describeEntity(head.target));
             }
         }
     }
@@ -356,11 +369,26 @@ public final class WitherStormHeadManager {
         head.distractionTicks = 80 + storm.getRNG().nextInt(80);
         head.distractionUnseenTicks = 0;
         storm.setHeadDistractionFlag(index, true);
+        StormDiagnosticLogger.info(
+                "[风暴诊断][主体头分心开始] 风暴={} 阶段={} tick={} 头={} 类型=实体 实体={} 位置={} 时长={} 原目标={}",
+                storm.getUniqueID(), storm.getPhase(), storm.ticksExisted, index,
+                describeEntity(firework), head.distractionPosition, head.distractionTicks,
+                describeEntity(head.target));
     }
 
     private void clearDistraction(int index, HeadState head) {
+        boolean wasDistracted = head.isDistracted() || head.distractionEntity != null
+                || head.distractionPosition != null;
+        Vec3d oldPosition = head.distractionPosition;
+        java.util.UUID oldEntity = head.distractionEntity;
         head.clearDistraction();
         storm.setHeadDistractionFlag(index, false);
+        if (wasDistracted) {
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][主体头分心结束] 风暴={} 阶段={} tick={} 头={} 实体UUID={} 位置={}",
+                    storm.getUniqueID(), storm.getPhase(), storm.ticksExisted, index,
+                    oldEntity, oldPosition);
+        }
     }
 
     private boolean canStartEntityDistraction(int index) {
@@ -496,6 +524,13 @@ public final class WitherStormHeadManager {
             }
         }
         EntityLivingBase selected = nearestSpecialTarget == null ? nearest : nearestSpecialTarget;
+        if (StormDiagnosticLogger.isEnabled() && (selected != null || storm.ticksExisted % 20 == 0)) {
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][主体头选敌结果] 风暴={} 阶段={} tick={} 头={} 候选数量={} 启用特殊偏置={} 最近普通={} 最近特殊={} 最终选择={}",
+                    storm.getUniqueID(), storm.getPhase(), storm.ticksExisted, index,
+                    candidates.size(), preferSpecialTarget, describeEntity(nearest),
+                    describeEntity(nearestSpecialTarget), describeEntity(selected));
+        }
         if (selected != null) countWitherSicknessContact(selected);
         return selected;
     }
@@ -522,26 +557,49 @@ public final class WitherStormHeadManager {
 
     private boolean canContinueTarget(int index, HeadState head) {
         EntityLivingBase target = head.target;
-        if (target == null || !target.isEntityAlive() || target.world != storm.world
-                || target.dimension != storm.dimension || storm.isOnSameTeam(target)) return false;
+        if (target == null) return false;
+        if (!target.isEntityAlive()) return rejectContinuedTarget(index, target, "目标死亡");
+        if (target.world != storm.world || target.dimension != storm.dimension) {
+            return rejectContinuedTarget(index, target, "世界或维度不同");
+        }
+        if (storm.isOnSameTeam(target)) return rejectContinuedTarget(index, target, "目标变为同队");
         double followDistance = storm.getEntityAttribute(
                 SharedMonsterAttributes.FOLLOW_RANGE).getAttributeValue() + 100.0D;
-        if (storm.getDistanceSq(target) > followDistance * followDistance) return false;
+        if (storm.getDistanceSq(target) > followDistance * followDistance) {
+            return rejectContinuedTarget(index, target, "超出持续目标距离");
+        }
         if (storm.canSeeWithCache(index, target)) {
             head.targetUnseenTicks = 0;
         } else if (++head.targetUnseenTicks > (storm.getPhase() < 4 ? 80 : 20)) {
-            return false;
+            return rejectContinuedTarget(index, target,
+                    "失去视线超过容忍时间，未见tick=" + head.targetUnseenTicks);
         }
         if (target instanceof EntityPlayer
                 && (((EntityPlayer) target).capabilities.disableDamage
-                || ((EntityPlayer) target).isSpectator())) return false;
-        if (storm.getPhase() > 3 && storm.isEntityBehindBack(target)) return false;
+                || ((EntityPlayer) target).isSpectator())) {
+            return rejectContinuedTarget(index, target, "玩家切换为无敌或旁观模式");
+        }
+        if (storm.getPhase() > 3 && storm.isEntityBehindBack(target)) {
+            return rejectContinuedTarget(index, target, "阶段4+目标进入风暴背后");
+        }
         Vec3d position = target.getPositionVector();
         if (head.lastTargetPosition != null
-                && position.distanceTo(head.lastTargetPosition) > 20.0D) return false;
-        if (storm.isTrackedForConsumption(target)) return false;
+                && position.distanceTo(head.lastTargetPosition) > 20.0D) {
+            return rejectContinuedTarget(index, target, "单tick位移超过20格");
+        }
+        if (storm.isTrackedForConsumption(target)) {
+            return rejectContinuedTarget(index, target, "目标进入吞噬追踪");
+        }
         head.lastTargetPosition = position;
         return true;
+    }
+
+    private boolean rejectContinuedTarget(int index, EntityLivingBase target, String reason) {
+        StormDiagnosticLogger.info(
+                "[风暴诊断][主体头持续目标拒绝] 风暴={} 阶段={} tick={} 头={} 目标={} 原因={}",
+                storm.getUniqueID(), storm.getPhase(), storm.ticksExisted, index,
+                describeEntity(target), reason);
+        return false;
     }
 
     private static void countWitherSicknessContact(EntityLivingBase target) {
@@ -565,7 +623,14 @@ public final class WitherStormHeadManager {
             EntityPlayer player = (EntityPlayer) entity;
             if (player.isHandActive() && player.getActiveItemStack().getItem() == Items.SHIELD) return false;
         }
-        return !MinecraftForge.EVENT_BUS.post(new CanWitherStormTargetMobEvent(storm, entity));
+        boolean cancelled = MinecraftForge.EVENT_BUS.post(new CanWitherStormTargetMobEvent(storm, entity));
+        if (cancelled && entity instanceof EntityPlayer && storm.ticksExisted % 20 == 0) {
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][主体玩家目标事件拒绝] 风暴={} 阶段={} tick={} 玩家={} 玩家UUID={}",
+                    storm.getUniqueID(), storm.getPhase(), storm.ticksExisted,
+                    entity.getName(), entity.getUniqueID());
+        }
+        return !cancelled;
     }
 
     /** 选目标时对共享候选做的头部相关过滤（视线、其他头占用、背后、他光束）。 */
@@ -579,6 +644,67 @@ public final class WitherStormHeadManager {
             return false;
         }
         return true;
+    }
+
+    /** 每秒记录一次所有玩家从候选扫描到逐头判定的完整状态。 */
+    private void logPlayerTargetingDiagnostics(@Nullable String globalReason) {
+        if (!StormDiagnosticLogger.isEnabled() || storm.ticksExisted % 20 != 0) return;
+        double range = storm.getPhase() > 3
+                ? storm.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).getAttributeValue()
+                : 40.0D;
+        AxisAlignedBB search = storm.getEntityBoundingBox().grow(range,
+                storm.getPhase() > 3 ? range + 50.0D : range * 2.0D, range);
+        for (EntityPlayer player : storm.world.playerEntities) {
+            boolean inSearch = search.intersects(player.getEntityBoundingBox());
+            long protection = SymbiontSummoningManager.getIgnoreTicksRemaining(player);
+            for (int index = 0; index < heads.length; index++) {
+                HeadState head = heads[index];
+                String result = globalReason == null
+                        ? describePlayerTargetRejection(index, player, inSearch, protection)
+                        : globalReason;
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][主体头玩家判定] 风暴={} 阶段={} tick={} 玩家={} 玩家UUID={} 维度={} 距离平方={} 搜索范围内={} 共享候选={} 头={} 结果={} 当前目标={} 光束启用={} 受伤剩余={} 分心剩余={} 保护剩余={} yaw={} pitch={} cutoff={}",
+                        storm.getUniqueID(), storm.getPhase(), storm.ticksExisted,
+                        player.getName(), player.getUniqueID(), player.dimension,
+                        storm.getDistanceSq(player), inSearch, targetCandidates.contains(player),
+                        index, result, describeEntity(head.target), storm.tractorBeamActive(index),
+                        head.injuryTicks, head.distractionTicks, protection,
+                        head.yaw, head.pitch, head.beamCutoff);
+            }
+        }
+    }
+
+    private String describePlayerTargetRejection(int index, EntityPlayer player,
+                                                  boolean inSearch, long protection) {
+        HeadState head = heads[index];
+        if (!isEnabled(index)) return "头部未启用";
+        if (head.injuryTicks > 0) return "头部受伤";
+        if (head.isDistracted()) return "头部正在分心";
+        if (index == 0 && storm.isAttractingFormidibomb()) return "主头正在吸引恐怖炸弹";
+        if (!inSearch) return "目标搜索范围外";
+        if (!player.isEntityAlive()) return "玩家已死亡";
+        if (player.world != storm.world || player.dimension != storm.dimension) return "世界或维度不同";
+        if (player.capabilities.disableDamage) return "玩家处于无敌模式";
+        if (player.isSpectator()) return "玩家处于旁观模式";
+        if (storm.hasRecentlyBeenRevived()) return "风暴刚复活，暂不选玩家";
+        if (protection > 0L) return "玩家目标保护剩余" + protection + "tick";
+        if (storm.isOnSameTeam(player)) return "玩家与风暴同队";
+        if (storm.getIgnoredTargetsManager().shouldIgnoreTarget(player)) return "忽略目标管理器拒绝";
+        if (storm.isTrackedForConsumption(player)) return "玩家已进入吞噬追踪";
+        if (storm.isPassengerTarget(player)) return "玩家是风暴家族附近乘客目标";
+        if (storm.getPhase() > 3 && player.isInvisible()) return "阶段4+玩家隐身";
+        if (storm.getPhase() > 3 && storm.isTargetInUseBySegment(player)) return "玩家已被分体头占用";
+        if (player.isHandActive() && player.getActiveItemStack().getItem() == Items.SHIELD) return "玩家正在举盾";
+        if (!storm.canSeeWithCache(index, player)) return "该头没有视线";
+        if (storm.isInsideOtherTractorBeam(player, index)) return "玩家已在其他光束内";
+        if (storm.getPhase() > 3 && isTargetedByAnotherHead(player, index)) return "玩家已被主体其他头占用";
+        if (storm.getPhase() > 3 && storm.isEntityBehindBack(player)) return "玩家位于风暴背后";
+        return "基础条件通过（事件总线仍可取消）";
+    }
+
+    private static String describeEntity(@Nullable Entity entity) {
+        return entity == null ? "无" : entity.getName() + "#" + entity.getEntityId()
+                + "/" + entity.getUniqueID();
     }
 
     private void updateLook(int index, HeadState head) {
@@ -889,7 +1015,8 @@ public final class WitherStormHeadManager {
             EntityPlayerMP player = (EntityPlayerMP) attacker;
             SymbiontSummoningManager.makeInvulnerable(player,
                     UltimateTargetManager.getHeadEscapeTicks(
-                            WitherStormConfig.headEscapeTime, storm.getRNG().nextInt(80)));
+                            WitherStormConfig.headEscapeTime, storm.getRNG().nextInt(80)),
+                    "击伤主体头部后逃脱");
             ModCriteriaTriggers.ESCAPE_WITHER_STORM.trigger(
                     player, storm);
         }

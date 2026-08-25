@@ -14,7 +14,6 @@ import java.nio.FloatBuffer;
 /** 在保留当前 FOV 与投影偏移的前提下，临时扩展远裁剪面。 */
 public final class DistantProjection {
     private static final float FALLBACK_NEAR_PLANE = 0.05F;
-    private static final float FOG_DISABLED_WORLD_FAR_PLANE = 1024.0F;
     private static final float FAR_PLANE_MULTIPLIER = 180.0F;
     private static final FloatBuffer PROJECTION_MATRIX = BufferUtils.createFloatBuffer(16);
 
@@ -25,20 +24,6 @@ public final class DistantProjection {
     public static boolean shouldUse(Entity entity) {
         return WitherStormClientConfig.distantRenderer
                 && entity instanceof DistantStormPart;
-    }
-
-    /**
-     * Without distance fog the vanilla far-plane intersection with the ground becomes a
-     * visible moving hole at high altitude. This only extends projection of already loaded
-     * chunks; it does not increase the configured chunk render distance.
-     */
-    public static float adjustWorldFarPlane(float farPlane) {
-        if (WitherStormClientConfig.distantRenderer) {
-            return Math.max(getFarPlane(), farPlane);
-        }
-        return WitherStormClientConfig.disableVanillaFog
-                ? Math.max(FOG_DISABLED_WORLD_FAR_PLANE, farPlane)
-                : farPlane;
     }
 
     public static void push() {

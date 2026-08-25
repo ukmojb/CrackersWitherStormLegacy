@@ -2,7 +2,10 @@
 gui.witherstormmod.config.category.presets.title=Presets
 gui.witherstormmod.config.disableVanillaFog.title=Disable Vanilla Fog
 gui.witherstormmod.config.disableVanillaFog.description=Disables vanilla distance, boss, blindness, underwater, lava, and cloud fog, together with the Wither Storm distant-render fog treatment.
-commands.witherstormmod.usage=Usage: /witherstormmod <phase|consumedEntities|cluster|evolutionSpeed|sickness|explode|revive|bowels|ultimateTarget|kill|tractorBeam|chunkLoader|convert|screenShake|config>
+commands.witherstormmod.usage=Usage: /witherstormmod <phase|consumedEntities|cluster|evolutionSpeed|sickness|explode|revive|bowels|ultimateTarget|kill|tractorBeam|chunkLoader|convert|screenShake|config|debug>
+commands.witherstormmod.debug.logging.enabled=Wither Storm diagnostic logging enabled
+commands.witherstormmod.debug.logging.disabled=Wither Storm diagnostic logging disabled
+commands.witherstormmod.debug.logging.state=Wither Storm diagnostic logging: %s
 commands.witherstormmod.number.invalid=Invalid number: %s
 commands.witherstormmod.evolutionProfiler.spawn_failed=Failed to spawn the Wither Storm
 commands.witherstormmod.config.get=%s is %s

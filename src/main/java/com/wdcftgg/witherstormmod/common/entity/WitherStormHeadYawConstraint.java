@@ -19,6 +19,16 @@ final class WitherStormHeadYawConstraint {
                 Math.min(MAXIMUM_HEAD_YAW, relativeYaw));
     }
 
+    /**
+     * 判断目标是否位于身体前向弧之外。这里不能在归一化前额外加 180 度，
+     * 否则会把正前方与正后方完全颠倒。
+     */
+    static boolean isOutsideForwardArc(double deltaX, double deltaZ, float bodyYaw) {
+        float targetAngle = (float) (Math.atan2(deltaX, deltaZ) * 180.0D / Math.PI);
+        float difference = wrapDegrees(-bodyYaw - targetAngle);
+        return difference > MAXIMUM_HEAD_YAW || difference < -MAXIMUM_HEAD_YAW;
+    }
+
     private static float wrapDegrees(float angle) {
         float wrapped = angle % 360.0F;
         if (wrapped >= 180.0F) wrapped -= 360.0F;

@@ -236,7 +236,7 @@ public final class WitherStormCombatEvents {
 
     @SubscribeEvent
     public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
-        SymbiontSummoningManager.makeInvulnerable(event.player, 600);
+        SymbiontSummoningManager.makeInvulnerable(event.player, 600, "玩家重生");
         if (!(event.player instanceof EntityPlayerMP) || event.isEndConquered()) return;
         EntityPlayerMP player = (EntityPlayerMP) event.player;
         NBTTagCompound data = getPersistentPlayerData(player);

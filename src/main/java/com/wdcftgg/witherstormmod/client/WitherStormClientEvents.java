@@ -28,6 +28,7 @@ import com.wdcftgg.witherstormmod.client.render.DistantProjection;
 import com.wdcftgg.witherstormmod.client.render.DistantStormRenderTracker;
 import com.wdcftgg.witherstormmod.client.render.LegacyRenderBufferer;
 import com.wdcftgg.witherstormmod.common.entity.PowerfulExplosiveEntity;
+import com.wdcftgg.witherstormmod.common.util.StormDiagnosticLogger;
 import com.wdcftgg.witherstormmod.common.entity.WitherStormEntity;
 import com.wdcftgg.witherstormmod.common.entity.SupplementalEntities;
 import com.wdcftgg.witherstormmod.common.entity.SymbiontDragonFireballEntity;
@@ -97,6 +98,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -149,6 +151,7 @@ public final class WitherStormClientEvents {
     private static long sicknessLastHealthTime;
     private static long sicknessHealthBlinkTime;
     private static RenderWorldLastEvent lastWorldEffectsEvent;
+    private static int lastWorldEffectsDiagnosticTick = Integer.MIN_VALUE;
 
     private WitherStormClientEvents() {
     }
@@ -674,6 +677,20 @@ public final class WitherStormClientEvents {
         lastWorldEffectsEvent = event;
         Minecraft minecraft = Minecraft.getMinecraft();
         if (minecraft.world == null || minecraft.getRenderViewEntity() == null) return;
+        int diagnosticTick = minecraft.player == null
+                ? Integer.MIN_VALUE : minecraft.player.ticksExisted;
+        boolean logDiagnostics = StormDiagnosticLogger.isEnabled()
+                && diagnosticTick != Integer.MIN_VALUE
+                && diagnosticTick != lastWorldEffectsDiagnosticTick
+                && diagnosticTick % 20 == 0;
+        if (logDiagnostics) {
+            lastWorldEffectsDiagnosticTick = diagnosticTick;
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][世界末尾渲染进入] tick={} 世界实例={} 维度={} 观察实体={} GL={}",
+                    diagnosticTick, System.identityHashCode(minecraft.world),
+                    minecraft.world.provider.getDimension(),
+                    minecraft.getRenderViewEntity().getEntityId(), describeCurrentGlState());
+        }
         // 原版 RenderWorldLastEvent 在 RenderHelper.disableStandardItemLighting() 之后发布，
         // 之后唯一会触碰 GL 状态的只剩第一人称物品 pass。F1 或观察者模式会跳过物品
         // 绘制，任何泄漏的光照/混合/alpha test 都会进入下一帧并使天空全黑。事件边界
@@ -688,8 +705,15 @@ public final class WitherStormClientEvents {
         int previousAlphaFunc = GL11.glGetInteger(GL11.GL_ALPHA_TEST_FUNC);
         float previousAlphaReference = GL11.glGetFloat(GL11.GL_ALPHA_TEST_REF);
         int previousMatrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
+        int previousActiveTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+        boolean defaultTextureEnabled = isTexture2DEnabled(
+                OpenGlHelper.defaultTexUnit, previousActiveTexture);
+        boolean lightmapTextureEnabled = isTexture2DEnabled(
+                OpenGlHelper.lightmapTexUnit, previousActiveTexture);
+        forceActiveTexture(previousActiveTexture);
         float previousLightmapX = OpenGlHelper.lastBrightnessX;
         float previousLightmapY = OpenGlHelper.lastBrightnessY;
+        int renderableStormCount = 0;
         GlStateManager.pushMatrix();
         try {
             DistantStormRenderTracker.renderMissing(event.getPartialTicks());
@@ -706,6 +730,7 @@ public final class WitherStormClientEvents {
                     renderableStorms.add((WitherStormEntity) entity);
                 }
             }
+            renderableStormCount = renderableStorms.size();
             for (WitherStormEntity storm : renderableStorms) {
                 boolean extendedProjection = DistantProjection.shouldUse(storm);
                 if (extendedProjection) DistantProjection.push();
@@ -730,11 +755,49 @@ public final class WitherStormClientEvents {
             }
             PostProcessingShaders.INSTANCE.render(event.getPartialTicks());
         } finally {
+            String beforeRestore = logDiagnostics ? describeCurrentGlState() : null;
             restoreWorldEffectsGlState(lightingEnabled, blendEnabled, alphaTestEnabled,
                     cullEnabled, depthMaskEnabled, fogEnabled, previousDepthFunc,
                     previousAlphaFunc, previousAlphaReference, previousMatrixMode,
+                    previousActiveTexture, defaultTextureEnabled, lightmapTextureEnabled,
                     previousLightmapX, previousLightmapY);
+            if (logDiagnostics) {
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][世界末尾渲染退出] tick={} 可渲染主体={} 恢复前GL={} 恢复后GL={}",
+                        diagnosticTick, renderableStormCount, beforeRestore,
+                        describeCurrentGlState());
+            }
         }
+    }
+
+    private static String describeCurrentGlState() {
+        int activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+        boolean defaultTextureEnabled = isTexture2DEnabled(
+                OpenGlHelper.defaultTexUnit, activeTexture);
+        boolean lightmapTextureEnabled = isTexture2DEnabled(
+                OpenGlHelper.lightmapTexUnit, activeTexture);
+        return "lighting=" + GL11.glIsEnabled(GL11.GL_LIGHTING)
+                + ",blend=" + GL11.glIsEnabled(GL11.GL_BLEND)
+                + ",alpha=" + GL11.glIsEnabled(GL11.GL_ALPHA_TEST)
+                + ",cull=" + GL11.glIsEnabled(GL11.GL_CULL_FACE)
+                + ",depth=" + GL11.glIsEnabled(GL11.GL_DEPTH_TEST)
+                + ",depthMask=" + GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK)
+                + ",fog=" + GL11.glIsEnabled(GL11.GL_FOG)
+                + ",depthFunc=" + GL11.glGetInteger(GL11.GL_DEPTH_FUNC)
+                + ",matrixMode=" + GL11.glGetInteger(GL11.GL_MATRIX_MODE)
+                + ",modelStack=" + GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH)
+                + ",projectionStack=" + GL11.glGetInteger(GL11.GL_PROJECTION_STACK_DEPTH)
+                + ",activeTexture=" + activeTexture
+                + ",texture0=" + defaultTextureEnabled
+                + ",lightmapTexture=" + lightmapTextureEnabled;
+    }
+
+    /** 查询指定纹理单元的二维纹理状态，并保持真实活动单元不变。 */
+    private static boolean isTexture2DEnabled(int textureUnit, int activeTexture) {
+        OpenGlHelper.setActiveTexture(textureUnit);
+        boolean enabled = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
+        OpenGlHelper.setActiveTexture(activeTexture);
+        return enabled;
     }
 
     /** 把世界末尾特效批恢复为事件进入前的 GL 状态，保持 1.12 状态缓存与实际 GL 同步。 */
@@ -743,6 +806,9 @@ public final class WitherStormClientEvents {
                                                    boolean depthMaskEnabled, boolean fogEnabled,
                                                    int previousDepthFunc, int previousAlphaFunc,
                                                    float previousAlphaReference, int previousMatrixMode,
+                                                   int previousActiveTexture,
+                                                   boolean defaultTextureEnabled,
+                                                   boolean lightmapTextureEnabled,
                                                    float previousLightmapX, float previousLightmapY) {
         GlStateManager.popMatrix();
         GlStateManager.matrixMode(previousMatrixMode);
@@ -775,13 +841,34 @@ public final class WitherStormClientEvents {
         } else {
             GlStateManager.disableFog();
         }
-        GlStateManager.enableTexture2D();
+        restoreTexture2DState(OpenGlHelper.defaultTexUnit, defaultTextureEnabled);
+        restoreTexture2DState(OpenGlHelper.lightmapTexUnit, lightmapTextureEnabled);
+        forceActiveTexture(previousActiveTexture);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.shadeModel(GL11.GL_SMOOTH);
         GlStateManager.disablePolygonOffset();
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                 previousLightmapX, previousLightmapY);
-        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+    }
+
+    /** 强制同步指定纹理单元的真实状态与 GlStateManager 缓存。 */
+    private static void restoreTexture2DState(int textureUnit, boolean enabled) {
+        forceActiveTexture(textureUnit);
+        if (enabled) {
+            GlStateManager.disableTexture2D();
+            GlStateManager.enableTexture2D();
+        } else {
+            GlStateManager.enableTexture2D();
+            GlStateManager.disableTexture2D();
+        }
+    }
+
+    /** 通过一次不同单元的过渡，避免活动纹理缓存错误时跳过真实 GL 调用。 */
+    private static void forceActiveTexture(int textureUnit) {
+        int alternate = textureUnit == OpenGlHelper.defaultTexUnit
+                ? OpenGlHelper.lightmapTexUnit : OpenGlHelper.defaultTexUnit;
+        GlStateManager.setActiveTexture(alternate);
+        GlStateManager.setActiveTexture(textureUnit);
     }
 
     private static void spawnFormidibombParticles(Minecraft minecraft) {

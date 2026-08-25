@@ -5,6 +5,8 @@
   "target": "@env(DEFAULT)",
   "client": [
     "client.MinecraftLifecycleMixin",
+    "client.NetHandlerPlayClientMixin",
+    "client.GuiBossOverlayMixin",
     "client.EntityRendererFogMixin",
     "client.EntityRendererTurnMixin",
     "client.RenderGlobalFogMixin",
@@ -24,9 +26,11 @@
     "EntityFireballMixin",
     "EntityFishHookMixin",
     "EntityItemMixin",
+    "PlayerListMixin",
     "PotionMixin",
     "WitherMixin",
     "EntityPositionMixin",
+    "EntityTrackerMixin",
     "EntityTrackerEntryMixin",
     "ExplosionMixin"
   ],

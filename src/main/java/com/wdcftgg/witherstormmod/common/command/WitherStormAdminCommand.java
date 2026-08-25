@@ -18,6 +18,7 @@ import com.wdcftgg.witherstormmod.common.network.ModNetwork;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamEntityTags;
 import com.wdcftgg.witherstormmod.common.taint.TaintingManager;
 import com.wdcftgg.witherstormmod.common.util.EvolutionProfiler;
+import com.wdcftgg.witherstormmod.common.util.StormDiagnosticLogger;
 import com.wdcftgg.witherstormmod.common.world.BowelsDimensions;
 import com.wdcftgg.witherstormmod.common.world.BowelsInstanceData;
 import com.wdcftgg.witherstormmod.common.world.BowelsManager;
@@ -127,7 +128,7 @@ public final class WitherStormAdminCommand extends CommandBase {
             executeChunkLoader(server, sender, args);
         } else if ("config".equals(group)) {
             WitherStormConfigCommandSupport.execute(sender, args);
-        } else if ("debug".equals(group) && debugCommandsAvailable()) {
+        } else if ("debug".equals(group)) {
             executeDebug(server, sender, args);
         } else {
             throw new WrongUsageException(USAGE);
@@ -851,6 +852,31 @@ public final class WitherStormAdminCommand extends CommandBase {
         if (args.length < 2) {
             throw new WrongUsageException(USAGE);
         }
+        if ("logging".equals(args[1])) {
+            if (args.length != 3) throw new WrongUsageException(USAGE);
+            if ("on".equals(args[2])) {
+                StormDiagnosticLogger.setEnabled(true);
+                ModNetwork.syncDiagnosticLogging();
+                notifyCommandListener(sender, new WitherStormAdminCommand(),
+                        "commands.witherstormmod.debug.logging.enabled");
+                return;
+            }
+            if ("off".equals(args[2])) {
+                StormDiagnosticLogger.setEnabled(false);
+                ModNetwork.syncDiagnosticLogging();
+                notifyCommandListener(sender, new WitherStormAdminCommand(),
+                        "commands.witherstormmod.debug.logging.disabled");
+                return;
+            }
+            if ("query".equals(args[2])) {
+                sender.sendMessage(new TextComponentTranslation(
+                        "commands.witherstormmod.debug.logging.state",
+                        StormDiagnosticLogger.isEnabled()));
+                return;
+            }
+            throw new WrongUsageException(USAGE);
+        }
+        if (!debugCommandsAvailable()) throw new WrongUsageException(USAGE);
         if ("podium".equals(args[1])) {
             if (args.length != 7) throw new WrongUsageException(USAGE);
             WorldServer world = parseDimension(server, args[3]);
@@ -1193,7 +1219,7 @@ public final class WitherStormAdminCommand extends CommandBase {
                     "evolutionSpeed", "consumedEntities", "ultimateTarget", "sickness",
                     "tractorBeam", "screenShake", "convert", "cluster", "bowels",
                     "chunkLoader", "config");
-            if (debugCommandsAvailable()) roots.add("debug");
+            roots.add("debug");
             return getListOfStringsMatchingLastWord(args, roots);
         }
         if (args.length == 2) {
@@ -1240,11 +1266,15 @@ public final class WitherStormAdminCommand extends CommandBase {
             if ("config".equals(group)) {
                 return WitherStormConfigCommandSupport.complete(args);
             }
-            if ("debug".equals(group) && debugCommandsAvailable()) {
-                return getListOfStringsMatchingLastWord(args,
-                        "podium", "debris", "deathClusters",
-                        "beacon", "evolutionProfiler", "splitCluster", "symbiont",
-                        "potionTest", "caveRumble");
+            if ("debug".equals(group)) {
+                List<String> values = new ArrayList<String>();
+                values.add("logging");
+                if (debugCommandsAvailable()) {
+                    Collections.addAll(values, "podium", "debris", "deathClusters",
+                            "beacon", "evolutionProfiler", "splitCluster", "symbiont",
+                            "potionTest", "caveRumble");
+                }
+                return getListOfStringsMatchingLastWord(args, values);
             }
             if ("evolutionSpeed".equals(group)) {
                 return getListOfStringsMatchingLastWord(args, "set");
@@ -1322,6 +1352,10 @@ public final class WitherStormAdminCommand extends CommandBase {
             if ("caveRumble".equals(args[1])) {
                 return playerTargets(server, args);
             }
+        }
+        if (args.length == 3 && "debug".equals(args[0])
+                && "logging".equals(args[1])) {
+            return getListOfStringsMatchingLastWord(args, "on", "off", "query");
         }
         if (args.length == 4
                 && "consumedEntities".equals(args[0])

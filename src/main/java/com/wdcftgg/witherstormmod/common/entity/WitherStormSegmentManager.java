@@ -11,6 +11,7 @@ import com.wdcftgg.witherstormmod.common.resource.UpstreamBlockTags;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamEntityTags;
 import com.wdcftgg.witherstormmod.common.resource.UpstreamItemTags;
 import com.wdcftgg.witherstormmod.common.util.TractorBeamHelper;
+import com.wdcftgg.witherstormmod.common.util.StormDiagnosticLogger;
 import com.wdcftgg.witherstormmod.common.util.WorldUtil;
 import com.wdcftgg.witherstormmod.common.network.ModNetwork;
 import net.minecraft.entity.Entity;
@@ -277,6 +278,7 @@ final class WitherStormSegmentManager {
             }
             setTarget(head, findTarget(owner, head));
         }
+        logPlayerTargetingDiagnostics(owner);
     }
 
     @Nullable
@@ -310,6 +312,13 @@ final class WitherStormSegmentManager {
             }
         }
         EntityLivingBase selected = nearestSpecialTarget == null ? nearest : nearestSpecialTarget;
+        if (StormDiagnosticLogger.isEnabled() && (selected != null || segment.ticksExisted % 20 == 0)) {
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][分体头选敌结果] 分体={} 所属风暴={} 阶段={} tick={} 头={} 启用特殊偏置={} 最近普通={} 最近特殊={} 最终选择={}",
+                    segment.getUniqueID(), segment.getOwnerUuid(), owner.getPhase(),
+                    segment.ticksExisted, head, preferSpecialTarget, describeEntity(nearest),
+                    describeEntity(nearestSpecialTarget), describeEntity(selected));
+        }
         if (selected != null) countWitherSicknessContact(selected);
         return selected;
     }
@@ -334,32 +343,121 @@ final class WitherStormSegmentManager {
             if (player.capabilities.disableDamage || player.isSpectator() || owner.hasRecentlyBeenRevived()
                     || player.isHandActive() && player.getActiveItemStack().getItem() == Items.SHIELD) return false;
         }
-        return !MinecraftForge.EVENT_BUS.post(new CanWitherStormTargetMobEvent(owner, segment, entity));
+        boolean cancelled = MinecraftForge.EVENT_BUS.post(
+                new CanWitherStormTargetMobEvent(owner, segment, entity));
+        if (cancelled && entity instanceof EntityPlayer && segment.ticksExisted % 20 == 0) {
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][分体玩家目标事件拒绝] 分体={} 所属风暴={} 阶段={} tick={} 玩家={} 玩家UUID={} 头={}",
+                    segment.getUniqueID(), segment.getOwnerUuid(), owner.getPhase(),
+                    segment.ticksExisted, entity.getName(), entity.getUniqueID(), head);
+        }
+        return !cancelled;
+    }
+
+    /** 每秒记录一次玩家在该分体三个头中的新目标判定结果。 */
+    private void logPlayerTargetingDiagnostics(WitherStormEntity owner) {
+        if (!StormDiagnosticLogger.isEnabled() || segment.ticksExisted % 20 != 0) return;
+        double range = segment.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).getAttributeValue();
+        AxisAlignedBB search = segment.getEntityBoundingBox().grow(range, range + 50.0D, range);
+        for (EntityPlayer player : segment.world.playerEntities) {
+            boolean inSearch = search.intersects(player.getEntityBoundingBox());
+            long protection = SymbiontSummoningManager.getIgnoreTicksRemaining(player);
+            for (int head = 0; head < heads.length; head++) {
+                HeadState state = heads[head];
+                String result = describePlayerTargetRejection(owner, head, player,
+                        inSearch, protection);
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][分体头玩家判定] 分体={} 所属风暴={} 阶段={} tick={} 玩家={} 玩家UUID={} 维度={} 距离平方={} 搜索范围内={} 头={} 结果={} 当前目标={} 光束启用={} 受伤剩余={} 分心剩余={} 保护剩余={} yaw={} pitch={} cutoff={}",
+                        segment.getUniqueID(), segment.getOwnerUuid(), owner.getPhase(),
+                        segment.ticksExisted, player.getName(), player.getUniqueID(),
+                        player.dimension, segment.getDistanceSq(player), inSearch, head,
+                        result, describeEntity(state.target), isHeadBeamActive(owner, head),
+                        state.injuryTicks, state.distractionTicks, protection,
+                        state.yaw, state.pitch, state.beamCutoff);
+            }
+        }
+    }
+
+    private String describePlayerTargetRejection(WitherStormEntity owner, int head,
+                                                  EntityPlayer player, boolean inSearch,
+                                                  long protection) {
+        HeadState state = heads[head];
+        if (!isHeadEnabled(owner, head)) return "头部未启用";
+        if (isHeadInjured(head)) return "头部受伤";
+        if (state.isDistracted()) return "头部正在分心";
+        if (!inSearch) return "目标搜索范围外";
+        if (!player.isEntityAlive()) return "玩家已死亡";
+        if (player.world != segment.world || player.dimension != segment.dimension) return "世界或维度不同";
+        if (player.capabilities.disableDamage) return "玩家处于无敌模式";
+        if (player.isSpectator()) return "玩家处于旁观模式";
+        if (owner.hasRecentlyBeenRevived()) return "风暴刚复活，暂不选玩家";
+        if (protection > 0L) return "玩家目标保护剩余" + protection + "tick";
+        if (segment.isOnSameTeam(player)) return "玩家与分体同队";
+        if (ignoredTargets.shouldIgnoreTarget(player)) return "分体忽略目标管理器拒绝";
+        if (isTracking(player)) return "玩家已进入分体吞噬追踪";
+        if (isPassengerTarget(player)) return "玩家是风暴家族附近乘客目标";
+        if (isInsideOtherTractorBeam(player, head)) return "玩家已在其他光束内";
+        if (!canSeeWithCache(head, player)) return "该头没有视线";
+        if (segment.isEntityBehindBack(player)) return "玩家位于分体背后";
+        if (isTargetInUseByStormFamily(player, head, head == 0)) return "玩家已被风暴家族其他头占用";
+        if (player.isHandActive() && player.getActiveItemStack().getItem() == Items.SHIELD) return "玩家正在举盾";
+        return "基础条件通过（事件总线仍可取消）";
+    }
+
+    private static String describeEntity(@Nullable Entity entity) {
+        return entity == null ? "无" : entity.getName() + "#" + entity.getEntityId()
+                + "/" + entity.getUniqueID();
     }
 
     private boolean canContinueTarget(WitherStormEntity owner, int head, HeadState state) {
         EntityLivingBase target = state.target;
-        if (target == null || !target.isEntityAlive() || target.world != segment.world
-                || target.dimension != segment.dimension || segment.isOnSameTeam(target)) return false;
+        if (target == null) return false;
+        if (!target.isEntityAlive()) return rejectContinuedTarget(owner, head, target, "目标死亡");
+        if (target.world != segment.world || target.dimension != segment.dimension) {
+            return rejectContinuedTarget(owner, head, target, "世界或维度不同");
+        }
+        if (segment.isOnSameTeam(target)) {
+            return rejectContinuedTarget(owner, head, target, "目标变为同队");
+        }
         double followDistance = segment.getEntityAttribute(
                 SharedMonsterAttributes.FOLLOW_RANGE).getAttributeValue() + 100.0D;
-        if (segment.getDistanceSq(target) > followDistance * followDistance) return false;
+        if (segment.getDistanceSq(target) > followDistance * followDistance) {
+            return rejectContinuedTarget(owner, head, target, "超出持续目标距离");
+        }
         if (canSeeWithCache(head, target)) {
             state.targetUnseenTicks = 0;
         } else if (++state.targetUnseenTicks > (owner.getPhase() < 4 ? 80 : 20)) {
-            return false;
+            return rejectContinuedTarget(owner, head, target,
+                    "失去视线超过容忍时间，未见tick=" + state.targetUnseenTicks);
         }
         if (target instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer) target;
-            if (player.capabilities.disableDamage || player.isSpectator()) return false;
+            if (player.capabilities.disableDamage || player.isSpectator()) {
+                return rejectContinuedTarget(owner, head, target, "玩家切换为无敌或旁观模式");
+            }
         }
-        if (owner.getPhase() > 3 && segment.isEntityBehindBack(target)) return false;
+        if (owner.getPhase() > 3 && segment.isEntityBehindBack(target)) {
+            return rejectContinuedTarget(owner, head, target, "阶段4+目标进入分体背后");
+        }
         Vec3d position = target.getPositionVector();
         if (state.lastTargetPosition != null
-                && position.distanceTo(state.lastTargetPosition) > 20.0D) return false;
-        if (isTracking(target)) return false;
+                && position.distanceTo(state.lastTargetPosition) > 20.0D) {
+            return rejectContinuedTarget(owner, head, target, "单tick位移超过20格");
+        }
+        if (isTracking(target)) {
+            return rejectContinuedTarget(owner, head, target, "目标进入分体吞噬追踪");
+        }
         state.lastTargetPosition = position;
         return true;
+    }
+
+    private boolean rejectContinuedTarget(WitherStormEntity owner, int head,
+                                          EntityLivingBase target, String reason) {
+        StormDiagnosticLogger.info(
+                "[风暴诊断][分体头持续目标拒绝] 分体={} 所属风暴={} 阶段={} tick={} 头={} 目标={} 原因={}",
+                segment.getUniqueID(), segment.getOwnerUuid(), owner.getPhase(),
+                segment.ticksExisted, head, describeEntity(target), reason);
+        return false;
     }
 
     private boolean isRevengeTargetApplicable(WitherStormEntity owner, EntityLivingBase entity) {
@@ -375,6 +473,11 @@ final class WitherStormSegmentManager {
         int index = MathHelper.clamp(head, 0, heads.length - 1);
         HeadState state = heads[index];
         if (state.target != target) {
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][分体头目标切换] 分体={} 所属风暴={} 阶段={} tick={} 头={} 原目标={} 新目标={} 受伤剩余={} 分心剩余={}",
+                    segment.getUniqueID(), segment.getOwnerUuid(), segment.getPhase(),
+                    segment.ticksExisted, index, describeEntity(state.target),
+                    describeEntity(target), state.injuryTicks, state.distractionTicks);
             state.target = target;
             state.targetUnseenTicks = 0;
             state.lastTargetPosition = null;
@@ -428,14 +531,14 @@ final class WitherStormSegmentManager {
                 tickActiveDistraction(owner, head, state);
                 continue;
             }
-            state.clearDistraction();
+            clearDistraction(head, state, "开始新一轮分心检查前清理旧状态");
             if (state.nextDistractionCheck > 0) --state.nextDistractionCheck;
             if (!canStartEntityDistraction(owner, head)) continue;
 
             if (segment.getRNG().nextInt(2) == 0) {
                 EntityFireworkRocket firework = findFirework(head);
                 if (firework != null) {
-                    startEntityDistraction(state, firework);
+                    startEntityDistraction(head, state, firework);
                     continue;
                 }
             }
@@ -461,6 +564,11 @@ final class WitherStormSegmentManager {
                 }
                 state.distractionPosition = position;
                 state.distractionTicks = 120 + segment.getRNG().nextInt(60);
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][分体头分心开始] 分体={} 所属风暴={} 阶段={} tick={} 头={} 类型=方块 位置={} 时长={} 原目标={}",
+                        segment.getUniqueID(), segment.getOwnerUuid(), segment.getPhase(),
+                        segment.ticksExisted, head, position, state.distractionTicks,
+                        describeEntity(state.target));
             }
         }
     }
@@ -468,7 +576,7 @@ final class WitherStormSegmentManager {
     private void tickActiveDistraction(WitherStormEntity owner, int head, HeadState state) {
         --state.distractionTicks;
         if (state.distractionEntity == null) {
-            if (state.distractionTicks == 0) state.clearDistraction();
+            if (state.distractionTicks == 0) clearDistraction(head, state, "方块分心计时结束");
             return;
         }
 
@@ -480,9 +588,9 @@ final class WitherStormSegmentManager {
             }
             EntityFireworkRocket replacement = canStartEntityDistraction(owner, head) ? findFirework(head) : null;
             if (replacement != null && !replacement.getUniqueID().equals(state.distractionEntity)) {
-                startEntityDistraction(state, replacement);
+                startEntityDistraction(head, state, replacement);
             } else if (state.distractionTicks == 0) {
-                state.clearDistraction();
+                clearDistraction(head, state, "实体分心计时结束且没有替代实体");
             }
             return;
         }
@@ -490,24 +598,43 @@ final class WitherStormSegmentManager {
         if (state.distractionTicks > 0) return;
         double followDistance = segment.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).getAttributeValue();
         if (segment.getDistanceSq(distraction) > followDistance * followDistance) {
-            state.clearDistraction();
+            clearDistraction(head, state, "分心实体超出跟随范围");
             return;
         }
         if (canSeeWithCache(head, distraction)) {
             state.distractionUnseenTicks = 0;
         } else if (state.distractionUnseenTicks++ > ENTITY_DISTRACTION_UNSEEN_LIMIT) {
-            state.clearDistraction();
+            clearDistraction(head, state, "分心实体失去视线过久");
             return;
         }
         state.distractionPosition = distraction.getPositionVector().add(0.0D, 10.0D, 0.0D);
         state.distractionTicks = 80 + segment.getRNG().nextInt(80);
     }
 
-    private void startEntityDistraction(HeadState state, EntityFireworkRocket firework) {
+    private void startEntityDistraction(int head, HeadState state, EntityFireworkRocket firework) {
         state.distractionEntity = firework.getUniqueID();
         state.distractionPosition = firework.getPositionVector().add(0.0D, 10.0D, 0.0D);
         state.distractionTicks = 80 + segment.getRNG().nextInt(80);
         state.distractionUnseenTicks = 0;
+        StormDiagnosticLogger.info(
+                "[风暴诊断][分体头分心开始] 分体={} 所属风暴={} 阶段={} tick={} 头={} 类型=实体 实体={} 位置={} 时长={} 原目标={}",
+                segment.getUniqueID(), segment.getOwnerUuid(), segment.getPhase(),
+                segment.ticksExisted, head, describeEntity(firework),
+                state.distractionPosition, state.distractionTicks, describeEntity(state.target));
+    }
+
+    private void clearDistraction(int head, HeadState state, String reason) {
+        boolean wasDistracted = state.isDistracted() || state.distractionEntity != null
+                || state.distractionPosition != null;
+        UUID oldEntity = state.distractionEntity;
+        Vec3d oldPosition = state.distractionPosition;
+        state.clearDistraction();
+        if (wasDistracted) {
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][分体头分心结束] 分体={} 所属风暴={} 阶段={} tick={} 头={} 原因={} 实体UUID={} 位置={}",
+                    segment.getUniqueID(), segment.getOwnerUuid(), segment.getPhase(),
+                    segment.ticksExisted, head, reason, oldEntity, oldPosition);
+        }
     }
 
     private boolean canStartEntityDistraction(WitherStormEntity owner, int head) {
@@ -705,6 +832,7 @@ final class WitherStormSegmentManager {
                 pullableCandidates.add(entity);
             }
         }
+        logPlayerBeamDiagnostics(owner);
         for (int head = 0; head < 3; head++) {
             if (!isHeadBeamActive(owner, head)) continue;
             Vec3d headPosition = getHeadPosition(head, 1.0F);
@@ -723,6 +851,57 @@ final class WitherStormSegmentManager {
                 }
             }
         }
+    }
+
+    /** 每秒记录玩家是否进入分体各头光束以及拉力过滤结果。 */
+    private void logPlayerBeamDiagnostics(WitherStormEntity owner) {
+        if (!StormDiagnosticLogger.isEnabled() || segment.ticksExisted % 20 != 0) return;
+        for (EntityPlayer player : segment.world.playerEntities) {
+            boolean pullCandidate = pullableCandidates.contains(player);
+            for (int head = 0; head < heads.length; head++) {
+                boolean active = isHeadBeamActive(owner, head);
+                Vec3d origin = getHeadPosition(head, 1.0F);
+                Vec3d direction = getHeadDirection(heads[head]);
+                double cutoff = heads[head].beamCutoff;
+                boolean inside = active && isInsideBeam(player, origin, direction, cutoff);
+                boolean selected = heads[head].target == player;
+                boolean untargetedEligible = active && inside && pullCandidate && !selected
+                        && canPullUntargetedForDiagnostics(owner, player, head);
+                String decision = !active ? "光束关闭"
+                        : !pullCandidate ? "玩家不在牵引候选列表"
+                        : !inside ? "玩家在光束几何外"
+                        : selected ? "目标拉力条件通过"
+                        : untargetedEligible ? "非目标拉力条件通过"
+                        : "非目标拉力过滤拒绝";
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][分体玩家光束判定] 分体={} 所属风暴={} 阶段={} tick={} 玩家={} 玩家UUID={} 头={} 判定={} 光束启用={} 牵引候选={} 当前目标={} 位于光束内={} 非目标拉力允许={} 玩家位置={} 头位置={} 方向={} cutoff={}",
+                        segment.getUniqueID(), segment.getOwnerUuid(), owner.getPhase(),
+                        segment.ticksExisted, player.getName(), player.getUniqueID(), head,
+                        decision, active, pullCandidate, describeEntity(heads[head].target),
+                        inside, untargetedEligible, player.getPositionVector(), origin,
+                        direction, cutoff);
+            }
+        }
+    }
+
+    /** 与非目标拉力过滤等价，但不发送目标事件，避免诊断改变模组行为。 */
+    private boolean canPullUntargetedForDiagnostics(WitherStormEntity owner,
+                                                     EntityPlayer player, int head) {
+        return WitherStormConfig.canPickupMobClusters
+                && !heads[head].isDistracted()
+                && !ignoredTargets.shouldIgnoreTarget(player)
+                && !isTargetInUseByStormFamily(player, head, false)
+                && !isPassengerTarget(player)
+                && !isInsideOtherTractorBeam(player, head)
+                && canSeeWithCache(head, player)
+                && player.isEntityAlive()
+                && player.world == segment.world
+                && player.dimension == segment.dimension
+                && !segment.isOnSameTeam(player)
+                && owner.isValidStormTarget(player)
+                && !isTracking(player)
+                && !segment.isEntityBehindBack(player)
+                && !owner.isBlockingWithShield(player);
     }
 
     private void tickHeadClusterPickups(WitherStormEntity owner) {
@@ -952,7 +1131,8 @@ final class WitherStormSegmentManager {
             EntityPlayerMP player = (EntityPlayerMP) attacker;
             SymbiontSummoningManager.makeInvulnerable(player,
                     UltimateTargetManager.getHeadEscapeTicks(
-                            WitherStormConfig.headEscapeTime, segment.getRNG().nextInt(80)));
+                            WitherStormConfig.headEscapeTime, segment.getRNG().nextInt(80)),
+                    "击伤分体头部后逃脱");
             ModCriteriaTriggers.ESCAPE_WITHER_STORM.trigger(player, owner);
         }
     }
@@ -993,6 +1173,15 @@ final class WitherStormSegmentManager {
         }
         Vec3d velocity = TractorBeamHelper.calculatePullVelocity(
                 target.getPositionVector(), targetPosition, speed);
+        if (target instanceof EntityPlayer && StormDiagnosticLogger.isEnabled()
+                && segment.ticksExisted % 20 == 0) {
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][分体玩家拉力执行] 分体={} 所属风暴={} 阶段={} tick={} 玩家={} 玩家UUID={} 头={} 是否选中目标={} 速度倍率={} 拉力速度={} 玩家位置={} 拉取点={} cutoff={}",
+                    segment.getUniqueID(), segment.getOwnerUuid(), owner.getPhase(),
+                    segment.ticksExisted, target.getName(), target.getUniqueID(), head,
+                    heads[head].target == target, speed, velocity,
+                    target.getPositionVector(), targetPosition, cutoff);
+        }
         if (velocity.lengthSquared() > 0.0D) {
             Entity pulled = target;
             Entity vehicle = target.getRidingEntity();

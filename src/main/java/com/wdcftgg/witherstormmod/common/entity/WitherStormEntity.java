@@ -12,6 +12,7 @@ import com.wdcftgg.witherstormmod.common.capability.WitherSicknessCapability;
 import com.wdcftgg.witherstormmod.common.capability.WitherSicknessTracker;
 import com.wdcftgg.witherstormmod.common.init.ModDamageSources;
 import com.wdcftgg.witherstormmod.common.init.ModAttributes;
+import com.wdcftgg.witherstormmod.common.util.StormDiagnosticLogger;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -1969,6 +1970,7 @@ public class WitherStormEntity extends EntityMob
     private void applyTractorBeam() {
         if (isDeadOrPlayingDead()) return;
         double defaultSpeed = WitherStormConfig.tractorPullSpeedModifier;
+        logPlayerBeamDiagnostics();
         if (getPhase() < 4) {
             for (int head = 0; head < getTotalHeads(); head++) {
                 pullInTarget(getTarget(head), defaultSpeed, head);
@@ -1996,6 +1998,43 @@ public class WitherStormEntity extends EntityMob
                 }
             }
         }
+    }
+
+    /** 每秒记录玩家从牵引候选到各主体头光束几何的判定结果。 */
+    private void logPlayerBeamDiagnostics() {
+        if (!StormDiagnosticLogger.isEnabled() || ticksExisted % 20 != 0) return;
+        for (EntityPlayer player : world.playerEntities) {
+            boolean pullCandidate = tractorBeamCandidates.contains(player);
+            for (int head = 0; head < getTotalHeads(); head++) {
+                boolean active = tractorBeamActive(head);
+                Vec3d origin = getHeadPosition(head, 1.0F);
+                Vec3d direction = headManager.getLookVector(head);
+                double cutoff = headManager.getTractorBeamCutoff(head);
+                boolean inside = active && isInsideBeam(player, origin, direction, head);
+                boolean selected = getTarget(head) == player;
+                boolean directEarlyPull = getPhase() < 4 && active && selected;
+                boolean untargetedEligible = active && inside && pullCandidate && !selected
+                        && canPullUntargeted(player, head);
+                String decision = directEarlyPull ? "阶段2-3目标直接拉取"
+                        : !active ? "光束关闭"
+                        : !pullCandidate ? "玩家不在牵引候选列表"
+                        : !inside ? "玩家在光束几何外"
+                        : selected ? "目标拉力条件通过"
+                        : untargetedEligible ? "非目标拉力条件通过"
+                        : "非目标拉力过滤拒绝";
+                StormDiagnosticLogger.info(
+                        "[风暴诊断][主体玩家光束判定] 风暴={} 阶段={} tick={} 玩家={} 玩家UUID={} 头={} 判定={} 光束启用={} 牵引候选={} 当前目标={} 位于光束内={} 早期直接拉取={} 非目标拉力允许={} 玩家位置={} 头位置={} 方向={} cutoff={}",
+                        getUniqueID(), getPhase(), ticksExisted, player.getName(),
+                        player.getUniqueID(), head, decision, active, pullCandidate,
+                        describeDiagnosticEntity(getTarget(head)), inside, directEarlyPull,
+                        untargetedEligible, player.getPositionVector(), origin, direction, cutoff);
+            }
+        }
+    }
+
+    private static String describeDiagnosticEntity(@Nullable Entity entity) {
+        return entity == null ? "无" : entity.getName() + "#" + entity.getEntityId()
+                + "/" + entity.getUniqueID();
     }
 
     /** 每 tick 单次遍历世界实体，同时填充牵引候选、吸收候选与附近玩家（AABB 相交语义与 getEntitiesWithinAABB 一致）。 */
@@ -2358,6 +2397,14 @@ public class WitherStormEntity extends EntityMob
         }
         Vec3d velocity = TractorBeamHelper.calculatePullVelocity(
                 target.getPositionVector(), pullPosition, speed);
+        if (target instanceof EntityPlayer && StormDiagnosticLogger.isEnabled()
+                && ticksExisted % 20 == 0) {
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][主体玩家拉力执行] 风暴={} 阶段={} tick={} 玩家={} 玩家UUID={} 头={} 是否选中目标={} 速度倍率={} 拉力速度={} 玩家位置={} 拉取点={}",
+                    getUniqueID(), getPhase(), ticksExisted, target.getName(),
+                    target.getUniqueID(), head, getTarget(head) == target, speed,
+                    velocity, target.getPositionVector(), pullPosition);
+        }
         if (velocity.lengthSquared() > 0.0D) {
             Entity pulled = target;
             Entity vehicle = target.getRidingEntity();
@@ -3028,10 +3075,8 @@ public class WitherStormEntity extends EntityMob
     }
     boolean isPositionBehindBack(Vec3d position) {
         if (position == null) return false;
-        float angle = (float) (MathHelper.atan2(position.x - posX, position.z - posZ)
-                * 180.0D / Math.PI);
-        float difference = MathHelper.wrapDegrees(-renderYawOffset - angle + 180.0F);
-        return difference > 80.0F || difference < -80.0F;
+        return WitherStormHeadYawConstraint.isOutsideForwardArc(
+                position.x - posX, position.z - posZ, renderYawOffset);
     }
     public boolean isPosBehindBack(Vec3d position) {
         return isPositionBehindBack(position);
@@ -3629,7 +3674,13 @@ public class WitherStormEntity extends EntityMob
     @Override
     public void addTrackingPlayer(EntityPlayerMP player) {
         if (player == null) return;
-        trackingPlayers.add(player);
+        boolean added = trackingPlayers.add(player);
+        if (added) {
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][主体观众加入] 风暴id={} uuid={} 维度={} 玩家={} 玩家实例={} 玩家维度={} 观众数={}",
+                    getEntityId(), getUniqueID(), dimension, player.getName(),
+                    System.identityHashCode(player), player.dimension, trackingPlayers.size());
+        }
         boolean hasAccess = !WitherStormConfig.smartBossbar
                 || BossVisibility.canSeeOrIsNotInSmallArea(this, player);
         bossThemeAccess.put(player.getUniqueID(), hasAccess);
@@ -3641,7 +3692,13 @@ public class WitherStormEntity extends EntityMob
 
     @Override
     public void removeTrackingPlayer(EntityPlayerMP player) {
-        trackingPlayers.remove(player);
+        boolean removed = trackingPlayers.remove(player);
+        if (removed && player != null) {
+            StormDiagnosticLogger.info(
+                    "[风暴诊断][主体观众移除] 风暴id={} uuid={} 维度={} 玩家={} 玩家实例={} 玩家维度={} 观众数={}",
+                    getEntityId(), getUniqueID(), dimension, player.getName(),
+                    System.identityHashCode(player), player.dimension, trackingPlayers.size());
+        }
         if (player != null) bossThemeAccess.remove(player.getUniqueID());
         legacyBossInfo.removePlayer(player);
         SupplementalEntities.CommandBlockEntity commandBlock = getBowelsCommandBlock();

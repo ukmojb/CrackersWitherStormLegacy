@@ -113,7 +113,7 @@ public final class BowelsManager {
         releaseBossBarsForPlayer(bowels, player);
         playTransportSound(player);
         server.getPlayerList().transferPlayerToDimension(player, destinationDimension, new BowelsTeleporter(destination));
-        SymbiontSummoningManager.makeInvulnerable(player, 2400);
+        SymbiontSummoningManager.makeInvulnerable(player, 2400, "离开体内维度");
         if (WitherStormConfig.bowelsFallResistance) {
             player.addPotionEffect(new PotionEffect(MobEffects.RESISTANCE, 120, 255, false, false));
         }
@@ -172,7 +172,11 @@ public final class BowelsManager {
                 || event.world.provider.getDimension() != BowelsDimensions.DIMENSION_ID) return;
         WorldServer world = (WorldServer) event.world;
         BowelsInstanceData data = BowelsInstanceData.get(world);
+        boolean maintainArena = WitherStormConfig.shouldChunkLoadWhenNoPlayers
+                || !world.playerEntities.isEmpty();
         for (BowelsInstanceData.Instance instance : data.getInstances()) {
+            // 无玩家时区块票据已按配置暂停，不应由周期维护立刻把核心区块重新加载。
+            if (!maintainArena) continue;
             if (instance.needsCoordinateMigration()) migrateLegacyArena(world, data, instance);
             if (!instance.completed && instance.prepared && world.getTotalWorldTime() % 20L == 0L) {
                 ensureCommandBlock(world, data, instance);

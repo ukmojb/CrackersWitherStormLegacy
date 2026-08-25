@@ -2,6 +2,7 @@ package com.wdcftgg.witherstormmod.common.entity;
 
 import com.wdcftgg.witherstormmod.Tags;
 import com.wdcftgg.witherstormmod.common.config.WitherStormConfig;
+import com.wdcftgg.witherstormmod.common.util.StormDiagnosticLogger;
 import com.wdcftgg.witherstormmod.common.init.ModItems;
 import com.wdcftgg.witherstormmod.common.init.ModSounds;
 import com.wdcftgg.witherstormmod.common.item.FormidibombItem;
@@ -309,18 +310,32 @@ public final class SymbiontSummoningManager {
     public static void makeInvulnerable(EntityPlayer player) {
         makeInvulnerable(player,
                 MathHelper.clamp(WitherStormConfig.playerInvulnerableTime, 1, 10) * 1200
-                        + player.getRNG().nextInt(1200));
+                        + player.getRNG().nextInt(1200), "附近共生体死亡");
     }
 
     public static void makeInvulnerable(EntityPlayer player, int ticks) {
+        makeInvulnerable(player, ticks, "未注明");
+    }
+
+    public static void makeInvulnerable(EntityPlayer player, int ticks, String reason) {
         NBTTagCompound data = getPlayerData(player);
-        data.setLong(INVULNERABLE_UNTIL,
-                player.world.getTotalWorldTime() + Math.max(0, ticks));
+        long now = player.world.getTotalWorldTime();
+        long until = now + Math.max(0, ticks);
+        data.setLong(INVULNERABLE_UNTIL, until);
         savePlayerData(player, data);
+        StormDiagnosticLogger.info(
+                "[风暴诊断][玩家目标保护设置] 玩家={} UUID={} 原因={} 时长={} 当前时间={} 结束时间={} 维度={}",
+                player.getName(), player.getUniqueID(), reason, Math.max(0, ticks), now, until,
+                player.dimension);
     }
 
     public static boolean shouldIgnorePlayer(EntityPlayer player) {
-        return getPlayerData(player).getLong(INVULNERABLE_UNTIL) > player.world.getTotalWorldTime();
+        return getIgnoreTicksRemaining(player) > 0L;
+    }
+
+    public static long getIgnoreTicksRemaining(EntityPlayer player) {
+        return Math.max(0L, getPlayerData(player).getLong(INVULNERABLE_UNTIL)
+                - player.world.getTotalWorldTime());
     }
 
     private static NBTTagCompound getPlayerData(EntityPlayer player) {

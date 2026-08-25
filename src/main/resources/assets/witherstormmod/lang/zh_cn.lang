@@ -2,7 +2,10 @@
 gui.witherstormmod.config.category.presets.title=预设
 gui.witherstormmod.config.disableVanillaFog.title=完全禁用原版雾
 gui.witherstormmod.config.disableVanillaFog.description=关闭 Minecraft 原版的普通距离雾、Boss 强制雾、失明雾、水下雾、岩浆雾和云内雾，并同时关闭凋零风暴远距渲染的额外雾化。
-commands.witherstormmod.usage=用法：/witherstormmod <phase|consumedEntities|cluster|evolutionSpeed|sickness|explode|revive|bowels|ultimateTarget|kill|tractorBeam|chunkLoader|convert|screenShake|config>
+commands.witherstormmod.usage=用法：/witherstormmod <phase|consumedEntities|cluster|evolutionSpeed|sickness|explode|revive|bowels|ultimateTarget|kill|tractorBeam|chunkLoader|convert|screenShake|config|debug>
+commands.witherstormmod.debug.logging.enabled=已开启风暴诊断日志
+commands.witherstormmod.debug.logging.disabled=已关闭风暴诊断日志
+commands.witherstormmod.debug.logging.state=风暴诊断日志：%s
 commands.witherstormmod.number.invalid=无效数字：%s
 commands.witherstormmod.evolutionProfiler.spawn_failed=生成凋零风暴失败
 commands.witherstormmod.config.get=%s 当前为 %s
