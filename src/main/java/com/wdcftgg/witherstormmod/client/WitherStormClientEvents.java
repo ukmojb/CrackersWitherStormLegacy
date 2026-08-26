@@ -48,6 +48,7 @@ import com.wdcftgg.witherstormmod.common.world.BowelsDimensions;
 import com.wdcftgg.witherstormmod.common.util.WorldUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
+import net.minecraft.client.audio.MovingSound;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
@@ -359,7 +360,7 @@ public final class WitherStormClientEvents {
                     && (loop == null || loop.isDonePlaying())) {
                 loop = new FormidiBladeChargeSound(player, sound);
                 FORMIDI_BLADE_LOOPS.put(player, loop);
-                minecraft.getSoundHandler().playSound(loop);
+                playLoopSound(minecraft, loop);
             }
         }
         Iterator<Map.Entry<EntityPlayer, FormidiBladeChargeSound>> iterator =
@@ -393,7 +394,7 @@ public final class WitherStormClientEvents {
                     if (loop != null) loop.stop();
                     loop = new WitheredSymbiontSpellLoopSound(symbiont, loopSound);
                     SYMBIONT_SPELL_LOOPS.put(symbiont, loop);
-                    minecraft.getSoundHandler().playSound(loop);
+                    playLoopSound(minecraft, loop);
                 }
             } else if (loop != null) {
                 loop.stop();
@@ -423,7 +424,7 @@ public final class WitherStormClientEvents {
                     && (loop == null || loop.isDonePlaying())) {
                 loop = new WitheredSymbiontHeartbeatSound(symbiont, heartbeat);
                 SYMBIONT_HEARTBEAT_LOOPS.put(symbiont, loop);
-                minecraft.getSoundHandler().playSound(loop);
+                playLoopSound(minecraft, loop);
             }
         }
         Iterator<Map.Entry<SickenedEntities.WitheredSymbiontEntity,
@@ -535,7 +536,7 @@ public final class WitherStormClientEvents {
             replacement.updatePosition(position);
             WITHER_STORM_LOOPS.put(entityId, replacement);
             WITHER_STORM_LOOP_NAMES.put(entityId, desiredName);
-            minecraft.getSoundHandler().playSound(replacement);
+            playLoopSound(minecraft, replacement);
         } else {
             currentLoop.bindTo(storm);
             currentLoop.updatePosition(position);
@@ -911,7 +912,7 @@ public final class WitherStormClientEvents {
                 if ((trembleLoop == null || trembleLoop.isDonePlaying()) && trembleSound != null) {
                     trembleLoop = new WitherStormTrembleSound(storm, trembleSound);
                     TREMBLE_LOOPS.put(entityId, trembleLoop);
-                    minecraft.getSoundHandler().playSound(trembleLoop);
+                    playLoopSound(minecraft, trembleLoop);
                 }
             } else if (trembleLoop != null) {
                 trembleLoop.requestStop();
@@ -997,7 +998,7 @@ public final class WitherStormClientEvents {
             if ((loop == null || loop.isDonePlaying()) && pulseSound != null) {
                 loop = new CommandBlockLoopSound(commandBlock, pulseSound);
                 COMMAND_BLOCK_LOOPS.put(commandBlock, loop);
-                minecraft.getSoundHandler().playSound(loop);
+                playLoopSound(minecraft, loop);
             }
         }
 
@@ -1037,7 +1038,7 @@ public final class WitherStormClientEvents {
                 if (minecraft.player.getDistanceSq(closest.x, closest.y, closest.z)
                         > TractorBeamLoopSound.MAXIMUM_DISTANCE * TractorBeamLoopSound.MAXIMUM_DISTANCE) continue;
                 loops[head] = new TractorBeamLoopSound(entity, provider, head, beamSound, closest);
-                minecraft.getSoundHandler().playSound(loops[head]);
+                playLoopSound(minecraft, loops[head]);
             }
         }
 
@@ -1055,6 +1056,19 @@ public final class WitherStormClientEvents {
         if (loops == null) return;
         for (TractorBeamLoopSound loop : loops) {
             if (loop != null) loop.stop();
+        }
+    }
+
+    /**
+     * 1.12 声音引擎会跳过初始音量为零的声音；先执行一次循环更新，
+     * 让淡入循环以有效音量注册，后续 tick 再由声音引擎正常更新。
+     */
+    private static void playLoopSound(Minecraft minecraft, MovingSound sound) {
+        sound.update();
+        // 不要在声音解析前调用 getVolume()；1.12 PositionedSound 此时的内部
+        // Sound 尚未初始化，会在 getVolume() 内部触发空指针。
+        if (!sound.isDonePlaying()) {
+            minecraft.getSoundHandler().playSound(sound);
         }
     }
 

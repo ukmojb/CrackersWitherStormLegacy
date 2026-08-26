@@ -395,7 +395,7 @@ public final class StructureTemplates {
             else if ("minecraft:stone_slab2".equals(mapping.name)) mapping = mapping.withName("minecraft:double_stone_slab2");
         }
         Block block = Block.REGISTRY.getObject(new ResourceLocation(mapping.name));
-        if (block == null || block == Blocks.AIR && !"minecraft:air".equals(mapping.name)) block = Blocks.STONE;
+        if (block == null || block == Blocks.AIR && !"minecraft:air".equals(mapping.name)) block = Blocks.AIR;
         IBlockState state = block.getDefaultState();
         Map<String, String> properties = new HashMap<String, String>(mapping.properties);
         for (String key : modernProperties.getKeySet()) properties.put(key, modernProperties.getString(key));
@@ -468,6 +468,16 @@ public final class StructureTemplates {
         if (Block.REGISTRY.containsKey(directId)) return new Mapping(name);
         ResourceLocation futureId = new ResourceLocation("futuremc", path);
         if (Block.REGISTRY.containsKey(futureId)) return new Mapping(futureId.toString());
+        if (path.equals("dandelion")) return new Mapping("minecraft:yellow_flower", "type", "dandelion");
+        if (path.equals("poppy")) return new Mapping("minecraft:red_flower", "type", "poppy");
+        if (path.equals("azure_bluet")) return new Mapping("minecraft:red_flower", "type", "houstonia");
+        if (path.equals("dead_bush")) return new Mapping("minecraft:deadbush");
+        if (path.equals("melon")) return new Mapping("minecraft:melon_block");
+        if (path.equals("snow")) return new Mapping("minecraft:snow_layer");
+        if (path.equals("terracotta")) return new Mapping("minecraft:hardened_clay");
+        if (path.equals("potted_dead_bush")) return new Mapping("minecraft:flower_pot", "contents", "dead_bush");
+        if (path.equals("potted_fern")) return new Mapping("minecraft:flower_pot", "contents", "fern");
+        if (path.startsWith("potted_")) return new Mapping("minecraft:air");
         String[] woods = {"oak", "spruce", "birch", "jungle", "acacia", "dark_oak"};
         for (int i = 0; i < woods.length; i++) {
             String wood = woods[i];
@@ -544,11 +554,10 @@ public final class StructureTemplates {
         if (path.contains("deepslate") || path.equals("tuff") || path.equals("blackstone")
                 || path.equals("dripstone_block") || path.equals("polished_deepslate"))
             return new Mapping("minecraft:stonebrick");
-        if (path.equals("polished_andesite")) return new Mapping("minecraft:stone", "variant", "smooth");
+        if (path.equals("polished_andesite")) return new Mapping("minecraft:stone", "variant", "andesite_smooth");
         if (path.equals("smooth_quartz")) return new Mapping("minecraft:quartz_block");
         if (path.equals("quartz_pillar")) return new Mapping("minecraft:quartz_block", "variant", "lines_y");
         if (path.equals("damaged_anvil")) return new Mapping("minecraft:anvil");
-        if (path.startsWith("potted_")) return new Mapping("minecraft:flower_pot");
         if (path.equals("tall_grass")) return new Mapping("minecraft:double_plant", "variant", "double_grass");
         if (path.equals("moss_block")) return new Mapping("minecraft:grass");
         if (path.equals("mossy_stone_bricks")) return new Mapping("minecraft:stonebrick", "variant", "mossy_stonebrick");
@@ -600,7 +609,7 @@ public final class StructureTemplates {
         }
         if (path.equals("mangrove_wood") || path.startsWith("stripped_mangrove_wood"))
             return new Mapping("minecraft:log2", "variant", "dark_oak");
-        return new Mapping("minecraft:stone");
+        return new Mapping("minecraft:air");
     }
 
     private static void convertSkullBlockEntities(NBTTagList palette, NBTTagList blocks) {
