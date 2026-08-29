@@ -1,6 +1,6 @@
 package com.wdcftgg.witherstormmod.client.jei;
 
-/** 风暴信标 JEI 分类的共享尺寸与环形坐标计算。 */
+
 final class SuperBeaconLayout {
     static final int WIDTH = 180;
     static final int HEIGHT = 120;

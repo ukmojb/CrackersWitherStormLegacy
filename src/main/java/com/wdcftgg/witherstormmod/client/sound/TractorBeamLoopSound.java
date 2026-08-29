@@ -10,7 +10,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.Vec3d;
 
-/** 将牵引光束循环音定位在玩家到光束轴线的最近点。 */
+
 public final class TractorBeamLoopSound extends MovingSound {
     public static final double MAXIMUM_DISTANCE = 30.0D;
 

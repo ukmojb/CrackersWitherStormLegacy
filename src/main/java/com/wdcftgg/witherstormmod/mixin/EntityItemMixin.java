@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
-/** 对应上游 MixinItemEntity：cannot_fall_in_void 标签物品在虚空下方漂浮。 */
+
 @Mixin(EntityItem.class)
 public abstract class EntityItemMixin {
 

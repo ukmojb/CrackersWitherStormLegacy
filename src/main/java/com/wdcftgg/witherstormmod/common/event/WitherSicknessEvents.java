@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/** 驱动凋零病 Capability、持久化、玩家复制和死亡转化。 */
+
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public final class WitherSicknessEvents {
     private static long lastProfileTick = Long.MIN_VALUE;

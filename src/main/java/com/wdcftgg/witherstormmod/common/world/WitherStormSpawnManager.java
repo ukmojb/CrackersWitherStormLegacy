@@ -47,7 +47,7 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
     private void generateStartingStructure(World world, WitherStormSpawnData data, String source) {
         if (data.isPlatformGenerated() && data.getSpawnPosition() != null) return;
 
-        // At chunk 0,0, Structure.GenerationContext's legacy random is reset to the world seed.
+
         Random platformRandom = new Random(world.getSeed());
         Rotation[] rotations = Rotation.values();
         Rotation rotation = rotations[platformRandom.nextInt(rotations.length)];
@@ -88,7 +88,7 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
                 MINIMUM_AUTO_SPAWN_TICKS);
         if (data.hasSpawnedWitherStorm() || elapsedTicks <= requiredTicks) return;
 
-        // 上游在查找平台前就锁定生成状态，因此平台缺失时也不会每刻重试。
+
         data.setHasSpawnedWitherStorm(true);
         BlockPos spawnPosition = data.getSpawnPosition();
         if (spawnPosition == null) {
@@ -121,9 +121,9 @@ public final class WitherStormSpawnManager implements IWorldGenerator {
         if (!world.getWorldInfo().isMapFeaturesEnabled()
                 || world.getTotalWorldTime() % PLATFORM_RECOVERY_INTERVAL != 0L) return;
 
-        // Existing worlds may already contain chunk 0,0 from before this generator was present.
-        // Providing the chunk lets the normal callback run for new chunks; the direct call then
-        // repairs only the old-chunk case if no platform record was produced.
+
+
+
         world.getChunkProvider().provideChunk(0, 0);
         if (!data.isPlatformGenerated() || data.getSpawnPosition() == null) {
             generateStartingStructure(world, data, "world tick recovery");

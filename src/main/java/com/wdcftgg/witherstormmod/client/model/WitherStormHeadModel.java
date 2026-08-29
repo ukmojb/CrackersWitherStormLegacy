@@ -62,14 +62,14 @@ public class WitherStormHeadModel extends ModelBase {
 
     @Override
     public void render(Entity entity, float limbSwing, float amount, float age, float yaw, float pitch, float scale) {
-        // 上游 WitherStormHeadModel.m_7695_ 在 pushPose 后应用 HeadModel.scale(3.0)
-        // 再 popPose：模型级 3.0 位于渲染器 scale(2) 与 -1.501 平移之后，且不污染
-        // 后续 layer（发光眼层）。1.12 prepareScale 已内置 -1.501，因此这里在旋转前
-        // 包一层矩阵应用 3.0；若把 3.0 合并进渲染器缩放，平移会被错误放大使模型
-        // 抬高约 6 格；若不用 push/pop，矩阵残留会让发光眼层再放大 3 倍并过曝。
+
+
+
+
+
         GlStateManager.pushMatrix();
         GlStateManager.scale(3.0F, 3.0F, 3.0F);
-        // HeadModel uses the literal 3.1416F rather than a converted 180 degrees.
+
         head.rotateAngleY = 3.1416F + yaw * DEGREES_TO_RADIANS;
         head.rotateAngleX = -pitch * DEGREES_TO_RADIANS;
         head.rotateAngleZ = 0.0F;

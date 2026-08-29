@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.Random;
 
-/** 各阶段持续剥离的单方块小型簇。 */
+
 public final class SmallClusterSource extends BlockClusterSource {
     public SmallClusterSource() {
         super(1024);

@@ -6,7 +6,7 @@ import net.minecraft.client.audio.MovingSound;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 
-/** 跟随凋零共生体的施法循环音。 */
+
 public class WitheredSymbiontSpellLoopSound extends MovingSound {
     private static final float FADE_TICKS = 20.0F;
     private final SickenedEntities.WitheredSymbiontEntity symbiont;

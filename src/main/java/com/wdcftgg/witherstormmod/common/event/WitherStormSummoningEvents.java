@@ -78,9 +78,9 @@ public final class WitherStormSummoningEvents {
         for (int index = 0; index < structure.length; index++) {
             BlockPos position = structure[index];
             removedStates[index] = world.getBlockState(position);
-            // Remove the block and its tile entity in the same server tick.  A
-            // plain state update can leave skull/command-block visuals behind
-            // until the next chunk/tile-entity refresh on 1.12 clients.
+
+
+
             world.setBlockToAir(position);
             world.removeTileEntity(position);
             world.playEvent(2001, position, Block.getStateId(removedStates[index]));

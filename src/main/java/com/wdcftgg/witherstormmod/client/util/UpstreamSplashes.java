@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-/** 从外部上游 JAR 的 mixin 常量池读取主菜单 splash，不在移植产物中复制文案。 */
+
 public final class UpstreamSplashes {
     private static final String SPLASH_MIXIN_CLASS =
             "nonamecrackers2/witherstormmod/mixin/MixinSplashManager.class";

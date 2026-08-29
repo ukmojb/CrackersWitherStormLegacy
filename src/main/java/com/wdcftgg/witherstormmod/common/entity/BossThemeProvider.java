@@ -4,7 +4,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.Vec3d;
 
-/** 为客户端 Boss 主题管理器提供实体状态和优先级。 */
+
 public interface BossThemeProvider {
     SoundEvent getBossTheme();
 

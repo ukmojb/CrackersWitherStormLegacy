@@ -14,7 +14,7 @@ import net.minecraft.util.ResourceLocation;
 
 import java.util.List;
 
-/** 两个风暴信标分类共用的环形材料布局。 */
+
 abstract class AbstractSuperBeaconCategory<T extends SuperBeaconRecipeWrapper>
         implements IRecipeCategory<T> {
 

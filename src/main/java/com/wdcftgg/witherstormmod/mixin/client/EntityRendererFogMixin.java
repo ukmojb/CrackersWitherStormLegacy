@@ -18,10 +18,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Forge's FogDensity event runs before EntityRenderer unconditionally enables fog.
- * Disable it after setup so the client option also covers the linear boss-fog path.
- */
+
+
+
+
 @Mixin(EntityRenderer.class)
 public abstract class EntityRendererFogMixin {
     @Shadow private Minecraft mc;
@@ -40,11 +40,11 @@ public abstract class EntityRendererFogMixin {
         Project.gluPerspective(fovY, aspect, nearPlane, farPlane);
     }
 
-    /**
-     * OptiFine 光影在 setupCameraTransform 里用光影投影矩阵替换 gluPerspective，
-     * 普通 gluPerspective 的 FOV 缩放对光影不生效。这里直接缩放 FOV 来源，
-     * 让光影与 frustum 一起获得望远镜放大；非光影路径保持原逻辑不变。
-     */
+
+
+
+
+
     @Redirect(method = "setupCameraTransform(FI)V", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/renderer/EntityRenderer;getFOVModifier(FZ)F"))
     private float witherstormmod$scaleShaderSetupFov(EntityRenderer renderer,
@@ -58,11 +58,11 @@ public abstract class EntityRendererFogMixin {
         return fov;
     }
 
-    /**
-     * Keep terrain/entity visibility on the normal field of view, then switch only the
-     * rendered projection to the phasometer zoom. Frustum's default constructor performs
-     * a second clipping-helper sample, so the switch must happen after construction.
-     */
+
+
+
+
+
     @Inject(method = "renderWorldPass(IFJ)V",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/culling/ICamera;setPosition(DDD)V",
@@ -74,7 +74,7 @@ public abstract class EntityRendererFogMixin {
         witherstormmod$setupWorldProjection(pass, partialTicks);
     }
 
-    /** Every later world projection reset must keep the scope zoom while it is active. */
+
     @Redirect(method = "renderWorldPass(IFJ)V",
             at = @At(value = "INVOKE",
                     target = "Lorg/lwjgl/util/glu/Project;gluPerspective(FFFF)V"))
@@ -116,7 +116,7 @@ public abstract class EntityRendererFogMixin {
         if (!WitherStormClientConfig.disableVanillaFog || OptifineCompat.areShadersActive()) return;
         GlStateManager.setFog(GlStateManager.FogMode.EXP);
         GlStateManager.setFogDensity(0.0F);
-        // Keep the cached and actual GL state aligned even if another renderer used raw calls.
+
         GL11.glFogi(GL11.GL_FOG_MODE, GL11.GL_EXP);
         GL11.glFogf(GL11.GL_FOG_DENSITY, 0.0F);
         GlStateManager.disableFog();

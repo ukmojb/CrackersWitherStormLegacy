@@ -505,5 +505,3 @@ public class LowResDevourerBodyModel {
         return body;
     }
 }
-
-

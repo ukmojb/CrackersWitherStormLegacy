@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 import java.lang.reflect.Field;
 
-/** 上游 MixinTitleScreen 的 1.12 实现：按当前配置选择主菜单全景第 0 面。 */
+
 public final class PanoramaCustomizer {
     private static final ResourceLocation CUSTOM_FACE = new ResourceLocation(Tags.MOD_ID,
             "textures/gui/title/background/panorama_0.png");

@@ -2,7 +2,7 @@ package com.wdcftgg.witherstormmod.common.entity;
 
 import java.util.Random;
 
-/** 供 1.12 实体共用的计时和动画规则。 */
+
 public final class WitherStormPartLogic {
     private WitherStormPartLogic() {
     }
@@ -66,7 +66,7 @@ public final class WitherStormPartLogic {
         return Math.max(220, random.nextInt(260));
     }
 
-    /** Java 8 运行时没有 Math.clamp，统一使用本地实现避免链接到高版本 JDK。 */
+
     private static float clamp(float value, float minimum, float maximum) {
         return Math.max(minimum, Math.min(maximum, value));
     }

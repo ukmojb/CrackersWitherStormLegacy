@@ -15,7 +15,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import javax.annotation.Nullable;
 
-/** Connects the 1.12 Crossbow mod's public ammo API to the upstream pearl behavior. */
+
 public final class CrossbowModCompatibility {
     private static final ResourceLocation CAPABILITY_ID =
             new ResourceLocation(Tags.MOD_ID, "crossbow_ender_pearl_ammo");

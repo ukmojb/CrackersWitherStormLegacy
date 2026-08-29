@@ -123,5 +123,3 @@ public class LowResDestroyerBodyModel {
         return body;
     }
 }
-
-

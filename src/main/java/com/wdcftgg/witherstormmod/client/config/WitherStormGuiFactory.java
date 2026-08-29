@@ -7,7 +7,7 @@ import net.minecraftforge.fml.client.IModGuiFactory;
 import java.util.Collections;
 import java.util.Set;
 
-/** 让 Forge 模组列表的“Config”按钮打开本移植的配置界面。 */
+
 public final class WitherStormGuiFactory implements IModGuiFactory {
 
     @Override

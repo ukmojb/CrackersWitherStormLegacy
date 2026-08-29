@@ -7,9 +7,9 @@ import com.wdcftgg.witherstormmod.client.model.witherstorm.ModelBuilders.PartPos
 
 
 public class EvolvedDevourerBodyModel {
-    /*
-     * Opcode count of 30700 triggered aggressive code reduction.  Override with --aggressivesizethreshold.
-     */
+
+
+
     public static PartDefinition createBodyModel(PartDefinition root, float texScale) {
         CubeDeformation def = new CubeDeformation(0.0f);
         CubeListBuilder builder0 = CubeListBuilder.m_171558_();
@@ -2064,9 +2064,9 @@ public class EvolvedDevourerBodyModel {
         return root.m_171599_("mass", body, PartPose.m_171419_((float)0.0f, (float)-15.0f, (float)0.0f));
     }
 
-    /*
-     * Opcode count of 24407 triggered aggressive code reduction.  Override with --aggressivesizethreshold.
-     */
+
+
+
     private static void addMoreCubes(CubeListBuilder body, CubeDeformation def, float texScale) {
         body.m_171514_(0, 16).m_171496_(43.0f, -39.0f, 14.0f, 2.0f, 1.0f, 1.0f, def, texScale, texScale);
         body.m_171514_(0, 16).m_171496_(-41.0f, -38.0f, 14.0f, 1.0f, 1.0f, 1.0f, def, texScale, texScale);
@@ -3697,9 +3697,9 @@ public class EvolvedDevourerBodyModel {
         body.m_171514_(0, 16).m_171496_(3.0f, -42.0f, 33.0f, 1.0f, 11.0f, 1.0f, def, texScale, texScale);
     }
 
-    /*
-     * Opcode count of 29642 triggered aggressive code reduction.  Override with --aggressivesizethreshold.
-     */
+
+
+
     public static void addEvenMoreCubes(CubeListBuilder body, CubeDeformation def, float texScale) {
         body.m_171514_(0, 16).m_171496_(-18.0f, -79.0f, -7.0f, 2.0f, 1.0f, 2.0f, def, texScale, texScale);
         body.m_171514_(0, 16).m_171496_(2.0f, -79.0f, -8.0f, 1.0f, 1.0f, 3.0f, def, texScale, texScale);
@@ -5679,5 +5679,3 @@ public class EvolvedDevourerBodyModel {
         body.m_171514_(0, 16).m_171496_(11.0f, -34.0f, 32.0f, 1.0f, 1.0f, 1.0f, def, texScale, texScale);
     }
 }
-
-

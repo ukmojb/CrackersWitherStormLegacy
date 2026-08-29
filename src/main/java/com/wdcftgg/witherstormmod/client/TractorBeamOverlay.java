@@ -13,7 +13,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-/** 玩家位于牵引光束内时逐渐显现的屏幕边缘覆盖层。 */
+
 @SideOnly(Side.CLIENT)
 public final class TractorBeamOverlay {
     private static final ResourceLocation TEXTURE = new ResourceLocation(

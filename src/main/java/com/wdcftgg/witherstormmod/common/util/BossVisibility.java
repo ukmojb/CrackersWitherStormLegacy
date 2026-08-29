@@ -5,7 +5,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 
-/** 复刻上游智能 Boss 条对地下狭小空间的判定。 */
+
 public final class BossVisibility {
     private static final int OPEN_AREA_RADIUS = 5;
     private static final double MAX_LINE_OF_SIGHT_DISTANCE = 300.0D;

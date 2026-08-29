@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-/** 为超级信标的两类配方提供 JEI 分类与催化剂入口。 */
+
 @JEIPlugin
 public final class SuperBeaconJeiPlugin implements IModPlugin {
 
@@ -32,7 +32,7 @@ public final class SuperBeaconJeiPlugin implements IModPlugin {
         List<SuperBeaconRecipes.Recipe> summoning = new ArrayList<SuperBeaconRecipes.Recipe>();
         for (SuperBeaconRecipes.Recipe recipe : SuperBeaconRecipes.getRecipes()) {
             if (recipe.isEntityRecipe()) {
-                // 上游明确隐藏彩蛋用的 Reuben 猪配方。
+
                 if (SuperBeaconLayout.shouldShowSummoningEntity(recipe.entity)) summoning.add(recipe);
             } else {
                 itemCrafting.add(recipe);

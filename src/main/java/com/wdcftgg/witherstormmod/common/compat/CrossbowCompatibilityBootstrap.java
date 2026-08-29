@@ -4,7 +4,7 @@ import com.wdcftgg.witherstormmod.WitherStormMod;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
 
-/** Loads the optional Crossbow API bridge only when Crossbow is present. */
+
 public final class CrossbowCompatibilityBootstrap {
     private static final String CROSSBOW_MOD_ID = "crossbow";
     private static final String EVENT_HANDLER =

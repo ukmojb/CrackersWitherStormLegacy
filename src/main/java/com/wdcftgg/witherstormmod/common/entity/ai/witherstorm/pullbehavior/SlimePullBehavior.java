@@ -7,7 +7,7 @@ import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
-/** 上游史莱姆实体的绕风暴旋转牵引行为。 */
+
 public final class SlimePullBehavior extends WitherStormPullBehavior<EntitySlime> {
     private static final double MAX_SPEED = 5.0D;
     private static final double ROTATION_SPEED = 0.25D;

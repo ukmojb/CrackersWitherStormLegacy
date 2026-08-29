@@ -28,13 +28,13 @@ final class SoundResourceConverter {
                 "minecraft:entity.evocation_illager.prepare_summon");
         rewrites.put("minecraft:entity.illusioner.cast_spell",
                 "minecraft:entity.illusion_illager.cast_spell");
-        // The vanilla beacon deactivate event was introduced after 1.12.2.
+
         rewrites.put("minecraft:block.beacon.deactivate",
                 "minecraft:block.end_portal_frame.fill");
         EVENT_REWRITES = Collections.unmodifiableMap(rewrites);
 
-        // 1.19.3 起 SoundSource 把 records/blocks/players 改为复数；1.12 的
-        // SoundCategory 仍使用单数 record/block/player，未映射会导致未知类别。
+
+
         Map<String, String> categories = new HashMap<String, String>();
         categories.put("records", "record");
         categories.put("blocks", "block");
@@ -55,7 +55,7 @@ final class SoundResourceConverter {
         for (Map.Entry<String, JsonElement> definition : definitions.entrySet()) {
             if (!definition.getValue().isJsonObject()) continue;
             JsonObject event = definition.getValue().getAsJsonObject();
-            // 类别位于事件层；1.20 的复数类别名映射回 1.12 的单数 SoundCategory。
+
             JsonElement category = event.get("category");
             if (category != null && category.isJsonPrimitive()) {
                 String replacement = CATEGORY_REWRITES.get(category.getAsString());

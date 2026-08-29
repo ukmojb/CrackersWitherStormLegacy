@@ -68,10 +68,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-/**
- * 上游 /witherstormmod 调试与管理命令在 1.12.2 的移植实现。
- * 需要权限等级 2（管理员），子命令结构与上游 Brigadier 树保持一致。
- */
+
+
+
+
 public final class WitherStormAdminCommand extends CommandBase {
 
     private static final String USAGE = "commands.witherstormmod.usage";
@@ -943,7 +943,7 @@ public final class WitherStormAdminCommand extends CommandBase {
                 WitherStormEntity storm = storm(server, sender, args[3]);
                 EvolutionProfiler profiler = storm.getEvolutionProfiler();
                 if (profiler.isProfiling()) {
-                    // 上游 DebugCommands.queryEvolutionProfiler 直接输出每秒吞噬实体数
+
                     sender.sendMessage(new TextComponentString(
                             "每秒吞噬实体数：" + (double) Math.round(
                                     profiler.getConsumedEntitiesPerSecond() * 10.0D) / 10.0D));

@@ -381,5 +381,3 @@ public class SegmentBodyModel {
         return root.m_171599_("mass", body, PartPose.m_171419_((float)2.0f, (float)-4.0f, (float)0.0f));
     }
 }
-
-

@@ -9,7 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.util.ResourceLocation;
 
-/** Segment counterpart of the upstream AbstractWitherStormRenderer Christmas layer. */
+
 public final class WitherStormSegmentSantaHatLayer
         implements LayerRenderer<SupplementalEntities.WitherStormSegmentEntity> {
     private static final ResourceLocation TEXTURE =

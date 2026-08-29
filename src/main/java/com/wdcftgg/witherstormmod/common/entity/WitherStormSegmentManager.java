@@ -57,7 +57,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-/** 还原分段从主风暴继承到的独立三头选敌、牵引与吸收状态。 */
+
 final class WitherStormSegmentManager {
     private static final float MAXIMUM_HEAD_YAW = 80.0F;
     private static final int ENTITY_DISTRACTION_UNSEEN_LIMIT = 180;
@@ -73,10 +73,10 @@ final class WitherStormSegmentManager {
     private final Map<UUID, Entity> trackedEntities = new LinkedHashMap<UUID, Entity>();
     private final List<UUID> savedTrackedEntities = new ArrayList<UUID>();
     private final IgnoredTargetsManager ignoredTargets;
-    /** 性能优化：头部视线结果只在同 tick 复用，保持上游每 tick 检测。 */
+
     private long pullSightCacheCycle = Long.MIN_VALUE;
     private final Map<String, Boolean> pullSightCache = new LinkedHashMap<String, Boolean>();
-    /** 性能优化：牵引候选实体每 tick 重建（检测机制与上游一致）。 */
+
     private final List<Entity> pullableCandidates = new ArrayList<Entity>();
     private final WitherStormPulling.Source trackedEntityPullSource = new WitherStormPulling.Source() {
         @Override public WitherStormEntity getStorm() { return segment.getOwnerStorm(); }
@@ -354,7 +354,7 @@ final class WitherStormSegmentManager {
         return !cancelled;
     }
 
-    /** 每秒记录一次玩家在该分体三个头中的新目标判定结果。 */
+
     private void logPlayerTargetingDiagnostics(WitherStormEntity owner) {
         if (!StormDiagnosticLogger.isEnabled() || segment.ticksExisted % 20 != 0) return;
         double range = segment.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).getAttributeValue();
@@ -698,11 +698,11 @@ final class WitherStormSegmentManager {
                     : target != null && target.isEntityAlive()
                     ? new Vec3d(target.posX, target.posY + target.getEyeHeight(), target.posZ) : null;
             if (targetPosition != null) {
-                // 上游分裂体继承主风暴的 LookAtTargetGoal：phase>3 用 50 步、phase<=3 用 3 步。
+
                 lookAtPosition(owner, head, state, targetPosition,
                         state.isDistracted() ? 10 : owner.getPhase() > 3 ? 50 : 3);
             } else {
-                // 上游 WitherStormLookRandomlyGoal：受伤或 phase<4 用 3 步，否则 50 步。
+
                 lookAtPosition(owner, head, state, getRandomLookPosition(owner, state, bodyYaw),
                         owner.getPhase() >= 4 && state.injuryTicks <= 0 ? 50 : 3);
             }
@@ -721,8 +721,8 @@ final class WitherStormSegmentManager {
         float wantedYaw = (float) (MathHelper.atan2(deltaZ, deltaX) * 180.0D / Math.PI) - 90.0F;
         float wantedPitch = (float) (-(MathHelper.atan2(deltaY, horizontal) * 180.0D / Math.PI));
         if (head == 0) {
-            // 上游主头 LookControl.setLookAt 用 getHeadRotSpeed()=10°/tick 转 yaw，
-            // WitherStormLookController.tick 对 pitch 复用同一 f_24938_(=10)，与阶段无关。
+
+
             float maximum = 10.0F;
             state.yaw = rotateTowards(state.yaw, wantedYaw, maximum);
             state.pitch = rotateTowards(state.pitch, wantedPitch, maximum);
@@ -815,7 +815,7 @@ final class WitherStormSegmentManager {
     }
 
     private void tickHeads(WitherStormEntity owner) {
-        // 性能优化：每 tick 单次扫描填充牵引候选（检测机制与上游一致）
+
         pullableCandidates.clear();
         if (!segment.isDead) {
             AxisAlignedBB search = segment.getEntityBoundingBox().grow(320.0D);
@@ -853,7 +853,7 @@ final class WitherStormSegmentManager {
         }
     }
 
-    /** 每秒记录玩家是否进入分体各头光束以及拉力过滤结果。 */
+
     private void logPlayerBeamDiagnostics(WitherStormEntity owner) {
         if (!StormDiagnosticLogger.isEnabled() || segment.ticksExisted % 20 != 0) return;
         for (EntityPlayer player : segment.world.playerEntities) {
@@ -884,7 +884,7 @@ final class WitherStormSegmentManager {
         }
     }
 
-    /** 与非目标拉力过滤等价，但不发送目标事件，避免诊断改变模组行为。 */
+
     private boolean canPullUntargetedForDiagnostics(WitherStormEntity owner,
                                                      EntityPlayer player, int head) {
         return WitherStormConfig.canPickupMobClusters
@@ -1532,7 +1532,7 @@ final class WitherStormSegmentManager {
     }
 
     private boolean isInsideBeam(Entity entity, Vec3d origin, Vec3d direction, double cutoff) {
-        // 上游对所有实体（含玩家）统一用 4.0 判定光束半径；8.0 会让玩家更难脱离。
+
         return TractorBeamHelper.isInsideTractorBeam(
                 entity.getPositionVector(), origin, direction, cutoff, 4.0D);
     }
@@ -1545,7 +1545,7 @@ final class WitherStormSegmentManager {
         return hit == null || hit.typeOfHit == RayTraceResult.Type.MISS;
     }
 
-    /** 性能优化：同 tick 内缓存头部视线结果，同一 tick 内同一头对同一实体只做一次射线。 */
+
     boolean canSeeWithCache(int head, Entity entity) {
         long cycle = segment.world.getTotalWorldTime();
         if (cycle != pullSightCacheCycle) {
@@ -1841,7 +1841,7 @@ final class WitherStormSegmentManager {
                         + Math.max(0, source.getInteger("NextCluster" + head));
                 state.roarScheduleInitialized = state.nextRoarTicks > 0;
             }
-            // 格式 3 将咆哮条件改为严格超过目标 tick；旧存档需补回一个 tick。
+
             if (timerFormat < 3 && state.roarScheduleInitialized) ++state.nextRoarTicks;
             segment.setHeadInjuryFlag(head, state.injuryTicks > 0);
             segment.updateHeadRotation(head, state.yaw, state.pitch);

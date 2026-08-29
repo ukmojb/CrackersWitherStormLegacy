@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Map;
 import java.util.UUID;
 
-/** 记录客户端 BossBar 表收到的每次增删及其最终状态。 */
+
 @Mixin(GuiBossOverlay.class)
 public abstract class GuiBossOverlayMixin {
     @Shadow @Final private Map<UUID, BossInfoClient> mapBossInfos;

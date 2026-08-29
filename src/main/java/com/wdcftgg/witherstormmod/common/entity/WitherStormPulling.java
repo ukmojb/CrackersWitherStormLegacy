@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
-/** 主风暴和分裂体共用的已跟踪实体吸收行为。 */
+
 final class WitherStormPulling {
     private static final double DEFAULT_PULL_SPEED = 0.5D;
     private static final double ORBIT_SPEED = 0.25D;

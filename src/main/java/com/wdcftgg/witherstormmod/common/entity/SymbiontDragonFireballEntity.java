@@ -15,7 +15,7 @@ import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 
 import java.util.List;
 
-/** 共生体施放的专用龙息弹，保留上游的凋零药水云和可持久化标记。 */
+
 public class SymbiontDragonFireballEntity extends EntityDragonFireball
         implements IEntityAdditionalSpawnData {
     public SymbiontDragonFireballEntity(World world) {
@@ -29,7 +29,7 @@ public class SymbiontDragonFireballEntity extends EntityDragonFireball
         getEntityData().setBoolean("CreatedBySymbiont", true);
     }
 
-    /** Keep the custom acceleration vector coherent on the initial spawn. */
+
     @Override
     public void writeSpawnData(ByteBuf buffer) {
         buffer.writeDouble(accelerationX);

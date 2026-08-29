@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
 import net.minecraft.client.renderer.entity.RenderManager;
 
-/** 上游 AddLayers 事件的 1.12 实现：给所有生物渲染器挂载病化覆盖层。 */
+
 public final class WitherSicknessLayerInstaller {
 
     private WitherSicknessLayerInstaller() {

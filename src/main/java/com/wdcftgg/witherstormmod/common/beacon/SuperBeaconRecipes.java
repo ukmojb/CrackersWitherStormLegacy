@@ -68,7 +68,7 @@ public final class SuperBeaconRecipes {
                         recipes.add(new Recipe(condition, ingredients, convertResult(json, context), null, ""));
                     }
                 } catch (Exception recipeException) {
-                    // 单个配方解析失败不应拖垮全部超级信标配方/JEI 分类
+
                     WitherStormMod.LOGGER.warn("Skipping external super beacon recipe {}: {}",
                             entryName, recipeException.toString());
                 }

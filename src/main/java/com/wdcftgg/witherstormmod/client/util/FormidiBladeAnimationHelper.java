@@ -10,9 +10,9 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.EnumHandSide;
 import net.minecraftforge.client.event.RenderSpecificHandEvent;
 
-/**
- * Formidi 之刃充能/释放时的第一人称紫色辉光（上游 FormidiBladeAnimationHelper）。
- */
+
+
+
 public final class FormidiBladeAnimationHelper {
 
     private FormidiBladeAnimationHelper() {

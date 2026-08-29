@@ -179,7 +179,7 @@ public final class ModBlocks {
         ModelLoader.setCustomStateMapper(block, mappedBlock -> {
             Map<IBlockState, ModelResourceLocation> locations =
                     new LinkedHashMap<IBlockState, ModelResourceLocation>();
-            // The external upstream sign model has no geometry; it only supplies tainted-plank particles.
+
             ModelResourceLocation particleModel = new ModelResourceLocation(
                     Tags.MOD_ID + ":tainted_sign", "normal");
             for (IBlockState state

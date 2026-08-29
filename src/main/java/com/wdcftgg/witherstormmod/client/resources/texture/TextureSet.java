@@ -3,7 +3,7 @@ package com.wdcftgg.witherstormmod.client.resources.texture;
 import com.wdcftgg.witherstormmod.Tags;
 import net.minecraft.util.ResourceLocation;
 
-/** 按阶段配置的风暴纹理组（1.12 语义）。 */
+
 public final class TextureSet {
 
     public static final TextureSet DEFAULT = new TextureSet(

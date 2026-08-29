@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.Random;
 
-/** 低阶段驼背形态使用的高频单方块来源。 */
+
 public final class HunchbackClusterSource extends BlockClusterSource {
     public HunchbackClusterSource() {
         super(256);

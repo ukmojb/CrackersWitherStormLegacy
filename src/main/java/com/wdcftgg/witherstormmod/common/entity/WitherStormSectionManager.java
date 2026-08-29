@@ -8,7 +8,7 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.List;
 
-/** 维护大型凋零风暴随身体旋转的碰撞分区。 */
+
 final class WitherStormSectionManager {
     private final WitherStormEntity storm;
     private final BowelsEntranceSection bowelsEntranceSection;
@@ -129,7 +129,7 @@ final class WitherStormSectionManager {
         }
     }
 
-    /** The phase-seven entrance is an action section, not part of the storm's body collision. */
+
     private final class BowelsEntranceSection {
         private AxisAlignedBB bounds;
 
@@ -137,7 +137,7 @@ final class WitherStormSectionManager {
             bounds = createBounds(phase, bodyXRotation);
             if (bounds == null) return;
 
-            // CollisionActionSection first applies the normal Section push, then runs its action query.
+
             pushEntities(bounds);
             for (Entity entity : storm.world.getEntitiesWithinAABB(Entity.class, bounds)) {
                 storm.handleBowelsEntranceCollision(entity);

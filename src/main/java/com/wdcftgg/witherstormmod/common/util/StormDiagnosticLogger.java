@@ -2,7 +2,7 @@ package com.wdcftgg.witherstormmod.common.util;
 
 import com.wdcftgg.witherstormmod.WitherStormMod;
 
-/** 统一控制风暴诊断日志，默认关闭并由管理指令显式开启。 */
+
 public final class StormDiagnosticLogger {
     private static volatile boolean enabled;
 

@@ -33,13 +33,13 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
 
-/**
- * 三个头部的目标、旋转、攻击和动画状态机。
- *
- * 上游把每个头实现成独立的 Head 实例。这里仍然使用一个管理器，但每个
- * HeadState 保存完整的独立状态，并通过自定义数据参数将瞄准方向同步给
- * 1.12 客户端。
- */
+
+
+
+
+
+
+
 public final class WitherStormHeadManager {
     private static final int ENTITY_DISTRACTION_UNSEEN_LIMIT = 180;
     private static final double[][][] OFFSETS = {
@@ -55,7 +55,7 @@ public final class WitherStormHeadManager {
 
     private final WitherStormEntity storm;
     private final HeadState[] heads = {new HeadState(), new HeadState(), new HeadState()};
-    /** 性能优化：3 个头共享每 tick 单次目标候选扫描（检测机制与上游一致）。 */
+
     private List<EntityLivingBase> targetCandidates = java.util.Collections.emptyList();
     private int idleTargetTicks;
 
@@ -70,11 +70,11 @@ public final class WitherStormHeadManager {
         tick(true);
     }
 
-    /**
-     * Upstream still advances queued head interpolation while the summoning
-     * invulnerability goal owns LOOK, but it does not run head look AI or
-     * server targeting during that period.
-     */
+
+
+
+
+
     public void tickWithoutLookAi() {
         tick(false);
     }
@@ -89,9 +89,9 @@ public final class WitherStormHeadManager {
             head.yawO = head.yaw;
             head.pitchO = head.pitch;
             if (storm.world.isRemote) {
-                // EntityDataManager packets are not guaranteed every render
-                // tick. Interpolate toward the authoritative angle instead of
-                // snapping, which otherwise makes beams strobe in phases 4-7.
+
+
+
                 head.yaw = smoothSyncedRotation(head.yaw, storm.getSyncedHeadYaw(index),
                         storm.getPhase() > 3 ? 5.0F : 8.0F);
                 head.pitch = smoothSyncedRotation(head.pitch, storm.getSyncedHeadPitch(index),
@@ -155,7 +155,7 @@ public final class WitherStormHeadManager {
             return;
         }
         tickDistractions();
-        // 性能优化：3 个头共享每 tick 单次目标候选扫描，避免各自全加载区扫描
+
         targetCandidates = scanTargetCandidates();
         for (int index = 0; index < heads.length; index++) {
             HeadState head = heads[index];
@@ -275,7 +275,7 @@ public final class WitherStormHeadManager {
         }
     }
 
-    /** 处理上游的烟花实体和牵引光束方块分心目标。 */
+
     private void tickDistractions() {
         for (int index = 0; index < heads.length; index++) {
             HeadState head = heads[index];
@@ -445,7 +445,7 @@ public final class WitherStormHeadManager {
     @Nullable
     private Entity resolveEntity(@Nullable java.util.UUID uuid) {
         if (uuid == null) return null;
-        // 性能优化：服务端用 O(1) UUID 索引，避免活跃分心时每 tick 全量遍历实体列表
+
         if (storm.world instanceof WorldServer) {
             Entity resolved = ((WorldServer) storm.world).getEntityFromUuid(uuid);
             if (resolved != null) return resolved;
@@ -535,7 +535,7 @@ public final class WitherStormHeadManager {
         return selected;
     }
 
-    /** 三个头共享当前 tick 的一次目标候选扫描，保持上游逐 tick 选目标语义。 */
+
     private List<EntityLivingBase> scanTargetCandidates() {
         double range = storm.getPhase() > 3
                 ? storm.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).getAttributeValue()
@@ -607,7 +607,7 @@ public final class WitherStormHeadManager {
         if (tracker != null) tracker.countContact();
     }
 
-    /** 共享候选扫描使用的头无关过滤。 */
+
     private boolean isTargetApplicableUnfiltered(EntityLivingBase entity) {
         if (entity == null || !storm.isValidStormTarget(entity)
                 || storm.isOnSameTeam(entity)
@@ -633,11 +633,11 @@ public final class WitherStormHeadManager {
         return !cancelled;
     }
 
-    /** 选目标时对共享候选做的头部相关过滤（视线、其他头占用、背后、他光束）。 */
+
     private boolean isTargetApplicableForHead(int index, EntityLivingBase entity) {
         if (!storm.canSeeWithCache(index, entity)) return false;
-        // Upstream rejects entities already caught by another tractor beam in
-        // every phase. Target ownership and the forward-arc check are late-phase only.
+
+
         if (storm.isInsideOtherTractorBeam(entity, index)) return false;
         if (storm.getPhase() > 3 && (isTargetedByAnotherHead(entity, index)
                 || storm.isEntityBehindBack(entity))) {
@@ -646,7 +646,7 @@ public final class WitherStormHeadManager {
         return true;
     }
 
-    /** 每秒记录一次所有玩家从候选扫描到逐头判定的完整状态。 */
+
     private void logPlayerTargetingDiagnostics(@Nullable String globalReason) {
         if (!StormDiagnosticLogger.isEnabled() || storm.ticksExisted % 20 != 0) return;
         double range = storm.getPhase() > 3
@@ -709,7 +709,7 @@ public final class WitherStormHeadManager {
 
     private void updateLook(int index, HeadState head) {
         if (storm.getHealth() <= 0.0F) {
-            // 上游在空中死亡时每刻重置 64 步俯首插值；落地后继续消耗剩余步数。
+
             if (!storm.onGround) head.deathPitchSteps = 64;
             if (head.deathPitchSteps > 0) {
                 head.pitch += MathHelper.wrapDegrees(-50.0F - head.pitch) / head.deathPitchSteps;
@@ -749,16 +749,16 @@ public final class WitherStormHeadManager {
         if (target != null) {
             lookAtPosition(index, head, new Vec3d(target.posX,
                     target.posY + target.getEyeHeight(), target.posZ),
-                    // 上游主头 LookControl.setLookAt 用 getHeadRotSpeed()=10°/tick 转 yaw，
-                    // WitherStormLookController.tick 对 pitch 复用同一 f_24938_(=10)，与阶段无关。
+
+
                     10.0F,
-                    // 上游 LookAtTargetGoal：phase>3 用 50 步、phase<=3 用 3 步。
+
                     storm.getPhase() > 3 ? 50 : 3);
         } else {
             lookAtPosition(index, head, getRandomLookPosition(head),
-                    // 同上：主头 yaw/pitch 均为 10°/tick，不随阶段变化。
+
                     10.0F,
-                    // 上游 WitherStormLookRandomlyGoal：受伤或 phase<4 用 3 步，否则 50 步。
+
                     storm.getPhase() < 4 || head.injuryTicks > 0 ? 3 : 50);
         }
     }
@@ -781,10 +781,10 @@ public final class WitherStormHeadManager {
         head.pitch += MathHelper.wrapDegrees(wantedPitch - head.pitch) / steps;
     }
 
-    /**
-     * 阶段 0-3 的左右头必须沿用阶段 4+ 大头的身体前向弧约束，避免转入主体。
-     * 早期主头保持上游的自由转向；死亡或装死时保留脚本控制的头部姿态。
-     */
+
+
+
+
     private void constrainHeadYaw(int index, HeadState head) {
         head.yaw = WitherStormHeadYawConstraint.constrain(storm.getPhase(), index,
                 storm.isDeadOrPlayingDead(), head.yaw, storm.renderYawOffset);
@@ -862,7 +862,7 @@ public final class WitherStormHeadManager {
         }
     }
 
-    /** Mirrors WitherStormPatternChecker initializing both AdditionalHead yaws. */
+
     void initializeAdditionalHeadYaw(float yaw) {
         for (int index = 1; index < heads.length; index++) {
             HeadState head = heads[index];
@@ -1022,7 +1022,7 @@ public final class WitherStormHeadManager {
         }
     }
 
-    /** 命令方块受击会绕过常规累计命中与冷却，直接使指定头部受伤。 */
+
     public void hurtDirectly(int index, @Nullable Entity attacker) {
         if (storm.world.isRemote || storm.isDead) return;
         hurt(head(index), attacker);

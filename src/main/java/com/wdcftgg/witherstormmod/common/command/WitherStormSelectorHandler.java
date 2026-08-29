@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Forge 1.12 selector bridge for the upstream mod's nearest Wither Storm selector. */
+
 public final class WitherStormSelectorHandler implements SelectorHandler {
     private static final Pattern SELECTOR_PATTERN = Pattern.compile("^@w(?:\\[([^ ]*)\\])?$");
     private static final String VANILLA_PREFIX =

@@ -23,10 +23,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 供附属模组生成方块腐化配方的数据提供器（1.12.2 语义）。
- * 输出格式与上游 data/witherstormmod/tainting/block 一致。
- */
+
+
+
+
 public abstract class BlockTaintingRecipeProvider {
 
     private final String modid;

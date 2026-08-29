@@ -23,7 +23,7 @@ import org.lwjgl.opengl.GL11;
 import java.awt.Color;
 
 
-/** 绘制主风暴、分裂体和独立头共用的发光方形牵引光束。 */
+
 @SideOnly(Side.CLIENT)
 public final class TractorBeamRenderer {
     private static final double MINIMUM_DIRECTION_LENGTH = 0.0001D;
@@ -81,8 +81,8 @@ public final class TractorBeamRenderer {
 
         GlStateManager.pushMatrix();
         GlStateManager.pushAttrib();
-        // 光束是发光效果，不应被原版雾按视角远近压暗；显式保存/恢复，
-        // 避免只依赖 pushAttrib 时 GlStateManager 的雾缓存与实际 GL 状态脱节。
+
+
         boolean fogEnabled = GL11.glIsEnabled(GL11.GL_FOG);
         try {
             GlStateManager.disableTexture2D();
@@ -161,7 +161,7 @@ public final class TractorBeamRenderer {
         }
     }
 
-    /** Replays HeadModel.renderTractorBeam's complete pose stack in world space. */
+
     private static BeamPose calculateModelBeamPose(Entity entity, TractorBeamProvider provider,
                                                     int head, float partialTicks,
                                                     BeamShape shape) {
@@ -170,9 +170,9 @@ public final class TractorBeamRenderer {
                 || look.lengthSquared() <= MINIMUM_DIRECTION_LENGTH) return null;
         look = look.normalize();
 
-        // 头部起点和方向同时参与服务端牵引、粒子、覆盖层与声音判定。
-        // 已实现接口的实体直接复用这组插值后的权威几何，避免客户端再用模型
-        // 根节点重复推导时把三个头的光束漂移到同一世界坐标附近。
+
+
+
         Vec3d authoritativeOrigin = provider.getHeadPositionForBeam(head, partialTicks);
         if (authoritativeOrigin != null && isFinite(authoritativeOrigin)) {
             return new BeamPose(authoritativeOrigin, look);
@@ -183,8 +183,8 @@ public final class TractorBeamRenderer {
         float bodyYaw = interpolateRotation(living.prevRenderYawOffset,
                 living.renderYawOffset, partialTicks);
         float bodyPitch = getBodyPitch(entity, partialTicks);
-        // 必须使用头部保存的原始 Euler 角。由 look 反解 pitch 会把 -140~-90
-        // 的随机注视折叠到另一组等价角度，方向看似不变，但 pivot/roll 的世界起点会错位。
+
+
         float headYaw = getHeadYaw(entity, head, partialTicks, look);
         float headPitch = getHeadPitch(entity, head, partialTicks, look);
         float relativeHeadYaw = MathHelper.wrapDegrees(headYaw - bodyYaw);

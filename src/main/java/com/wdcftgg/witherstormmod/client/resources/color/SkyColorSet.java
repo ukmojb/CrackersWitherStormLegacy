@@ -2,7 +2,7 @@ package com.wdcftgg.witherstormmod.client.resources.color;
 
 import java.awt.Color;
 
-/** 上游 SkyColorSet：白天/夜晚的天空、云与雾的“天空变暗”配色。 */
+
 public final class SkyColorSet {
 
     public static final SkyColorSet DEFAULT =

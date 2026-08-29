@@ -30,7 +30,7 @@ public class TaintedGlassPaneBlock extends BlockPane {
 
     @Override
     public int quantityDropped(Random random) {
-        // 与上游一致：凋零玻璃板只有精准采集才掉落。
+
         return 0;
     }
 

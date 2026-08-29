@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 import java.util.function.Consumer;
 
-/** 调度上游四类方块簇来源，并统一复用外部 JAR 中的方块标签。 */
+
 final class WitherStormClusterManager {
     private final WitherStormEntity storm;
 
@@ -40,7 +40,7 @@ final class WitherStormClusterManager {
         }
     }
 
-    /** 上游在大型阶段撞上方块时，会从随机碰撞面连续剥离十个方块簇。 */
+
     void createCollisionClusters() {
         if (storm.getPhase() <= 3) return;
         createCollisionClusters(storm, storm::trackEntityToConsume);

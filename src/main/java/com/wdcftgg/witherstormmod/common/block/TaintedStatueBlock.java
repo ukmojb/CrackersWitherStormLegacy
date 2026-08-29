@@ -101,7 +101,7 @@ public final class TaintedStatueBlock extends BlockHorizontal {
     @Override
     public void getDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos position,
                          IBlockState state, int fortune) {
-        // 上游雕像/骨堆掉落的是凋零腐肉、凋零骨与凋零粉，而不是方块自身。
+
         String name = getRegistryName() == null ? "" : getRegistryName().getPath();
         boolean zombie = "tainted_zombie_sitting".equals(name)
                 || "tainted_zombie_wall".equals(name) || "tainted_zombie_lying".equals(name);

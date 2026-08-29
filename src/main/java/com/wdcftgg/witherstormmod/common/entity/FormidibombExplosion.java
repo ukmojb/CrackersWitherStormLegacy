@@ -36,8 +36,8 @@ public final class FormidibombExplosion {
     public static void explode(World world, @Nullable Entity source, int radius, int squish,
                                double x, double y, double z) {
         Explosion explosion = new Explosion(world, source, x, y, z, radius, true, true);
-        // 爆炸音效由客户端按 earRingingEffects 配置选择响亮/安静版本播放，
-        // 服务端只广播震动音，避免客户端收到固定事件后无法按个人配置切换。
+
+
         world.playSound(null, x, y, z, ModSounds.get("tremble"), SoundCategory.BLOCKS, 32.0F, 1.0F);
 
         float diameter = radius * 2.0F;
@@ -45,11 +45,11 @@ public final class FormidibombExplosion {
                 MathHelper.floor(x - diameter - 1.0D), MathHelper.floor(y - diameter - 1.0D), MathHelper.floor(z - diameter - 1.0D),
                 MathHelper.floor(x + diameter + 1.0D), MathHelper.floor(y + diameter + 1.0D), MathHelper.floor(z + diameter + 1.0D));
 
-        // 上游只击倒已经锁定 Formidibomb 且满足阶段、进度和引信距离条件的风暴。
+
         List<WitherStormEntity> storms = world.getEntitiesWithinAABB(
                 WitherStormEntity.class, area.grow(200.0D));
         for (WitherStormEntity storm : storms) storm.onFormidibombExplosion();
-        // 先发送客户端表现包，再执行大范围方块遍历，避免爆炸视觉被服务端计算阻塞。
+
         ModNetwork.sendFormidibombExplosion(world, source, x, y, z, radius, squish);
         ModNetwork.shakeDimension(world, 100.0F, 7.5F);
         ModNetwork.blindNear(world, x, y, z, 250.0D, 260, 40, 240);
@@ -116,7 +116,7 @@ public final class FormidibombExplosion {
         for (Drop drop : drops) Block.spawnAsEntity(world, drop.pos, drop.stack);
     }
 
-    /** Vanilla-style shell rays avoid the cubic million-block scan for radius 48+. */
+
     private static Set<BlockPos> collectAffectedBlocks(World world, Explosion explosion,
                                                        double x, double y, double z,
                                                        int radius, int squish) {
@@ -150,7 +150,7 @@ public final class FormidibombExplosion {
                             power -= (resistance + 0.3D)
                                     * (WitherStormConfig.lowerBlockResistance ? 0.01D : 0.3D);
                         }
-                        // Vanilla explosion rays lose a small amount of power in air too.
+
                         power -= 0.225D;
                         px += dx * 0.3D;
                         py += dy * 0.3D;

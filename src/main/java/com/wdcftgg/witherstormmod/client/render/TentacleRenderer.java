@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 
-/** 1.12 equivalent of the upstream non-living tentacle renderer. */
+
 public final class TentacleRenderer extends RenderLivingBase<SickenedEntities.TentacleEntity> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(
             Tags.MOD_ID, "textures/entity/tentacle/tentacle.png");
@@ -31,10 +31,10 @@ public final class TentacleRenderer extends RenderLivingBase<SickenedEntities.Te
                          float entityYaw, float partialTicks) {
         GlStateManager.pushMatrix();
         GlStateManager.translate((float) x, (float) y, (float) z);
-        // RenderLivingBase applies this corpse roll before model rendering.
-        // This renderer owns the draw path, so reproduce the same 1.12
-        // death-time interpolation instead of leaving field tentacles frozen
-        // upright for their entire vanilla 20-tick death window.
+
+
+
+
         if (entity.deathTime > 0) {
             float progress = (entity.deathTime + partialTicks - 1.0F) / 20.0F * 1.6F;
             progress = MathHelper.sqrt(Math.min(progress, 1.0F));

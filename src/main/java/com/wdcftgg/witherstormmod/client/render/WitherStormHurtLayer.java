@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
-/** Draws the upstream per-head injury decal without tinting the full head mesh. */
+
 public final class WitherStormHurtLayer implements LayerRenderer<WitherStormEntity> {
     private static final ResourceLocation HURT_OVERLAY = new ResourceLocation(Tags.MOD_ID,
             "textures/entity/wither_storm/wither_storm_hurt_overlay.png");

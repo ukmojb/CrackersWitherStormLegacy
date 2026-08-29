@@ -79,7 +79,7 @@ public final class LegacyRenderBufferer implements IResourceManagerReloadListene
         return shouldUse() && WitherStormClientConfig.asyncBufferBuilders;
     }
 
-    /** 对应上游 RenderBufferer.getTotalInstances：返回当前仍受管的 GPU 缓冲实例数。 */
+
     public synchronized int getTotalInstances() {
         return liveBuffers.size();
     }
@@ -142,7 +142,7 @@ public final class LegacyRenderBufferer implements IResourceManagerReloadListene
         for (Runnable callback : callbacks) callback.run();
     }
 
-    /** 对应上游 GameRenderer.close：退出客户端时释放 GPU 缓冲并关闭异步构建池。 */
+
     public void shutdown() {
         invalidateAll();
         BUFFER_BUILDERS.shutdown();

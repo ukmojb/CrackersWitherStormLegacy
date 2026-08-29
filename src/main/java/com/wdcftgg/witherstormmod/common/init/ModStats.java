@@ -3,7 +3,7 @@ package com.wdcftgg.witherstormmod.common.init;
 import net.minecraft.stats.StatBase;
 import net.minecraft.util.text.TextComponentTranslation;
 
-/** 1.12.2 使用 StatBase 承载上游 1.20 的命名统计。 */
+
 public final class ModStats {
 
     public static final String INTERACT_WITH_SUPER_BEACON_ID =

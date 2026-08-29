@@ -70,7 +70,7 @@ public final class WitherStormCombatEvents {
     private WitherStormCombatEvents() {
     }
 
-    /** 在原版 TNT 每次递减引信之前复现上游的牵引光束引信改写。 */
+
     @SubscribeEvent
     public static void onWorldTick(TickEvent.WorldTickEvent event) {
         if (event.world.isRemote) return;
@@ -92,14 +92,14 @@ public final class WitherStormCombatEvents {
                 if (tnt.getDistanceSq(headPosition.x, headPosition.y, headPosition.z) <= 144.0D) {
                     tnt.setFuse(1);
                 } else if (tnt.getFuse() == 21) {
-                    // 原版本次 tick 会把 21 减到 20，上游注入将这个结果改写为 80。
+
                     tnt.setFuse(81);
                 }
             }
         }
     }
 
-    /** 在实体自身更新开始前保存燃烧状态，避免把岩浆和火焰攻击误判成日晒。 */
+
     @SubscribeEvent
     public static void captureSunBurnState(LivingEvent.LivingUpdateEvent event) {
         if (event.getEntityLiving().world.isRemote
@@ -146,8 +146,8 @@ public final class WitherStormCombatEvents {
 
     private static boolean isNearEvolvedStorm(Entity entity) {
         World world = entity.world;
-        // 性能优化：复用 WorldUtil 的同 tick 共享风暴索引，避免每个僵尸/骷髅
-        // 各自做 200 格全加载区扫描。
+
+
         for (WitherStormEntity storm : WorldUtil.getCachedStorms(world)) {
             if (storm.isDeadOrPlayingDead() || storm.getPhase() <= 5) continue;
             if (horizontalDistanceSquared(storm, entity) <= 40000.0D) return true;
@@ -351,7 +351,7 @@ public final class WitherStormCombatEvents {
         }
     }
 
-    /** 紫颂果开始食用时，按上游逐头概率让附近主体的活动牵引头转向玩家。 */
+
     @SubscribeEvent
     public static void onEntityUseItem(LivingEntityUseItemEvent.Start event) {
         if (event.getEntityLiving().world.isRemote || event.getItem().getItem() != Items.CHORUS_FRUIT) return;
@@ -365,7 +365,7 @@ public final class WitherStormCombatEvents {
                 storm.makeDistracted(user.getPositionVector(), 80, head);
             }
         }
-        // 上游分裂体继承 WitherStormEntity；1.12 移植为独立实体，需显式覆盖同一继承语义。
+
         for (SupplementalEntities.WitherStormSegmentEntity segment : user.world.getEntitiesWithinAABB(
                 SupplementalEntities.WitherStormSegmentEntity.class, search)) {
             if (segment.isDeadOrPlayingDead()) continue;

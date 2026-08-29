@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-/** Optional Classic Bars compatibility: map Wither Sickness to its Withered Colors palette. */
+
 @Pseudo
 @Mixin(targets = "tfar.classicbar.overlays.vanillaoverlays.HealthRenderer", remap = false)
 public abstract class ClassicBarHealthRendererMixin {

@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * 其他模组可查询/扩展的牵引行为与方块簇来源注册表（1.12.2 语义）。
- */
+
+
+
 public final class WitherStormWorldInteractions {
 
     private static WitherStormWorldInteractions instance;
@@ -39,7 +39,7 @@ public final class WitherStormWorldInteractions {
         RegisterWorldInteractionsEvent defaults = new RegisterWorldInteractionsEvent();
         WitherStormModClusterInteractionEvents.registerClusterInteractions(defaults);
 
-        // 1.12 只有全局 Forge 总线；先独立收集内置内容，再让外部模组覆盖同名牵引行为。
+
         RegisterWorldInteractionsEvent external = new RegisterWorldInteractionsEvent();
         MinecraftForge.EVENT_BUS.post(external);
         Map<Class<? extends Entity>, WitherStormPullBehavior<?>> pullBehaviors =

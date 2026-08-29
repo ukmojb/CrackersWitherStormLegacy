@@ -20,10 +20,10 @@ import net.minecraftforge.event.ForgeEventFactory;
 
 import java.util.Random;
 
-/**
- * 可注册到 {@code WitherStormWorldInteractions} 的方块质量簇来源。
- * 搜索、取块和风暴追踪流程与上游一致，子类只决定各来源的参数和过滤规则。
- */
+
+
+
+
 public abstract class BlockClusterSource {
     protected final int maximumCreationAttempts;
 
@@ -88,9 +88,9 @@ public abstract class BlockClusterSource {
         return shouldNotCountToConsumedMass(storm);
     }
 
-    /**
-     * 旧 1.12 适配名保留为桥接，保证已经编译的附属来源仍可工作；新来源应覆写上游同名方法。
-     */
+
+
+
     @Deprecated
     protected boolean shouldNotCountToConsumedMass(WitherStormEntity storm) {
         return false;

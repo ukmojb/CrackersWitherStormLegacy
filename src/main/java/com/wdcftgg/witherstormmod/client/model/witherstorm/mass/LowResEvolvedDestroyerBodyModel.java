@@ -219,5 +219,3 @@ public class LowResEvolvedDestroyerBodyModel {
         return body;
     }
 }
-
-

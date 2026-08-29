@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/** Version-neutral rules shared by the main and support super beacons. */
+
 public final class SuperBeaconLogic {
     public static final int POWER_UP_ANIMATION_TIME = 80;
     public static final int POWER_UP_CLIMAX = 40;

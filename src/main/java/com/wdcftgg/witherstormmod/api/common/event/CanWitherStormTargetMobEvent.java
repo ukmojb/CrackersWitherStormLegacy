@@ -21,7 +21,7 @@ public class CanWitherStormTargetMobEvent extends WitherStormEvent {
         this.potentialTarget = potentialTarget;
     }
 
-    /** 返回实际发起选敌的主体或分裂体。 */
+
     public EntityLivingBase getTargetingEntity() {
         return targetingEntity;
     }

@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-/** 构造凋零风暴死亡时脱落的大型质量块和碎屑质量块。 */
+
 final class MassClusterBuilder {
     private static final ResourceLocation BOWELS_LOOT =
             new ResourceLocation(Tags.MOD_ID, "chests/bowels_general");

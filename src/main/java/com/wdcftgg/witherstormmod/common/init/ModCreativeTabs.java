@@ -17,10 +17,10 @@ public final class ModCreativeTabs {
             return new ItemStack(ModItems.get("formidi_blade"));
         }
 
-        /**
-         * 对齐上游：创造物品栏同时给出普通版与带标记 NBT 的升级版。
-         * 上游的升级版望远镜显示终极目标/前进方向/成长进度，升级版护身符追踪实体类型。
-         */
+
+
+
+
         @Override
         public void displayAllRelevantItems(NonNullList<ItemStack> items) {
             super.displayAllRelevantItems(items);

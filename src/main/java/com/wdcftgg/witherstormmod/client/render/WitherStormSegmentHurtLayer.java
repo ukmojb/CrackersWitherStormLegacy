@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
-/** Segment counterpart of the upstream per-head injury decal. */
+
 public final class WitherStormSegmentHurtLayer
         implements LayerRenderer<SupplementalEntities.WitherStormSegmentEntity> {
     private static final ResourceLocation HURT_OVERLAY = new ResourceLocation(Tags.MOD_ID,

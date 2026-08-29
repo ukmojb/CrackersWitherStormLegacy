@@ -12,7 +12,7 @@ import net.minecraft.world.World;
 
 import java.util.Random;
 
-/** 红石控制的病化尘土灯，保留上游按状态发光的语义。 */
+
 public class TaintedDustLampBlock extends Block {
 
     public static final PropertyBool POWERED = PropertyBool.create("powered");
@@ -24,7 +24,7 @@ public class TaintedDustLampBlock extends Block {
         setTranslationKey(name);
         setCreativeTab(ModCreativeTabs.MAIN);
         setHardness(1.2F);
-        // Cleanroom 1.12.2 将 setResistance 参数按 0.6 倍暴露给爆炸计算，传入 2.0 才对应上游 1.2。
+
         setResistance(2.0F);
         setHarvestLevel("pickaxe", 0);
         setSoundType(SoundType.STONE);

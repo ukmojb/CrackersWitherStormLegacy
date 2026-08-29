@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** 从玩家提供的上游 JAR 读取 4.2.1 内置贡献者名单。 */
+
 public final class Contributors {
     private static final String CONTRIBUTORS_CLASS =
             "nonamecrackers2/witherstormmod/client/util/Contributors.class";

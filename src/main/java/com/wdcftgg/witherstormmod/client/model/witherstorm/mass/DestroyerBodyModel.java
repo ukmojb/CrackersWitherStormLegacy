@@ -814,5 +814,3 @@ public class DestroyerBodyModel {
         return root.m_171599_("mass", builder0, PartPose.m_171419_((float)0.0f, (float)-15.0f, (float)0.0f));
     }
 }
-
-

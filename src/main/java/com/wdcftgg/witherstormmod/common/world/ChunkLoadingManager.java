@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/** 将上游区域票据语义映射到 1.12 Forge 的持久化区块票据。 */
+
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public final class ChunkLoadingManager implements ForgeChunkManager.LoadingCallback {
     private static final String MANAGED = "WitherStormLegacyManaged";
@@ -128,7 +128,7 @@ public final class ChunkLoadingManager implements ForgeChunkManager.LoadingCallb
         if (existingGroups != null) {
             for (TicketGroup group : existingGroups.values()) group.resume(now);
         }
-        // 每 tick 扫描（与上游检测机制一致）；风暴/分裂体/信标共用一次遍历
+
         List<Entity> entities = new ArrayList<Entity>(world.loadedEntityList);
         for (Entity entity : entities) {
             if (entity.isDead) continue;
@@ -210,7 +210,7 @@ public final class ChunkLoadingManager implements ForgeChunkManager.LoadingCallb
         }
     }
 
-    /** 供管理命令查询当前强加载分组摘要。 */
+
     public static List<String> describeGroups(WorldServer world) {
         List<String> lines = new ArrayList<String>();
         Map<String, TicketGroup> groups = INSTANCE.groupsByWorld.get(world);
@@ -241,7 +241,7 @@ public final class ChunkLoadingManager implements ForgeChunkManager.LoadingCallb
                 descriptions.add(describe(group,
                         UUID.fromString(group.key.substring("storm:".length()))));
             } catch (IllegalArgumentException ignored) {
-                // Only entity-backed storm groups use this prefix.
+
             }
         }
         Collections.sort(descriptions,
@@ -287,7 +287,7 @@ public final class ChunkLoadingManager implements ForgeChunkManager.LoadingCallb
         }
     }
 
-    /** 供管理命令强制刷新当前世界的全部强加载票据。 */
+
     public static void refresh(WorldServer world) {
         Map<String, TicketGroup> groups = INSTANCE.groupsByWorld.get(world);
         if (groups == null) return;

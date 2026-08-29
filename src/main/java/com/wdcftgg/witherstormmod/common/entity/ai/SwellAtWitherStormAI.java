@@ -5,7 +5,7 @@ import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.math.Vec3d;
 
-/** 让牵引光束中的原版苦力怕对凋零风暴头部膨胀。 */
+
 public final class SwellAtWitherStormAI extends EntityAIBase {
     private final EntityCreeper creeper;
     private WitherStormEntity storm;

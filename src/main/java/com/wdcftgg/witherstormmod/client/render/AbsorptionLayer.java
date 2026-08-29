@@ -9,9 +9,9 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 
-/**
- * 为拥有吸收值的生物绘制吸收护盾叠加层（上游 absorbtion.png 纹理）。
- */
+
+
+
 public class AbsorptionLayer implements LayerRenderer<EntityLivingBase> {
 
     private static final ResourceLocation TEXTURE =

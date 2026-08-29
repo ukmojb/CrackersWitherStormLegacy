@@ -7,9 +7,9 @@ import com.wdcftgg.witherstormmod.client.model.witherstorm.ModelBuilders.PartPos
 
 
 public class EvolvedDestroyerBodyModel {
-    /*
-     * Opcode count of 15557 triggered aggressive code reduction.  Override with --aggressivesizethreshold.
-     */
+
+
+
     public static PartDefinition createBodyModel(PartDefinition root, float texScale) {
         CubeDeformation def = new CubeDeformation(0.0f);
         CubeListBuilder builder0 = CubeListBuilder.m_171558_();
@@ -1053,5 +1053,3 @@ public class EvolvedDestroyerBodyModel {
         return root.m_171599_("mass", body, PartPose.m_171419_((float)0.0f, (float)-15.0f, (float)0.0f));
     }
 }
-
-

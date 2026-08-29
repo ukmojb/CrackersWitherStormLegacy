@@ -44,7 +44,7 @@ public class SimpleBlock extends Block {
         setSoundType(soundType);
     }
 
-    /** 将现代版直接抗性换算为 Cleanroom 1.12.2 的旧版参数。 */
+
     public static float toLegacyResistance(float modernResistance) {
         return modernResistance * (5.0F / 3.0F);
     }

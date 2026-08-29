@@ -8,7 +8,7 @@ import net.minecraft.entity.item.EntityEnderPearl;
 import net.minecraft.entity.projectile.EntityTippedArrow;
 import net.minecraft.item.ItemStack;
 
-/** Crossbow 1.2.0 ammo behavior matching the upstream crossbow injections. */
+
 public class EnderPearlCrossbowAmmo implements ICrossbowAmmo {
     @Override
     public boolean isHeldCrossbowAmmo(
@@ -32,7 +32,7 @@ public class EnderPearlCrossbowAmmo implements ICrossbowAmmo {
     public IProjectile createCrossbowProjectile(
             EntityLivingBase shooter, ItemStack crossbow, ItemStack ammunition) {
         if (!WitherStormConfig.crossbowsSupportEnderPearls) {
-            // Mirrors the upstream fallback after its pearl-specific firing injection is disabled.
+
             return new EntityTippedArrow(shooter.world, shooter);
         }
         return new EntityEnderPearl(shooter.world, shooter);

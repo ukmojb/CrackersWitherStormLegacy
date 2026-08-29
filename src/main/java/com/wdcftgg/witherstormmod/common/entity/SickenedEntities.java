@@ -463,7 +463,7 @@ public final class SickenedEntities {
         @Override protected boolean canDespawn() { return false; }
     }
 
-    /** 1.12 等价实现：保留上游 Bee 的授粉目标和花位状态。 */
+
     private static final class SickenedBeePollinateAI extends EntityAIBase {
         private final SickenedBeeEntity bee;
         private int pollinationTicks;
@@ -548,7 +548,7 @@ public final class SickenedEntities {
         }
     }
 
-    /** 还原病化蜜蜂的随机近身污染行为。 */
+
     private static final class SickenedBeeTaintAI extends EntityAIBase {
         private final SickenedBeeEntity bee;
         private int useTicks;
@@ -892,7 +892,7 @@ public final class SickenedEntities {
             }
         }
 
-        /** Mirrors the 1.12 creeper's potion-effect cloud after its explosion. */
+
         private void spawnLingeringCloud() {
             java.util.Collection<PotionEffect> effects = getActivePotionEffects();
             if (effects.isEmpty()) return;
@@ -1548,7 +1548,7 @@ public final class SickenedEntities {
         }
     }
 
-    /** 上游病化幻翼始终优先环绕 phase 3+ 且在视线内的风暴。 */
+
     private static final class OrbitWitherStormAI extends PhantomMoveTargetAI {
         private static final double SEARCH_RANGE = 100.0D;
 
@@ -1876,8 +1876,8 @@ public final class SickenedEntities {
         public SickenedPillagerEntity(World world) {
             super(world);
             setSize(0.6F, 1.95F);
-            // 上游腐化掠夺者继承原版掠夺者持弩；1.12 由必装的 Crossbow 模组提供弩物品，
-            // 注册表缺失时退回原版弓保证实体仍可生成。
+
+
             Item crossbow = ForgeRegistries.ITEMS.getValue(CROSSBOW_ID);
             setItemStackToSlot(EntityEquipmentSlot.MAINHAND,
                     new ItemStack(crossbow != null ? crossbow : Items.BOW));
@@ -1912,13 +1912,13 @@ public final class SickenedEntities {
             fireSickenedCrossbowBolt(this, target, distanceFactor);
         }
 
-        /** 主手是否持有 Crossbow 模组的弩物品。 */
+
         public boolean isHoldingCrossbow() {
             Item crossbow = ForgeRegistries.ITEMS.getValue(CROSSBOW_ID);
             return crossbow != null && getHeldItemMainhand().getItem() == crossbow;
         }
 
-        /** 是否处于开火前的 25 tick 蓄力姿态，同步到客户端模型。 */
+
         public boolean isCharging() {
             return dataManager.get(CHARGING);
         }
@@ -1972,8 +1972,8 @@ public final class SickenedEntities {
 
         private void setCombatTask() {
             if (world == null || world.isRemote) return;
-            // EntityLiving invokes initEntityAI from its constructor, before this
-            // subclass's fields are initialized. Recreate the retained goals here.
+
+
             if (rangedAttackGoal == null) {
                 rangedAttackGoal = new EntityAIAttackRangedBow<SickenedSkeletonEntity>(
                         this, 1.0D, 20, 15.0F);
@@ -3197,9 +3197,9 @@ public final class SickenedEntities {
         }
         @Override protected double getSickenedHealth() { return 80.0D; }
         @Override protected double getSickenedSpeed() { return 0.0D; }
-        // 上游触手属性只显式设置生命/跟随/击退抗性/护甲(12)/攻击击退(1.5)；
-        // ATTACK_DAMAGE 未覆写，保持原版 Monster 默认 2.0。此前把护甲 12.0
-        // 误映射为攻击伤害，导致挥打伤害是上游的 6 倍。
+
+
+
         @Override protected double getSickenedDamage() { return 2.0D; }
         @Override protected double getSickenedArmor() { return 12.0D; }
         @Override protected double getSickenedFollowRange() { return 8.0D; }
@@ -3217,7 +3217,7 @@ public final class SickenedEntities {
 
         @Override public void move(MoverType type, double x, double y, double z) { }
         @Override public void applyEntityCollision(Entity entityIn) { }
-        /** 现代版 isPushable=false 会跳过主体盒推挤；五段 multipart 仍各自执行上游碰撞。 */
+
         @Override protected void collideWithNearbyEntities() { }
         @Override public void knockBack(Entity entityIn, float strength, double xRatio, double zRatio) { }
         @Override public boolean canBePushed() { return false; }
@@ -3670,10 +3670,10 @@ public final class SickenedEntities {
 
             @Override
             protected AxisAlignedBB getTargetableArea(double targetDistance) {
-                // The arena's outer tentacles are anchored outside the normal
-                // root hitbox. Use the full reach of the structure appendage
-                // so players at the wall edge can still be selected and
-                // mounted by StrangleGoal.
+
+
+
+
                 double extraReach = tentacle.isCommandBlockStructureTentacle() ? 12.0D : 0.0D;
                 return tentacle.getEntityBoundingBox().grow(targetDistance + extraReach);
             }
@@ -3712,7 +3712,7 @@ public final class SickenedEntities {
         private int nextSpellPickCount;
         private int spellsUsed;
         private int smashAirTime;
-        /** 上游的特殊死亡计时；不能复用 deathTime，否则会触发 1.12 默认侧翻。 */
+
         private int specialDeathTime;
         private final List<EntityLivingBase> entitiesToThrow = new ArrayList<EntityLivingBase>();
         private final List<ItemStack> dropItems = new ArrayList<ItemStack>();
@@ -3780,10 +3780,10 @@ public final class SickenedEntities {
         @Override
         public void onLivingUpdate() {
             super.onLivingUpdate();
-            // 1.20 uses a conditional look controller: the symbiont may turn
-            // normally while active, but its head must stop tracking targets
-            // during the vulnerable/dead state. 1.12 has no conditional
-            // controller, so clear the look target after vanilla AI runs.
+
+
+
+
             if (isVulnerable() || isDead) {
                 getLookHelper().setLookPosition(posX, posY + getEyeHeight(), posZ, 30.0F, 30.0F);
                 rotationYawHead = renderYawOffset;
@@ -3821,11 +3821,11 @@ public final class SickenedEntities {
 
         @Override
         public boolean processInteract(EntityPlayer player, EnumHand hand) {
-            // Upstream explicitly rejects ordinary interaction with the boss.
+
             return false;
         }
 
-        /** Matches the upstream block particle kicked up by the symbiont while moving. */
+
         private void spawnMovementParticles() {
             if (motionX * motionX + motionY * motionY + motionZ * motionZ
                     <= 2.500000277905201E-7D || rand.nextInt(5) != 0) return;
@@ -3898,7 +3898,7 @@ public final class SickenedEntities {
             }
         }
 
-        /** Equivalent to the upstream combat TargetingConditions protection predicate. */
+
         private boolean isProtectionTarget(EntityPlayer player) {
             return player != null && player.isEntityAlive() && !player.isSpectator()
                     && !player.capabilities.disableDamage
@@ -4121,7 +4121,7 @@ public final class SickenedEntities {
             float before = getHealth();
             boolean result = super.attackEntityFrom(source, amount);
             if (result && reachesHalfHealth && getHealth() > halfHealth) {
-                // 1.12 在此后才应用护甲；归位到门槛，确保下一轮施法能解除半血锁。
+
                 setHealth(halfHealth);
             }
             if (result && before - getHealth() >= 5.0F && attacker instanceof EntityPlayer
@@ -4219,7 +4219,7 @@ public final class SickenedEntities {
             summonSupportMob(illagersOnly, 16);
         }
 
-        /** Matches the upstream shared summon helper's five-attempt search. */
+
         public void summonSupportMob(boolean illagersOnly, int diameter) {
             if (world.isRemote) return;
             SickenedMobEntity mob = createWeightedSupportMob(illagersOnly, shouldIncreaseDifficulty());
@@ -4564,7 +4564,7 @@ public final class SickenedEntities {
                 setSpell(savedSpell == null
                         ? SymbiontSpells.apiType(SymbiontSpells.Type.EMPTY) : savedSpell);
             } else {
-                // 迁移旧版以枚举 ordinal 保存的法术。
+
                 setSpell(SymbiontSpells.Type.byOrdinal(compound.getInteger("Spell")));
             }
             setSpellCastingTime(compound.getInteger("SpellCastingTicks"));
@@ -4711,7 +4711,7 @@ public final class SickenedEntities {
             @Override public boolean shouldExecute() { return entity.isVulnerable(); }
             @Override public boolean shouldContinueExecuting() { return entity.isVulnerable(); }
             @Override public void startExecuting() {
-                // 1.12 的目标切换不会总是重置刚被移除近战目标留下的导航路径。
+
                 entity.getNavigator().clearPath();
             }
             @Override public void updateTask() {
@@ -4799,7 +4799,7 @@ public final class SickenedEntities {
         fireSickenedArrow(shooter, target, distanceFactor, 0.0F);
     }
 
-    /** 弩式发射病化箭：初速 3.15、弹道更平，附魔与命中语义和弓版一致，播放弩射击声。 */
+
     private static void fireSickenedCrossbowBolt(SickenedMobEntity shooter, EntityLivingBase target,
                                                   float distanceFactor) {
         EntityTippedArrow arrow = new EntityTippedArrow(shooter.world, shooter);

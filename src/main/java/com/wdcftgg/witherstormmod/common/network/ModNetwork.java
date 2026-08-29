@@ -38,7 +38,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import java.util.HashSet;
 import java.util.Set;
 
-/** 将上游仅发往客户端的表现消息映射到 Forge 1.12 的 SimpleImpl 通道。 */
+
 public final class ModNetwork {
     public static final int SUPER_BEACON_RESUMMON_BURST = 0;
     public static final int SUPER_BEACON_ITEM_BURST = 1;
@@ -222,14 +222,14 @@ public final class ModNetwork {
         CHANNEL.sendToServer(new ClientWorldReadyMessage(dimension));
     }
 
-    /** 将服务端诊断日志模式同步给指定客户端。 */
+
     public static void syncDiagnosticLogging(EntityPlayerMP player) {
         if (player != null) {
             CHANNEL.sendTo(new DiagnosticLoggingMessage(StormDiagnosticLogger.isEnabled()), player);
         }
     }
 
-    /** 将服务端诊断日志模式同步给所有在线客户端。 */
+
     public static void syncDiagnosticLogging() {
         CHANNEL.sendToAll(new DiagnosticLoggingMessage(StormDiagnosticLogger.isEnabled()));
     }
@@ -315,7 +315,7 @@ public final class ModNetwork {
                 storm.world.provider.getDimension());
     }
 
-    /** Mirrors the upstream per-tick body-rotation packet used by all storm phases. */
+
     public static void syncWitherStormRotation(WitherStormEntity storm) {
         if (storm == null || storm.world == null || storm.world.isRemote) return;
         CHANNEL.sendToAllTracking(new WitherStormRotationMessage(storm.getEntityId(),
@@ -698,7 +698,7 @@ public final class ModNetwork {
         }
     }
 
-    /** 客户端完成 WorldClient 替换后，通知服务端重发可能提前到达的远距实体。 */
+
     public static final class ClientWorldReadyMessage implements IMessage {
         private int dimension;
 
@@ -745,7 +745,7 @@ public final class ModNetwork {
         }
     }
 
-    /** 服务端管理指令切换诊断模式时，同步更新客户端日志开关。 */
+
     public static final class DiagnosticLoggingMessage implements IMessage {
         private boolean enabled;
 
@@ -912,7 +912,7 @@ public final class ModNetwork {
         }
     }
 
-    /** One message represents exactly one server entity tick; it is never replayed. */
+
     public static final class CommandBlockTickParticlesMessage implements IMessage {
         private int entityId;
         private float particleSpeed;
@@ -1349,23 +1349,23 @@ public final class ModNetwork {
                 Vec3d look = player.getLook(1.0F);
                 Vec3d end = new Vec3d(eyes.x + look.x * reach,
                         eyes.y + look.y * reach, eyes.z + look.z * reach);
-                // Match the client interaction envelope. This is selection
-                // tolerance only; the entity remains a 1x1x1 physical core.
+
+
                 RayTraceResult coreHit = core.getInteractionBoundingBox()
                         .grow(Math.max(0.0D, core.getCollisionBorderSize()))
                         .calculateIntercept(eyes, end);
                 if (coreHit == null || coreHit.hitVec == null) return false;
 
-                // The upstream core rests exactly on the podium top. Allow that
-                // coplanar block hit, but reject a wall materially in front of it.
+
+
                 RayTraceResult blockHit = player.world.rayTraceBlocks(eyes, end, false, true, false);
                 if (blockHit == null || blockHit.hitVec == null
                         || eyes.distanceTo(blockHit.hitVec) + 0.35D
                         >= eyes.distanceTo(coreHit.hitVec)) return true;
 
-                // A podium block can be the first 1.12 ray hit even while the
-                // ribcage/core is visibly selected. Allow that local overlap,
-                // but keep ordinary walls in front of the core authoritative.
+
+
+
                 BlockPos blockPos = blockHit.getBlockPos();
                 return blockPos != null && core.getInteractionBoundingBox()
                         .intersects(new AxisAlignedBB(blockPos));
@@ -1395,9 +1395,9 @@ public final class ModNetwork {
         @Override
         public void fromBytes(ByteBuf buffer) {
             entityId = buffer.readInt();
-            // UpdateDamagingProjectile was inserted immediately before
-            // HeadAttacked. Older multiplayer servers therefore send the old
-            // five-byte HeadAttacked payload under this discriminator.
+
+
+
             if (buffer.readableBytes() == 1) {
                 legacyHead = buffer.readUnsignedByte();
                 return;

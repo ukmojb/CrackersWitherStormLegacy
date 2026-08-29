@@ -70,8 +70,8 @@ public class WitherStormMod {
             String path = "assets/minecraft/textures/gui/title/background/panorama_" + face + ".png";
             panoramaAssets.put(path, path);
         }
-        // Keep Mojang's vanilla faces outside this JAR; AssetMover downloads them
-        // into its own resource pack during construction, before preInit reloads assets.
+
+
         AssetMoverAPI.fromMinecraft("1.20.1", panoramaAssets);
     }
 
@@ -80,7 +80,7 @@ public class WitherStormMod {
             serverSide = "com.wdcftgg.witherstormmod.common.proxy.CommonProxy")
     public static CommonProxy proxy;
 
-    /** Matches the upstream date gate shared by April Fools client effects. */
+
     public static boolean isAprilFools() {
         LocalDate date = LocalDate.now();
         return date.getMonthValue() == 4 && date.getDayOfMonth() == 1;

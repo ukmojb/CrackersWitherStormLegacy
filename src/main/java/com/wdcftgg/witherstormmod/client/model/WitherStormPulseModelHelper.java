@@ -11,7 +11,7 @@ import net.minecraft.entity.Entity;
 
 import java.util.Random;
 
-/** Shared 1.12 model-space implementation of the upstream storm pulse cubes. */
+
 final class WitherStormPulseModelHelper {
     private static final ModelRenderer PULSE_TEXTURE_OWNER;
 
@@ -110,7 +110,7 @@ final class WitherStormPulseModelHelper {
         int zSize = (int) (maximumZ - minimumZ);
         if (xSize <= 0 || ySize <= 0 || zSize <= 0) return new float[]{x, y, z};
         int direction = random.nextInt(6);
-        // 1.20 Direction order: DOWN, UP, NORTH, SOUTH, WEST, EAST.
+
         if (direction < 2) {
             x += random.nextInt(xSize);
             y = direction == 0 ? minimumY : maximumY - 1.0F;
@@ -134,7 +134,7 @@ final class WitherStormPulseModelHelper {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
         GlStateManager.color(1.0F, 1.0F, 1.0F, alpha);
-        // ModelBox delegates each face to TexturedQuad, which owns begin/draw in 1.12.
+
         pulse.render(buffer, scale);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }

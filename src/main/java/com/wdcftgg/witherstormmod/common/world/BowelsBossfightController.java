@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
-/** Bowels command block 的完整 19 阶段服务端状态机。 */
+
 public final class BowelsBossfightController {
     private static final int PODIUM_MOVE_TICKS = 100;
     private static final double PODIUM_MOVE_PER_TICK = 0.05D;
@@ -136,10 +136,10 @@ public final class BowelsBossfightController {
         }
         if (!hurt) return false;
 
-        // Striking the core is an explicit upstream hazard. Push the attacker
-        // away from the command block after every accepted hit; relying on the
-        // generic entity damage path loses this because the core damage is
-        // handled by the phase controller above it.
+
+
+
+
         Entity attacker = source == null ? null : source.getTrueSource();
         if (attacker instanceof EntityLivingBase) {
             double dx = attacker.posX - core.posX;
@@ -219,8 +219,8 @@ public final class BowelsBossfightController {
         return instance != null && !instance.completed && instance.bossPhase == 17;
     }
 
-    /** Includes the post-resolution tail; upstream keeps the entity alive
-     * until the full 240-tick command-block death sequence has elapsed. */
+
+
     public static boolean isDeathSequence(SupplementalEntities.CommandBlockEntity core) {
         if (core == null || core.world.isRemote || !(core.world instanceof WorldServer)) return false;
         BowelsInstanceData.Instance instance = BowelsInstanceData.get((WorldServer) core.world)
@@ -239,7 +239,7 @@ public final class BowelsBossfightController {
         if (instance.commandBlockUuid != null
                 && !instance.commandBlockUuid.equals(core.getUniqueID())) return;
         core.applyBowelsPodiumLiftPose(getExpectedCoreY(instance));
-        // 重载只恢复结构状态，不重放白屏/震动/音效等瞬态阶段效果。
+
         initPhase(world, core, instance, instance.bossPhase, true);
         INITIALIZED_PHASES.put(core, instance.bossPhase);
     }
@@ -254,7 +254,7 @@ public final class BowelsBossfightController {
         INITIALIZED_PHASES.remove(core);
     }
 
-    /** Repairs worlds completed by builds where the terminal 1.12 damage was rejected. */
+
     public static boolean reconcileCompletedDeath(WitherStormEntity storm) {
         if (storm == null || storm.world.isRemote || storm.isDead || storm.getHealth() <= 0.0F
                 || storm.world.getMinecraftServer() == null) return false;
@@ -329,8 +329,8 @@ public final class BowelsBossfightController {
             case 17:
                 if (!restored) {
                     ModNetwork.shakeTracking(core, 240.0F, 14.0F);
-                    // Keep the command-block break flash readable without hiding
-                    // the HUD for the entire death transition.
+
+
                     ModNetwork.blindTracking(core, 80, 20, 40);
                     play(world, core, "loud_tremble", SoundCategory.AMBIENT, 5.0F);
                     play(world, core, "bowels_loud_hurt", SoundCategory.HOSTILE, 5.0F);
@@ -357,12 +357,12 @@ public final class BowelsBossfightController {
     private static void tickPhase(WorldServer world, SupplementalEntities.CommandBlockEntity core,
                                   BowelsInstanceData.Instance instance, int phase, int ticks) {
         if (phase == 2 || phase == 7 || phase == 13) {
-            // Keep the core and the captured podium on one authoritative
-            // absolute height.  Using Entity.move() for the core and motionY
-            // for the cluster lets 1.12 collision resolution stop the core on
-            // later lifts (most visibly the third hit).  The upstream pair is
-            // visually rigid, so both positions must be derived from the same
-            // phase clock every tick.
+
+
+
+
+
+
             core.applyBowelsPodiumLiftPose(getExpectedCoreY(instance, phase, ticks));
         } else if (phase == 4 && ticks % 8 == 0) {
             spawnWaveMob(world, core, WAVE_1, 2.0D);
@@ -717,9 +717,9 @@ public final class BowelsBossfightController {
         for (int attempt = 0; attempt < attempts; attempt++) {
             int x = start.getX() + core.getRNG().nextInt(diameter) - diameter / 2;
             int z = start.getZ() + core.getRNG().nextInt(diameter) - diameter / 2;
-            // 上游 getRandomNearbyPos 从核心高度出发，向下最多 30 格寻找脚下有
-            // 实心方块的地板，不使用世界高度图。肠道维度由 0~255 的硬化肉填充，
-            // 高度图会直接指向世界顶部，导致生物生成在维度最顶端。
+
+
+
             BlockPos cursor = new BlockPos(x, start.getY(), z);
             for (int down = 0; down < 30 && world.isAirBlock(cursor.down()); down++) {
                 cursor = cursor.down();

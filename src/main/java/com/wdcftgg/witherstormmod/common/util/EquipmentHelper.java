@@ -12,12 +12,12 @@ import net.minecraft.world.DifficultyInstance;
 
 import java.util.Random;
 
-/** 复现上游肠道波次怪物的加权护甲选择。 */
+
 public final class EquipmentHelper {
     private static final WeightedItem[] HELMETS = {
             item(Items.AIR, 15), item(Items.LEATHER_HELMET, 25), item(Items.CHAINMAIL_HELMET, 20),
             item(Items.GOLDEN_HELMET, 15), item(Items.IRON_HELMET, 10), item(Items.DIAMOND_HELMET, 5),
-            // 1.12.2 没有海龟壳头盔，以同阶皮革头盔保留其极低权重槽位。
+
             item(Items.LEATHER_HELMET, 1)
     };
     private static final WeightedItem[] ADVANCED_HELMETS = append(HELMETS,
@@ -64,7 +64,7 @@ public final class EquipmentHelper {
                                       boolean useAdvanced) {
         if (mob == null || difficulty == null || !canWearArmor(mob)) return;
         equip(mob, EntityEquipmentSlot.HEAD, useAdvanced ? ADVANCED_HELMETS : HELMETS, difficulty);
-        // 上游普通难度的胸甲和护腿实际误用了头盔池；这里保留发布版本的行为。
+
         equip(mob, EntityEquipmentSlot.CHEST, useAdvanced ? ADVANCED_CHESTPLATES : HELMETS, difficulty);
         equip(mob, EntityEquipmentSlot.LEGS, useAdvanced ? ADVANCED_LEGGINGS : HELMETS, difficulty);
         equip(mob, EntityEquipmentSlot.FEET, useAdvanced ? ADVANCED_BOOTS : BOOTS, difficulty);

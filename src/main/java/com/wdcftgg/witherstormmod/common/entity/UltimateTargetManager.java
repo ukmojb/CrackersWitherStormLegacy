@@ -30,13 +30,13 @@ import java.util.UUID;
 import java.util.ArrayList;
 import java.util.Collections;
 
-/**
- * 负责保存 Wither Storm 的长期追逐状态。
- *
- * 1.20 版本把这部分拆成了 UltimateTargetManager、若干事件和配置。1.12
- * 没有同等的目标系统，因此这里将目标选择、停滞计时、随机游走和终末洞
- * 触发合并成一个可序列化的服务对象，避免每个 tick 重新丢失状态。
- */
+
+
+
+
+
+
+
 public final class UltimateTargetManager {
 
     public enum DistractionReason { FINISHED_CHASING, FINISHED_CHASING_DELAYED, TIRED_OF_CHASING, FORCED }
@@ -642,7 +642,7 @@ public final class UltimateTargetManager {
     public Vec3d getMovementTargetPos() {
         if (distracted && distractedPos != null) return new Vec3d(distractedPos);
         if (randomStrollPos != null) return new Vec3d(randomStrollPos);
-        // alternativeUltimateTarget 是上一个目标或随机游走的缓存点；没有当前目标时不能继续把它当作追逐点。
+
         if (ultimateTarget == null && blockTargetOverride == null) return null;
         return getUltimateTargetPos();
     }

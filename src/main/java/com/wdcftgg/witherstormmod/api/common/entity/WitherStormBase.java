@@ -7,9 +7,9 @@ import net.minecraft.util.math.Vec3d;
 
 import javax.annotation.Nullable;
 
-/**
- * 供其他模组读取/操控大型凋零风暴的公共接口（1.12.2 语义）。
- */
+
+
+
 public interface WitherStormBase {
 
     enum DistractionType {

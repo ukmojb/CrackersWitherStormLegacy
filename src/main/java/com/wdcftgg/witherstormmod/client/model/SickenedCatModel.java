@@ -14,21 +14,21 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public class SickenedCatModel extends ModelBase
 {
-    /** The back left leg model for the Ocelot. */
+
     private final ModelRenderer ocelotBackLeftLeg;
-    /** The back right leg model for the Ocelot. */
+
     private final ModelRenderer ocelotBackRightLeg;
-    /** The front left leg model for the Ocelot. */
+
     private final ModelRenderer ocelotFrontLeftLeg;
-    /** The front right leg model for the Ocelot. */
+
     private final ModelRenderer ocelotFrontRightLeg;
-    /** The tail model for the Ocelot. */
+
     private final ModelRenderer ocelotTail;
-    /** The second part of tail model for the Ocelot. */
+
     private final ModelRenderer ocelotTail2;
-    /** The head model for the Ocelot. */
+
     private final ModelRenderer ocelotHead;
-    /** The body model for the Ocelot. */
+
     private final ModelRenderer ocelotBody;
     private int state = 1;
 
@@ -68,9 +68,9 @@ public class SickenedCatModel extends ModelBase
         this.ocelotFrontRightLeg.setRotationPoint(-1.2F, 13.8F, -5.0F);
     }
 
-    /**
-     * Sets the models various rotation angles then renders the model.
-     */
+
+
+
     public void render(Entity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale)
     {
         this.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale, entityIn);
@@ -108,11 +108,11 @@ public class SickenedCatModel extends ModelBase
         }
     }
 
-    /**
-     * Sets the model's various rotation angles. For bipeds, par1 and par2 are used for animating the movement of arms
-     * and legs, where par1 represents the time(so that arms and legs swing back and forth) and par2 represents how
-     * "far" arms and legs can swing at most.
-     */
+
+
+
+
+
     public void setRotationAngles(float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entityIn)
     {
         this.ocelotHead.rotateAngleX = headPitch * 0.017453292F;
@@ -149,10 +149,10 @@ public class SickenedCatModel extends ModelBase
         }
     }
 
-    /**
-     * Used for easily adding entity-dependent animations. The second and third float params here are the same second
-     * and third as in the setRotationAngles method.
-     */
+
+
+
+
     public void setLivingAnimations(EntityLivingBase entitylivingbaseIn, float limbSwing, float limbSwingAmount, float partialTickTime)
     {
         SickenedEntities.SickenedCatEntity entityocelot = (SickenedEntities.SickenedCatEntity) entitylivingbaseIn;

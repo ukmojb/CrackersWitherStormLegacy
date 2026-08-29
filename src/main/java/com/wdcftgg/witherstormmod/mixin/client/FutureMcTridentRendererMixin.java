@@ -4,7 +4,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-/** Keeps directional lighting enabled for FutureMC's primary trident model pass. */
+
 @Mixin(targets = "thedarkcolour.futuremc.entity.trident.RenderTrident", remap = false)
 public abstract class FutureMcTridentRendererMixin {
     @Redirect(

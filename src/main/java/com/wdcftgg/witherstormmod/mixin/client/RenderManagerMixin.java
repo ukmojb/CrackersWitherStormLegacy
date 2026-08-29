@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** 对应上游 EntityRenderDispatcher mixin，补绘风暴的复合调试命中箱。 */
+
 @Mixin(RenderManager.class)
 public abstract class RenderManagerMixin {
 

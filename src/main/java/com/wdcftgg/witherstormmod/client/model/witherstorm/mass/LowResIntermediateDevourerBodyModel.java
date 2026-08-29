@@ -373,5 +373,3 @@ public class LowResIntermediateDevourerBodyModel {
         return body;
     }
 }
-
-

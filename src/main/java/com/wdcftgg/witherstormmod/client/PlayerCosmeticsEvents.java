@@ -17,7 +17,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import org.lwjgl.opengl.GL11;
 
-/** 复刻上游贡献者玩家周围的旋转方块装饰。 */
+
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID, value = Side.CLIENT)
 public final class PlayerCosmeticsEvents {
     private PlayerCosmeticsEvents() {

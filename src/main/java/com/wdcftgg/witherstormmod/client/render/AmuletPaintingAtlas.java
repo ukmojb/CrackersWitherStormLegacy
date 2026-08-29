@@ -13,10 +13,10 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-/**
- * 1.12 的画作渲染器固定从 256x256 画作图集取样；本类把外部上游的 amulet.png
- * 在运行时缩入图集左上角 16x32 区域，让原版 UV 计算直接命中正确区域。
- */
+
+
+
+
 public final class AmuletPaintingAtlas {
 
     public static final ResourceLocation ATLAS = new ResourceLocation(Tags.MOD_ID,

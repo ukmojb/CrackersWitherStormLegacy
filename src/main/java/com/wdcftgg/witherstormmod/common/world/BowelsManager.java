@@ -34,8 +34,8 @@ import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public final class BowelsManager {
-    /** 上游 WitherStormBowelsManager 的 NORTH_HEAD_POS/SOUTH_HEAD_POS 常量，
-     * Y 分量由 instance.getArenaHeadY() 按网络锚点换算。 */
+
+
     private static final BlockPos[] HEAD_OFFSETS = {
             new BlockPos(-2, 0, 27), new BlockPos(-3, 0, -23)
     };
@@ -119,7 +119,7 @@ public final class BowelsManager {
         }
     }
 
-    /** 上游掉出后返回风暴当前坐标上方 5 格（而非首次进入时的旧锚点），风暴缺失时回退出生点。 */
+
     private static BlockPos getLeaveDestination(MinecraftServer server,
                                                 @Nullable BowelsInstanceData.Instance instance) {
         WorldServer overworld = server.getWorld(0);
@@ -175,7 +175,7 @@ public final class BowelsManager {
         boolean maintainArena = WitherStormConfig.shouldChunkLoadWhenNoPlayers
                 || !world.playerEntities.isEmpty();
         for (BowelsInstanceData.Instance instance : data.getInstances()) {
-            // 无玩家时区块票据已按配置暂停，不应由周期维护立刻把核心区块重新加载。
+
             if (!maintainArena) continue;
             if (instance.needsCoordinateMigration()) migrateLegacyArena(world, data, instance);
             if (!instance.completed && instance.prepared && world.getTotalWorldTime() % 20L == 0L) {
@@ -185,10 +185,10 @@ public final class BowelsManager {
         }
         for (Entity entity : new ArrayList<Entity>(event.world.loadedEntityList)) {
             if (entity.isDead) continue;
-            // The generated arena is centered at Y=96. A player can leave
-            // through a side opening without ever crossing the old Y=50 void
-            // threshold, so also treat positions outside the instance's
-            // horizontal bounds as an exit.
+
+
+
+
             BowelsInstanceData.Instance instance = data.findContaining(entity.getPosition());
             boolean belowArena = entity.posY < 50.0D;
             boolean outsideArena = entity instanceof EntityPlayerMP
@@ -213,8 +213,8 @@ public final class BowelsManager {
         if (instance.needsCoordinateMigration()) migrateLegacyArena(world, data, instance);
         if (!instance.prepared) {
             if (StructureTemplates.placeBowelsNetwork(world, instance.center, world.rand)) {
-                // 新版网络按上游起始块原点 Y=100 放置；旧存档无此字段时保持旧锚点 88，
-                // 墙头按各自锚点 +28 修复，避免旧网络中的头部被埋入墙内。
+
+
                 instance.networkBaseY = 100;
             }
             BlockPos arena = instance.getArenaPosition();
@@ -366,8 +366,8 @@ public final class BowelsManager {
         }
         SupplementalEntities.WitherStormHeadEntity nearest = null;
         double nearestDistance = Double.MAX_VALUE;
-        // 旧存档头部曾按锚点 88 + 128 生成，与新凹槽高度最多相差 12 格；
-        // 扩大搜索范围并只修复位置，避免再次生成重复头实体。
+
+
         for (SupplementalEntities.WitherStormHeadEntity candidate : world.getEntitiesWithinAABB(
                 SupplementalEntities.WitherStormHeadEntity.class,
                 new AxisAlignedBB(expectedPosition).grow(16.0D))) {
@@ -382,8 +382,8 @@ public final class BowelsManager {
         return nearest;
     }
 
-    /** 旧存档头部位置修复：与上游 EntityType.spawn(alignPosition=false) 一样，
-     * 实体水平中心精确落在方块角点，不再额外 +0.5。 */
+
+
     private static void snapArenaHead(SupplementalEntities.WitherStormHeadEntity head,
                                       BlockPos expectedPosition) {
         double targetX = expectedPosition.getX();
@@ -398,7 +398,7 @@ public final class BowelsManager {
         head.prevPosZ = targetZ;
     }
 
-    /** Restores the fixed body anchor established by upstream spawnHeads(). */
+
     private static void repairArenaHeadOrientation(
             SupplementalEntities.WitherStormHeadEntity head, int index, Rotation rotation) {
         float bodyYaw = rotationYaw(rotation) + (index == 0 ? 180.0F : 0.0F);
@@ -502,8 +502,8 @@ public final class BowelsManager {
             WorldServer world, BlockPos position, int index, Rotation rotation) {
         SupplementalEntities.WitherStormHeadEntity head = new SupplementalEntities.WitherStormHeadEntity(world);
         head.setIndependentBowelsPart();
-        // 上游 EntityType.spawn(alignPosition=false) 把实体水平中心放在方块角点，
-        // 不额外 +0.5；凹槽按墙面几何贴合。
+
+
         head.setPosition(position.getX(), position.getY(), position.getZ());
         head.onInitialSpawn(world.getDifficultyForLocation(position), null);
         head.setActive(false);
@@ -620,7 +620,7 @@ public final class BowelsManager {
         }
     }
 
-    /** 本移植的肠道主结构固定为 NONE；对应上游 createCommandBlock 的 rotation + 90。 */
+
     private static void alignBowelsCoreRotation(SupplementalEntities.CommandBlockEntity core) {
         float yaw = 90.0F;
         core.prevRotationYaw = core.rotationYaw = yaw;

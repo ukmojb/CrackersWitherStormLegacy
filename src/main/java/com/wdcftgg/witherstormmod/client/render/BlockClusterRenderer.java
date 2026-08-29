@@ -59,9 +59,9 @@ public class BlockClusterRenderer extends Render<SupplementalEntities.BlockClust
     public void doRender(SupplementalEntities.BlockClusterEntity entity, double x, double y, double z,
                          float entityYaw, float partialTicks) {
         if (entity.getBlocks().isEmpty()) return;
-        // Render from the cluster's client-owned interpolation instead of the
-        // raw EntityTracker sample supplied by RenderManager. This is the
-        // positional counterpart of the storm body's getBodyYRotation path.
+
+
+
         double trackedX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
         double trackedY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
         double trackedZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
@@ -372,7 +372,7 @@ public class BlockClusterRenderer extends Render<SupplementalEntities.BlockClust
 
         @Override
         public int getCombinedLight(BlockPos position, int lightValue) {
-            // 上游在无着色器时将方块簇作为全亮实体渲染，避免簇内面受世界光照/区块状态影响。
+
             return 15728880;
         }
 

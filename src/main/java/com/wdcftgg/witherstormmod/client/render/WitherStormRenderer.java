@@ -154,15 +154,15 @@ public class WitherStormRenderer extends RenderLiving<WitherStormEntity> {
             model.render(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch,
                     scaleFactor);
         } finally {
-            // 恢复到进入时的深度函数与 alpha test，而不是硬编码 LEQUAL/GREATER；
-            // 死亡风暴之后的实体通道继续使用原值，异常路径也不会污染后续渲染。
+
+
             GlStateManager.depthFunc(previousDepthFunc);
             GlStateManager.alphaFunc(previousAlphaFunc, previousAlphaReference);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 
-    /** 1.12 等价“远距离”判定：超出上游远距离雾阈值（200 * 渲染距离/16）。 */
+
     public static boolean isDistantStorm(Entity entity) {
         Minecraft minecraft = Minecraft.getMinecraft();
         if (minecraft.player == null || minecraft.world == null) return false;
@@ -185,8 +185,8 @@ public class WitherStormRenderer extends RenderLiving<WitherStormEntity> {
     @Override
     protected void applyRotations(WitherStormEntity entity, float ageInTicks,
                                   float rotationYaw, float partialTicks) {
-        // RenderLivingBase's rotationYaw can still be the tracker sample. Use the
-        // body-specific interpolation fed by the upstream-style rotation packet.
+
+
         GlStateManager.rotate(180.0F - entity.getBodyYRotation(partialTicks), 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(entity.getBodyXRotation(partialTicks), 1.0F, 0.0F, 0.0F);
     }
@@ -197,8 +197,8 @@ public class WitherStormRenderer extends RenderLiving<WitherStormEntity> {
         if (!WitherStormClientConfig.renderDistantDebris && isDistantStorm(entity)) return;
         GlStateManager.pushMatrix();
         GlStateManager.translate(x, y, z);
-        // Upstream samples orbiting debris cubes from the active body texture; debris_ring is
-        // reserved for the large conical rings rendered in RenderWorldLastEvent.
+
+
         bindTexture(getBaseTexture(entity));
         GlStateManager.enableTexture2D();
         GlStateManager.enableCull();
@@ -403,13 +403,13 @@ public class WitherStormRenderer extends RenderLiving<WitherStormEntity> {
                     WitherStormResourceConfigManager.INSTANCE
                             .getTextureSetByPhase(entity.getPhase()).getDebrisRing());
             GlStateManager.disableLighting();
-            // 1.12 的全局 GL 状态缓存可能与实际剔除状态失步。每个面只提交一次并让它
-            // 双向可见，等价于上游两套反向顶点中每次只通过一套，且不会重复混合。
+
+
             GlStateManager.disableCull();
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GlStateManager.enableDepth();
-            // A repeated translucent world pass must not blend the same ring pixels again.
+
             GlStateManager.depthFunc(GL11.GL_LESS);
             GlStateManager.depthMask(true);
 
@@ -446,8 +446,8 @@ public class WitherStormRenderer extends RenderLiving<WitherStormEntity> {
             GlStateManager.depthFunc(previousDepthFunc);
             GlStateManager.disableBlend();
             GlStateManager.enableCull();
-            // RenderWorldLast starts with lighting disabled. Leaving it enabled makes the
-            // next frame black when spectator/F1 skips first-person item rendering.
+
+
             GlStateManager.disableLighting();
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.popMatrix();
@@ -535,7 +535,7 @@ public class WitherStormRenderer extends RenderLiving<WitherStormEntity> {
         }
     }
 
-    /** 上游风暴死亡时的线框四面体粒子（WitherStormRenderer.render 死亡特效）。 */
+
     static void renderDeathWireframe(int deathTime, float unmodifiedHeight, double x, double y,
                                      double z, float partialTicks) {
         float f1 = (deathTime + partialTicks) / 200.0F;

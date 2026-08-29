@@ -7,7 +7,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ResourceLocation;
 
-/** Resolves the configured block overrides before the external upstream blacklist. */
+
 public final class WitherStormBlockRules {
     private static final byte UNKNOWN = 0;
     private static final byte DENIED = 1;

@@ -7,7 +7,7 @@ import net.minecraft.util.text.TextComponentTranslation;
 
 import java.util.List;
 
-/** 超级信标合成物品分类。 */
+
 public final class SuperBeaconItemCraftingCategory
         extends AbstractSuperBeaconCategory<SuperBeaconItemCraftingRecipeWrapper> {
 

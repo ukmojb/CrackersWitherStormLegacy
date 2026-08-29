@@ -2,7 +2,7 @@ package com.wdcftgg.witherstormmod.common.config;
 
 import java.util.Locale;
 
-/** Matches the compact exact/namespace-wildcard lists used by the server config. */
+
 public final class ConfiguredListMatcher {
     private ConfiguredListMatcher() {
     }

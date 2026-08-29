@@ -9,7 +9,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.opengl.GL11;
 
-/** The command-block-form energy shield shown during the early armored state. */
+
 public final class WitherStormArmorLayer implements LayerRenderer<WitherStormEntity> {
     private static final ResourceLocation WITHER_ARMOR =
             new ResourceLocation("textures/entity/wither/wither_armor.png");

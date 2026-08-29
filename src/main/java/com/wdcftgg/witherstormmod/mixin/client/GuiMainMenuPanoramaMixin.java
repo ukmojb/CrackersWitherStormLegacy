@@ -12,13 +12,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** 1.12.2 equivalent of the upstream title-screen panorama override. */
+
 @Mixin(GuiMainMenu.class)
 public abstract class GuiMainMenuPanoramaMixin {
     private static final ResourceLocation CUSTOM_PANORAMA = new ResourceLocation(Tags.MOD_ID,
             "textures/gui/title/background/panorama_0.png");
 
-    /** Update the static six-face array before GuiMainMenu renders its first frame. */
+
     @Inject(method = "initGui", at = @At("HEAD"))
     private void witherstormmod$syncPanoramaBeforeRender(CallbackInfo callback) {
         PanoramaCustomizer.sync();

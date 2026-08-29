@@ -46,7 +46,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-/** 将上游的凋零风暴通用生物 AI 注入到 1.12.2 对应生物。 */
+
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public final class WitherStormMobEvents {
     private static final Set<EntityCreature> INJECTED_ENTITIES =
@@ -77,14 +77,14 @@ public final class WitherStormMobEvents {
             creature.tasks.addTask(0, new AvoidWitherStormAI(creature, 300.0F, 1.55D, 1.55D));
         }
         if (creature instanceof EntityVillager) {
-            // 上游村民通过 WitherStormPanicTrigger 专用脑行为恐慌逃离，1.12 以独立 AI 等效
+
             creature.tasks.addTask(0, new VillagerPanicAI((EntityVillager) creature));
         }
         if (canAttackWitherStormBack(creature)) {
             creature.targetTasks.addTask(0, new NearestAttackingWitherStormAI(creature, 10));
         }
         if (creature instanceof EntityCreeper) {
-            // 原版 EntityAICreeperSwell 使用 2；提高优先级后才能稳定拦截其状态更新。
+
             creature.tasks.addTask(1, new SwellAtWitherStormAI((EntityCreeper) creature));
         }
         if (canAttackSickenedMobs(creature)) {
@@ -97,7 +97,7 @@ public final class WitherStormMobEvents {
         AvoidWitherStormAI.clearWorldCache(event.getWorld());
     }
 
-    /** 原版及病化骷髅箭生成后沿用上游的光束头部瞄准轨迹。 */
+
     private static void redirectSkeletonArrow(Entity entity) {
         if (!(entity instanceof EntityArrow)) return;
         EntityArrow arrow = (EntityArrow) entity;

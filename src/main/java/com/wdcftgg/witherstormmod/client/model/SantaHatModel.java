@@ -4,7 +4,7 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
-/** 上游 64x64 父子骨骼圣诞帽的 1.12 ModelRenderer 等价实现。 */
+
 public class SantaHatModel extends ModelBase {
 
     private final ModelRenderer base;

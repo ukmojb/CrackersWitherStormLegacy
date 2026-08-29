@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
-/** Emissive eyes layer matching the upstream normal, hurt and inactive textures. */
+
 public final class WitherStormHeadEyesLayer implements LayerRenderer<SupplementalEntities.WitherStormHeadEntity> {
     private static final ResourceLocation EMISSIVE = new ResourceLocation(Tags.MOD_ID,
             "textures/entity/wither_storm_head/wither_storm_head_emissive.png");
@@ -32,9 +32,9 @@ public final class WitherStormHeadEyesLayer implements LayerRenderer<Supplementa
         int previousDepthFunc = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
         boolean previousLighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
         if (additive) {
-            // RenderType.eyes does not override the default LEQUAL depth test.
-            // EQUAL drops coplanar fragments after 1.12's fixed-pipeline transforms,
-            // which made the eyes disappear and left only fragments of the teeth.
+
+
+
             GlStateManager.enableBlend();
             GlStateManager.disableAlpha();
             GlStateManager.disableCull();
@@ -49,9 +49,9 @@ public final class WitherStormHeadEyesLayer implements LayerRenderer<Supplementa
             GlStateManager.enableCull();
             GlStateManager.depthMask(true);
         }
-        // RenderType.eyes ignores the lightmap in 1.20.  The 1.12 fixed pipeline
-        // still multiplies by it, so active eyes need full block and sky light.
-        // The inactive entity-cutout branch keeps upstream packed light 0xF00000.
+
+
+
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                 additive ? 240.0F : 0.0F, 240.0F);
         try {

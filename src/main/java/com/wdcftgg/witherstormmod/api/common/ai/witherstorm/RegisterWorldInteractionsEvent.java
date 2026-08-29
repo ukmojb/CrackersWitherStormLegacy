@@ -10,9 +10,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 模组加载期事件：向 WitherStormWorldInteractions 注册牵引行为与方块簇来源。
- */
+
+
+
 public class RegisterWorldInteractionsEvent extends Event {
 
     protected final Map<Class<? extends Entity>, WitherStormPullBehavior<?>> pullBehaviors;

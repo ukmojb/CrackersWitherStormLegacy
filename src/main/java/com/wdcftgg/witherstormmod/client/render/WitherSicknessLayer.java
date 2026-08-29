@@ -12,7 +12,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 
-/** 上游 WitherSicknessLayer：给感染/治疗中的生物叠加半透明病化覆盖层。 */
+
 public final class WitherSicknessLayer<T extends EntityLivingBase, M extends ModelBase>
         implements LayerRenderer<T> {
 

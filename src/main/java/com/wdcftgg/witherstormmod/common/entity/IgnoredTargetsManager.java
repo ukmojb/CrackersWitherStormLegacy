@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-/** 管理风暴暂时忽略的实体，以及活跃 Formidibomb 和共生体周围的目标保护区。 */
+
 public final class IgnoredTargetsManager {
     private static final int DEFAULT_IGNORE_TICKS = 80;
     private static final double FORMIDIBOMB_RESTRICTION_RADIUS = 20.0D;

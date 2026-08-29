@@ -64,11 +64,11 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
-/**
- * 1.12.2 execution layer for the upstream symbiont spell registry.  The spell
- * timings and selection weights intentionally match 4.2.1. Modern projectiles
- * supplied by the required FutureMC dependency are used directly.
- */
+
+
+
+
+
 public final class SymbiontSpells {
     private static final Map<Type, SpellType> API_TYPES =
             new EnumMap<Type, SpellType>(Type.class);
@@ -241,7 +241,7 @@ public final class SymbiontSpells {
         }
     }
 
-    /** 把本地内置法术类型注册到公共注册表，供其他模组查询/复用。 */
+
     public static void registerApiTypes() {
         for (Type type : Type.values()) {
             SpellType apiType = apiType(type);
@@ -250,7 +250,7 @@ public final class SymbiontSpells {
         }
     }
 
-    /** 把本地内置法术类型暴露为公共 SpellType。 */
+
     public static SpellType apiType(Type type) {
         SpellType existing = API_TYPES.get(type);
         if (existing != null) return existing;

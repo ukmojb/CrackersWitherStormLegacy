@@ -12,7 +12,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerChangedDimensionEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
 
-/** 维护跨维度时凋零风暴的远距实体跟踪状态。 */
+
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public final class WitherStormTrackingEvents {
     private WitherStormTrackingEvents() {
@@ -42,7 +42,7 @@ public final class WitherStormTrackingEvents {
                 event.isWasDeath());
         MinecraftServer server = original.getServer();
         if (server == null) return;
-        // 死亡重生会替换玩家实体，必须用旧实例移除 BossInfo 观众和远距风暴跟踪。
+
         for (WorldServer world : server.worlds) clearWorldTracking(world, original);
     }
 

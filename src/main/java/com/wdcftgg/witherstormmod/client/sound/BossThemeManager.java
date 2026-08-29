@@ -15,7 +15,7 @@ import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
-/** 选择当前最高优先级的 Boss 主题并维护跨实体接续。 */
+
 public final class BossThemeManager {
     public static final BossThemeManager INSTANCE = new BossThemeManager();
 
@@ -95,7 +95,7 @@ public final class BossThemeManager {
         return theme == null ? null : theme.getProvider();
     }
 
-    /** 对应上游爆炸处理器：立即终止当前 Boss 主题，下一 tick 再按实体状态重新评估。 */
+
     public void forceStop() {
         if (theme != null) theme.forceStop();
     }

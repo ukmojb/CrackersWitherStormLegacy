@@ -23,7 +23,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.Random;
 
-/** 上游 Formidibomb 引信期间的 command_block 动画粒子。 */
+
 @SideOnly(Side.CLIENT)
 public final class CommandBlockParticle extends Particle {
     public static final int SUPER_BEACON_RESUMMON_BURST = 0;
@@ -45,8 +45,8 @@ public final class CommandBlockParticle extends Particle {
         this.motionZ = motionZ;
         this.particleMaxAge = 10 + this.rand.nextInt(12);
         this.particleGravity = 0.0F;
-        // 1.12 multiplies particleScale by 0.1 while building the quad;
-        // upstream 1.20 uses 0.03 directly as the quad half-size.
+
+
         this.particleScale = 0.3F;
         this.canCollide = false;
         this.sprites = sprites;
@@ -75,14 +75,14 @@ public final class CommandBlockParticle extends Particle {
         return 15728880;
     }
 
-    /** 注册上游的四个 sprite；每个 sprite 自身仍由外部 .mcmeta 驱动 1x4 插值动画。 */
+
     public static void registerSprites(TextureMap textureMap) {
         for (ResourceLocation location : SPRITE_LOCATIONS) {
             textureMap.registerSprite(location);
         }
     }
 
-    /** 按上游 FormidibombEntity.tick 的公式生成六个粒子。 */
+
     public static void spawnForBomb(PowerfulExplosiveEntity.FormidibombEntity bomb) {
         if (bomb == null || bomb.world == null || !bomb.world.isRemote || bomb.isDead) return;
         int startFuse = bomb.getStartFuse();
@@ -110,7 +110,7 @@ public final class CommandBlockParticle extends Particle {
         }
     }
 
-    /** 为共生体龙息弹重建上游的命令方块轨迹粒子。 */
+
     public static void spawnForSymbiontDragonFireball(Entity fireball) {
         if (fireball == null || fireball.world == null || !fireball.world.isRemote || fireball.isDead) return;
         Minecraft minecraft = Minecraft.getMinecraft();
@@ -121,7 +121,7 @@ public final class CommandBlockParticle extends Particle {
                 0.0D, 0.0D, 0.0D, sprites));
     }
 
-    /** Upstream WitheredSymbiontEntity emits five command-block particles while casting. */
+
     public static void spawnForSymbiont(SickenedEntities.WitheredSymbiontEntity symbiont) {
         if (symbiont == null || symbiont.world == null || !symbiont.world.isRemote
                 || symbiont.isDead || (!symbiont.isCastingSpell() && !symbiont.isSummoningMobs())) return;
@@ -141,7 +141,7 @@ public final class CommandBlockParticle extends Particle {
         }
     }
 
-    /** Upstream WitherStormEntity emits five command-block particles while below phase 3. */
+
     public static void spawnForWitherStorm(WitherStormEntity storm) {
         if (storm == null || storm.world == null || !storm.world.isRemote || storm.isDead
                 || storm.getPhase() >= 3) return;
@@ -165,7 +165,7 @@ public final class CommandBlockParticle extends Particle {
         }
     }
 
-    /** 对应上游 ParticleEvents：掉落的命令方块书/工具持续冒出命令方块粒子。 */
+
     public static void spawnForItemEntity(EntityItem item) {
         if (item == null || item.world == null || !item.world.isRemote || item.isDead) return;
         Minecraft minecraft = Minecraft.getMinecraft();
@@ -182,7 +182,7 @@ public final class CommandBlockParticle extends Particle {
         }
     }
 
-    /** 重建上游 Formidibomb 方块随机显示 tick 的六颗恒速粒子。 */
+
     public static void spawnForBlock(World world, BlockPos position, Random random) {
         if (world == null || !world.isRemote || position == null || random == null) return;
         Minecraft minecraft = Minecraft.getMinecraft();
@@ -197,7 +197,7 @@ public final class CommandBlockParticle extends Particle {
         }
     }
 
-    /** 每收到一个服务端核心 tick 事件，仅生成该 tick 对应的一批粒子。 */
+
     public static void spawnForCommandBlock(SupplementalEntities.CommandBlockEntity commandBlock,
                                             double particleSpeed, int luringPlayerId) {
         if (commandBlock == null || commandBlock.world == null || !commandBlock.world.isRemote
@@ -235,7 +235,7 @@ public final class CommandBlockParticle extends Particle {
         }
     }
 
-    /** 上游复活仪式每 tick 在命令方块周围生成一颗向中心收拢的粒子。 */
+
     public static void spawnForSuperBeacon(World world, BlockPos beaconPos, Random random) {
         if (world == null || !world.isRemote || beaconPos == null || random == null) return;
         Minecraft minecraft = Minecraft.getMinecraft();
@@ -253,7 +253,7 @@ public final class CommandBlockParticle extends Particle {
                 world, x, y, z, velocity.x, velocity.y, velocity.z, sprites));
     }
 
-    /** 客户端重建上游服务端粒子包的一次性爆发。 */
+
     public static void spawnSuperBeaconBurst(BlockPos beaconPos, int type) {
         Minecraft minecraft = Minecraft.getMinecraft();
         World world = minecraft.world;
@@ -278,7 +278,7 @@ public final class CommandBlockParticle extends Particle {
         }
     }
 
-    /** 重建服务端命令方块粒子包，支持原版粒子包的高斯分布和受击均匀速度。 */
+
     public static void spawnBurst(Vec3d center, int count,
                                   double spreadX, double spreadY, double spreadZ,
                                   double speed, int distribution) {

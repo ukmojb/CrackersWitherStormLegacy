@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-/** 以外部数据包方块标签为来源的腐化配方。 */
+
 public class TagBasedTaintRecipe extends TaintRecipe {
     private final ResourceLocation tag;
 

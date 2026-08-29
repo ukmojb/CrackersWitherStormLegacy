@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-/** 1.12 leaf lifecycle with the upstream stick-only loot and fire behavior. */
+
 public final class TaintedLeavesBlock extends BlockLeaves {
     private static final float[] STICK_CHANCES = {0.02F, 0.022222223F, 0.025F, 0.033333335F, 0.1F};
 

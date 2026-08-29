@@ -4,7 +4,7 @@ import net.minecraftforge.fml.common.registry.EntityEntry;
 
 import java.util.Objects;
 
-/** 1.12 EntityEntry 语义下的病化生物转换记录。 */
+
 public final class MobConversion {
     private final EntityEntry from;
     private final EntityEntry to;

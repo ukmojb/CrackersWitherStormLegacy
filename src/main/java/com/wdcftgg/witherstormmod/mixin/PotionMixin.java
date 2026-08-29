@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-/** 复现上游对瞬时治疗和瞬时伤害的实体类型保护。 */
+
 @Mixin(Potion.class)
 public abstract class PotionMixin {
 

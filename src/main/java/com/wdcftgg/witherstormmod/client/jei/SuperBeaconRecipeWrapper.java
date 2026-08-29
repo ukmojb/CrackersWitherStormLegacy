@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** 超级信标配方在 JEI 中的通用展示包装。 */
+
 public abstract class SuperBeaconRecipeWrapper implements IRecipeWrapper {
     private static final ResourceLocation SLOT_TEXTURE =
             new ResourceLocation("witherstormmod", "textures/gui/jei/slot.png");

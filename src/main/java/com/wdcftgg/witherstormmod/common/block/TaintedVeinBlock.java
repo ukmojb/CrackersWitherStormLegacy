@@ -34,7 +34,7 @@ public class TaintedVeinBlock extends BlockVine {
 
     @Override
     public void updateTick(World world, BlockPos pos, IBlockState state, Random random) {
-        // 上游脉络不会通过随机刻自然蔓延。
+
     }
 
     @Override

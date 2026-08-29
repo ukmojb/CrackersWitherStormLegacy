@@ -101,9 +101,9 @@ public class CommandBlockCoreModel extends ModelBase {
         }
 
         private void render(float scale) {
-            // RenderLivingBase.prepareScale already applies the upstream
-            // -1.501 block model offset in 1.12. Do not apply it a second time:
-            // the duplicate translation sinks the ribcage into the podium.
+
+
+
             base.render(scale);
         }
     }

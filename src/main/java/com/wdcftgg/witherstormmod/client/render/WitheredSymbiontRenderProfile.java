@@ -3,7 +3,7 @@ package com.wdcftgg.witherstormmod.client.render;
 import com.wdcftgg.witherstormmod.Tags;
 import net.minecraft.util.ResourceLocation;
 
-/** Pure upstream render constants and formulas that do not initialize OpenGL. */
+
 final class WitheredSymbiontRenderProfile {
     static final float MODEL_SCALE = 1.8F;
     static final float SHADOW_SIZE = 0.8F;

@@ -8,10 +8,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * 1.12 may update an already scheduled melee task once after another task clears
- * its target. Vanilla updateTask dereferences that target without a null check.
- */
+
+
+
+
 @Mixin(EntityAIAttackMelee.class)
 public abstract class EntityAIAttackMeleeMixin {
 

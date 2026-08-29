@@ -2,7 +2,7 @@ package com.wdcftgg.witherstormmod.client.resources.color;
 
 import java.awt.Color;
 
-/** 按阶段配置的牵引光束/夜间光束/夜辉颜色（1.12 语义）。 */
+
 public final class ColorSet {
 
     public static final ColorSet DEFAULT = new ColorSet(

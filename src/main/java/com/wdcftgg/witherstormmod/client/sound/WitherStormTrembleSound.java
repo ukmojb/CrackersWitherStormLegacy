@@ -7,7 +7,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.MathHelper;
 
-/** 复刻上游倒地附加循环音的 40 tick 淡入和淡出。 */
+
 public class WitherStormTrembleSound extends MovingSound {
     private static final float FADE_TICKS = 40.0F;
     private final WitherStormEntity storm;

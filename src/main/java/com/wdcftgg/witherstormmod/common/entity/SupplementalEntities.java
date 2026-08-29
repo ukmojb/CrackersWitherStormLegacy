@@ -104,13 +104,13 @@ public final class SupplementalEntities {
             setSize(0.8F, 0.8F);
         }
 
-        /**
-         * EntityWitherSkull's vanilla spawn packet does not carry the
-         * acceleration vector. The upstream projectile is an
-         * AbstractHurtingProjectile and explicitly synchronizes it; without
-         * the same data the 1.12 client waits for periodic position corrections
-         * and the skull visibly advances in steps.
-         */
+
+
+
+
+
+
+
         @Override
         public void writeSpawnData(ByteBuf buffer) {
             buffer.writeDouble(accelerationX);
@@ -120,9 +120,9 @@ public final class SupplementalEntities {
 
         @Override
         public void readSpawnData(ByteBuf buffer) {
-            // Builds predating projectile interpolation did not append this
-            // vector to Forge's entity-spawn packet. Keep their packets
-            // readable instead of disconnecting a multiplayer client.
+
+
+
             if (buffer.readableBytes() < Double.BYTES * 3) return;
             accelerationX = buffer.readDouble();
             accelerationY = buffer.readDouble();
@@ -448,17 +448,17 @@ public final class SupplementalEntities {
             return blocks;
         }
 
-        /** 上游的 map 填充入口：空 map 保持已有簇不变。 */
+
         public void populate(Map<BlockPos, IBlockState> states) {
             if (states != null && !states.isEmpty()) setBlocks(states);
         }
 
-        /** 上游公共 API：返回簇内当前记录的方块数量。 */
+
         public int getSize() {
             return blocks.size();
         }
 
-        /** 上游公共 API：检查簇内是否包含指定方块类型。 */
+
         public boolean containsBlock(Block block) {
             if (block == null) return false;
             for (IBlockState state : blocks.values()) {
@@ -467,7 +467,7 @@ public final class SupplementalEntities {
             return false;
         }
 
-        /** 1.12 等价的同步写入入口，供第三方方块簇构建器使用。 */
+
         public void setTileData(List<NBTTagCompound> values) {
             tileData.clear();
             if (values != null) {
@@ -500,7 +500,7 @@ public final class SupplementalEntities {
             syncClusterData();
         }
 
-        /** 与上游一致的 state-first 重载。 */
+
         public void addBlock(IBlockState state, BlockPos offset) {
             addBlock(offset, state);
         }
@@ -541,14 +541,14 @@ public final class SupplementalEntities {
             return state != null && state.getBlock() != Blocks.AIR;
         }
 
-        /** 将一段方块区域转换为可移动的实体簇，并从世界中取走原方块。 */
+
         public void populate(BlockPos minimum, BlockPos maximum) {
             clearBlockContents();
             tileData.clear();
             int deltaX = maximum.getX() - minimum.getX();
             int deltaY = maximum.getY() - minimum.getY();
             int deltaZ = maximum.getZ() - minimum.getZ();
-            // 上游实体位于区域的水平中心、较低的一侧；方块绝对坐标由中心 startPos 加相对偏移还原。
+
             setPosition(minimum.getX() + deltaX / 2.0D + 0.5D,
                     minimum.getY() + Math.min(deltaY, 0),
                     minimum.getZ() + deltaZ / 2.0D + 0.5D);
@@ -572,12 +572,12 @@ public final class SupplementalEntities {
             syncClusterData();
         }
 
-        /** Converts the same strict-radius sphere used by the upstream entity. */
+
         public void populateWithRadius(BlockPos center, int radius, BlockStateSelector selector) {
             populateWithRadius(center, (float) radius, selector);
         }
 
-        /** 保留上游高斯生成出的亚方块半径，而不是在生成前将其截断为整数。 */
+
         public void populateWithRadius(BlockPos center, float radius, BlockStateSelector selector) {
             clearBlockContents();
             tileData.clear();
@@ -661,8 +661,8 @@ public final class SupplementalEntities {
                     clientRenderPositionSteps = CLIENT_RENDER_INTERPOLATION_STEPS;
                 }
             }
-            // Keep the logical entity at the server-authoritative position;
-            // only its renderer follows the smoothed coordinates above.
+
+
             super.setPositionAndRotationDirect(x, y, z, yaw, pitch, positionIncrements, teleport);
         }
 
@@ -691,10 +691,10 @@ public final class SupplementalEntities {
                 clusterYaw += dataManager.get(YAW_VELOCITY);
             }
             if (!hasNoGravity()) motionY -= 0.04D;
-            // Pulled clusters receive an authoritative position every tracker
-            // update. Predicting that same motion on the client makes each
-            // correction look like the cluster rebounds. Their dedicated
-            // render position interpolates those samples instead.
+
+
+
+
             if (!world.isRemote || physicsEnabled()) {
                 move(MoverType.SELF, motionX, motionY, motionZ);
             }
@@ -754,7 +754,7 @@ public final class SupplementalEntities {
             clientRenderZ = previousClientRenderZ = z;
         }
 
-        /** 上游方块簇跳过火焰、流体和脚步等普通实体基础逻辑，但仍允许传送门推进。 */
+
         @Override
         public void onEntityUpdate() {
             world.profiler.startSection("entityBaseTick");
@@ -822,7 +822,7 @@ public final class SupplementalEntities {
                     (float) distance / Math.min((float) maximumDistance, getFadeStrength()));
         }
 
-        /** 在阶段结束时将簇中的方块完整放回世界。 */
+
         public void place() {
             if (world.isRemote) return;
             BlockPos base = new BlockPos(this);
@@ -963,7 +963,7 @@ public final class SupplementalEntities {
 
         public BlockClusterEntity splitAt(EnumFacing.Axis axis) {
             if (blocks.size() < 2 || world.isRemote) return null;
-            // 上游以分割前的总方块数决定是否继续保留坍塌行为。
+
             boolean crumbleAfterSplit = blocks.size() >= 10 && shouldCrumble;
             Map<BlockPos, IBlockState> separated = new LinkedHashMap<BlockPos, IBlockState>();
             Map<BlockPos, IBlockState> remaining = new LinkedHashMap<BlockPos, IBlockState>(blocks);
@@ -972,7 +972,7 @@ public final class SupplementalEntities {
                 Map.Entry<BlockPos, IBlockState> entry = iterator.next();
                 BlockPos offset = entry.getKey();
                 int coordinate = axis == EnumFacing.Axis.X ? offset.getX() : axis == EnumFacing.Axis.Y ? offset.getY() : offset.getZ();
-                // 上游以原点为分界，负坐标一侧成为新的质量簇。
+
                 if (coordinate < 0) {
                     separated.put(offset, entry.getValue());
                     iterator.remove();
@@ -984,7 +984,7 @@ public final class SupplementalEntities {
             float originalSizeY = clusterSizeY;
             float originalSizeZ = clusterSizeZ;
             if (!crumbleAfterSplit) shouldCrumble = false;
-            // 上游保留分裂前的包围盒和坐标基准；两半仍以同一中心旋转和着陆。
+
             replaceBlockContents(remaining);
             setClusterSize(originalSizeX, originalSizeY, originalSizeZ);
             startPos = originalStartPos;
@@ -1322,7 +1322,7 @@ public final class SupplementalEntities {
         protected void setOwnerUuid(UUID uuid) {
             owner = null;
             ownerUuid = uuid;
-            // 实体 ID 只在当前世界会话内有效，重载后必须重新解析 UUID。
+
             dataManager.set(OWNER_ID, -1);
         }
 
@@ -1356,7 +1356,7 @@ public final class SupplementalEntities {
             return owner;
         }
 
-        /** 将父风暴的持久化状态复制到分裂体，允许父实体短暂不在加载列表时继续渲染正确状态。 */
+
         protected void synchronizeWithOwner(WitherStormEntity owner) {
             synchronizeWithOwner(owner, true);
         }
@@ -1554,7 +1554,7 @@ public final class SupplementalEntities {
             BOSSFIGHT
         }
 
-        /** 保存单根肋骨根节点和四节骨段的平滑旋转状态。 */
+
         public static final class RibAnimation {
             private final float baseXRotationOffset;
             private final float baseYRotationOffset;
@@ -1747,24 +1747,24 @@ public final class SupplementalEntities {
         @Override public float getEyeHeight() { return 0.5F; }
         @Override public AxisAlignedBB getRenderBoundingBox() { return getEntityBoundingBox().grow(20.0D); }
         @Override public boolean canBeCollidedWith() { return true; }
-        /** The upstream LivingEntity is pickable even though it has no collision box. */
+
         @Override public boolean canBeAttackedWithItem() { return true; }
 
-        /**
-         * The command block is rendered together with a large ribcage, while its
-         * physical entity remains the upstream 1x1x1 core.  This envelope is for
-         * interaction selection only; it is intentionally not used for physics.
-         */
+
+
+
+
+
         public AxisAlignedBB getInteractionBoundingBox() {
             return getEntityBoundingBox().grow(2.0D);
         }
-        /**
-         * 1.12's entity attack packet ray-tests the physical entity box before
-         * Forge emits AttackEntityEvent.  The upstream renderer exposes a
-         * ribcage much larger than the 1x1 command block, so retain the 1x1
-         * physics box but use the same two-block interaction envelope for
-         * vanilla entity selection as the client ray fallback.
-         */
+
+
+
+
+
+
+
         @Override public float getCollisionBorderSize() { return 2.0F; }
         @Override public boolean hasNoGravity() { return true; }
         @Override public boolean isImmuneToExplosions() { return true; }
@@ -1790,7 +1790,7 @@ public final class SupplementalEntities {
             return 1.0F;
         }
 
-        /** 上游保留 10 点经验奖励值，但明确禁止命令方块实体实际生成经验球。 */
+
         @Override
         protected int getExperiencePoints(EntityPlayer player) {
             return 0;
@@ -1839,9 +1839,9 @@ public final class SupplementalEntities {
             renderYawOffset = owner.renderYawOffset;
             prevRotationYaw = owner.prevRotationYaw;
             rotationYaw = owner.rotationYaw;
-            // The podium anchor is authoritative on the server. Never derive the
-            // client position from the storm body, because its interpolated owner
-            // position can put the core back inside the fallen model.
+
+
+
             if (world.isRemote) return;
             BlockPos podium = owner.getPlayingDeadPodiumPosition();
             if (podium != null) setPlayingDeadPodiumAnchor(podium);
@@ -1866,10 +1866,10 @@ public final class SupplementalEntities {
                     dataManager.get(PODIUM_ANCHOR_Z) + 0.5D);
         }
 
-        /**
-         * Handles the upstream command-block-tool interaction without depending
-         * on 1.12's inconsistent player DamageSource path.
-         */
+
+
+
+
         public boolean attackPlayingDeadCore(EntityPlayer player) {
             if (world.isRemote || player == null || isIndependentBowelsPart()
                     || getCoreState() != CoreState.PLAYING_DEAD
@@ -1884,10 +1884,10 @@ public final class SupplementalEntities {
             if (source == DamageSource.OUT_OF_WORLD) return attackPartDirectly(source, amount);
             if (isIndependentBowelsPart()) return BowelsBossfightController.attack(this, source);
 
-            // Forge 1.12 damage sources produced by some item/attack paths do
-            // not consistently populate trueSource. The upstream 1.20 code
-            // uses the immediate attacker; retain a true-source fallback for
-            // vanilla/player damage sources.
+
+
+
+
             Entity trueSource = source.getImmediateSource();
             if (!(trueSource instanceof EntityLivingBase)) trueSource = source.getTrueSource();
             boolean commandBlockTool = false;
@@ -1969,15 +1969,15 @@ public final class SupplementalEntities {
             coreBossInfo.setVisible(isEntityAlive() && getCoreState() == CoreState.BOSSFIGHT
                     && (getHealth() < getMaxHealth()
                     || BowelsBossfightController.shouldShowBossBar(this)));
-            // 上游 CommandBlockEntity.tick 的 canonical 守卫：重复核心或失去归属
-            // 实例的核心必须移除全部外部血条观众，避免掉出内部空间后残留多条血条。
+
+
             if (!isCanonicalBowelsCore()) {
                 for (EntityPlayerMP viewer : outsideBossBarViewers) coreBossInfo.removePlayer(viewer);
                 outsideBossBarViewers.clear();
             }
         }
 
-        /** 主世界核心恒为 canonical；肠道核心必须仍是其归属实例登记的当前核心。 */
+
         private boolean isCanonicalBowelsCore() {
             if (!isIndependentBowelsPart()) return true;
             if (!(world instanceof WorldServer)) return true;
@@ -2343,7 +2343,7 @@ public final class SupplementalEntities {
         void synchronizeOutsideBossBarViewers(Iterable<EntityPlayerMP> players) {
             Set<EntityPlayerMP> desired = new HashSet<EntityPlayerMP>();
             for (EntityPlayerMP player : players) {
-                // BossInfo 包没有维度归属，跨世界发送会在重生后留下无法自动清理的血条。
+
                 if (player != null && player.world == world) desired.add(player);
             }
             for (EntityPlayerMP player : new HashSet<EntityPlayerMP>(outsideBossBarViewers)) {
@@ -2393,10 +2393,10 @@ public final class SupplementalEntities {
             }
         }
 
-        /**
-         * Applies one authoritative lift pose to the command block and podium.
-         * No caller may advance either entity independently.
-         */
+
+
+
+
         public void applyBowelsPodiumLiftPose(double expectedY) {
             if (world.isRemote) return;
             findPodiumCluster();
@@ -2434,10 +2434,10 @@ public final class SupplementalEntities {
             applyBowelsPodiumLiftPose(expectedY);
             findPodiumCluster();
             BlockPos blockPosition = new BlockPos(posX, expectedY, posZ);
-            // This port's populate()/place() pair already round-trips the
-            // captured blocks at the entity position. The modern cluster has
-            // a different origin convention and its extra +1Y must not be
-            // copied here or the podium top intersects the command block.
+
+
+
+
             Vec3d alignedPosition = new Vec3d(blockPosition.getX() + 0.5D,
                     blockPosition.getY(), blockPosition.getZ() + 0.5D);
             if (podiumCluster != null && !podiumCluster.isDead) {
@@ -2481,7 +2481,7 @@ public final class SupplementalEntities {
             if (!Double.isNaN(podiumClusterYOffset)) {
                 compound.setDouble("PodiumClusterYOffset", podiumClusterYOffset);
             }
-            // 1.12 的独立死亡控制器需要在重载后继续其 240 tick 序列。
+
             compound.setInteger("CommandBlockDeathTicks", specialDeathTime);
         }
 
@@ -2571,16 +2571,16 @@ public final class SupplementalEntities {
                 return;
             }
             if (world.isRemote) {
-                // Keep the client-side entity through the same 240-tick death
-                // sequence. Calling vanilla onDeathUpdate at tick 161 would
-                // remove the model around tick 180 while the server still has
-                // the command block and arena animation alive.
+
+
+
+
                 if (specialDeathTime <= 240) {
                     ++specialDeathTime;
                     return;
                 }
-                // The upstream death phase removes the core after its full
-                // 240-tick animation rather than vanilla's 20-tick timer.
+
+
                 setDead();
                 return;
             } else if (BowelsBossfightController.isDeathSequence(this)) {
@@ -2609,8 +2609,8 @@ public final class SupplementalEntities {
         }
 
         private void clearBossBarState() {
-            // 1.12 只有 removePlayer 才会向客户端发送移除包；setVisible(false)
-            // 不会移除已在客户端显示的血条。
+
+
             StormDiagnosticLogger.info(
                     "[风暴诊断][核心血条清空] 核心id={} uuid={} BossBar={} 维度={} 直接={} 外部={}",
                     getEntityId(), getUniqueID(), coreBossInfo.getUniqueId(), dimension,
@@ -2670,8 +2670,8 @@ public final class SupplementalEntities {
         }
         @Override protected double getSickenedHealth() { return 60.0D; }
         @Override protected double getSickenedSpeed() { return 0.0D; }
-        // Monster.createMonsterAttributes leaves attack damage at the vanilla 2.0;
-        // the head's 3.5 bite is dealt explicitly in customServerAiStep.
+
+
         @Override protected double getSickenedDamage() { return 2.0D; }
         @Override protected double getSickenedFollowRange() { return 40.0D; }
         @Override protected double getSickenedArmor() { return 8.0D; }
@@ -2695,7 +2695,7 @@ public final class SupplementalEntities {
             targetTasks.addTask(2, new AttackTargetGoal(this));
         }
 
-        /** 上游头部使用空的身体旋转控制器，避免空闲注视时被 1.12 的默认逻辑改写身体角度。 */
+
         @Override
         protected EntityBodyHelper createBodyHelper() {
             return new EntityBodyHelper(this) {
@@ -2767,8 +2767,8 @@ public final class SupplementalEntities {
                     --shootTime;
                     if (shootTime < 60 && getAttackTarget() != null) {
                         EntityLivingBase target = getAttackTarget();
-                        // Upstream hurt-fire aiming intentionally targets Entity.position(),
-                        // while the normal look goal targets the victim's eyes.
+
+
                         setLookAt(0, target.getPositionVector(), 3);
                         shaking = false;
                     }
@@ -2795,7 +2795,7 @@ public final class SupplementalEntities {
             dataManager.set(ACTIVE, active);
         }
         public boolean isRoaring() { return dataManager.get(ROARING); }
-        /** Starts a roar; screaming=true selects the hurt roar variant. */
+
         public void setRoar(boolean screaming) {
             dataManager.set(ROARING, true);
             playSound(ModSounds.get(screaming ? "wither_storm_hurt" : "wither_storm_roar"), getSoundVolume(), 1.0F);
@@ -2830,7 +2830,7 @@ public final class SupplementalEntities {
             return !isPlayingDead();
         }
 
-        /** LivingEntity is pickable upstream; StormPartBase disables it for attached parts. */
+
         @Override
         public boolean canBeCollidedWith() {
             return true;
@@ -2982,9 +2982,9 @@ public final class SupplementalEntities {
         }
         public void setLookAt(int head, Vec3d pos, int steps) {
             if (pos != null) {
-                // WitherStormHeadEntity delegates to LookControl#setLookAt(Vec3):
-                // 10 degrees/tick horizontally and 40 degrees/tick vertically.
-                // The API's steps value is deliberately ignored upstream.
+
+
+
                 getLookHelper().setLookPosition(pos.x, pos.y, pos.z, 10.0F, 40.0F);
             }
         }
@@ -3027,7 +3027,7 @@ public final class SupplementalEntities {
             if (specialDeathTime > 120) setDead();
         }
 
-        /** 1.12 equivalent of the upstream ConditionalLookController(resetXRot=false). */
+
         private static final class WitherStormHeadLookHelper extends EntityLookHelper {
             private static final double ROTATION_EPSILON = 1.0E-5D;
             private static final float IDLE_YAW_SPEED = 10.0F;
@@ -3066,8 +3066,8 @@ public final class SupplementalEntities {
 
             @Override
             public void onUpdateLook() {
-                // Do not reset rotationPitch here. Upstream's predicate is always
-                // false so an idle wall head keeps its spawn/death pitch.
+
+
                 if (lookAtTicks > 0) {
                     --lookAtTicks;
                     double x = targetX - head.posX;
@@ -3090,9 +3090,9 @@ public final class SupplementalEntities {
                             head.rotationYawHead, head.renderYawOffset, IDLE_YAW_SPEED);
                 }
 
-                // Vanilla 1.20 only applies its 75-degree body-relative clamp
-                // while navigation has an active path. This immobile head normally
-                // has no path and therefore has a full horizontal turn range.
+
+
+
                 if (!head.getNavigator().noPath()) {
                     float relativeYaw = MathHelper.wrapDegrees(
                             head.rotationYawHead - head.renderYawOffset);
@@ -3287,7 +3287,7 @@ public final class SupplementalEntities {
             }
         }
 
-        /** 1.20 YAffectedLookRandomlyGoal 在 1.12 的等价实现。 */
+
         private static class YAffectedLookRandomlyGoal extends EntityAIBase {
             private final WitherStormHeadEntity head;
             private int lookTime;
@@ -3493,7 +3493,7 @@ public final class SupplementalEntities {
             dataManager.register(BODY_YAW, 0.0F);
         }
 
-        /** 性能优化：与主风暴一致，位移全 0 时跳过巨型 AABB 的方块碰撞枚举。 */
+
         @Override
         public void move(MoverType type, double x, double y, double z) {
             if (type != MoverType.PISTON && x == 0.0D && y == 0.0D && z == 0.0D) {
@@ -3546,7 +3546,7 @@ public final class SupplementalEntities {
 
         @Override
         public AxisAlignedBB getRenderBoundingBox() {
-            // 覆盖分裂体头部延伸与仰视剔除（RenderManager 视锥判断用此包围盒）
+
             return getEntityBoundingBox().grow(150.0D);
         }
 

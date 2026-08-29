@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import java.util.ArrayList;
 import java.util.Set;
 
-/** 在维度切换完成后，仅重建远距风暴实体对指定玩家的追踪。 */
+
 @Mixin(EntityTracker.class)
 public abstract class EntityTrackerMixin implements DistantStormTrackingResync {
     @Shadow @Final private Set<EntityTrackerEntry> entries;
@@ -27,7 +27,7 @@ public abstract class EntityTrackerMixin implements DistantStormTrackingResync {
         for (EntityTrackerEntry entry : new ArrayList<EntityTrackerEntry>(entries)) {
             Entity tracked = entry.getTrackedEntity();
             if (!(tracked instanceof DistantStormPart) || tracked.world != player.world) continue;
-            // 旧生成包可能已进入被卸载的客户端世界，必须先移除服务端记录再重新加入。
+
             entry.removeFromTrackedPlayers(player);
             entry.updatePlayerEntity(player);
             ++count;

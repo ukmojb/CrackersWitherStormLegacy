@@ -24,14 +24,14 @@ import com.wdcftgg.witherstormmod.common.entity.WitherStormEntity;
 import java.util.function.Predicate;
 
 public final class WorldUtil {
-    /** 共享的同 tick 活跃风暴索引：多个系统（AI/病化/日晒/强加载）在同一 tick 复用一次全量遍历。 */
+
     private static World cachedStormIndexWorld;
     private static long cachedStormIndexTick = Long.MIN_VALUE;
     private static List<WitherStormEntity> cachedStormIndex = Collections.emptyList();
     private WorldUtil() {
     }
 
-    /** 返回世界中存活的凋零风暴列表：同一 tick 内全局共享，tick 切换时重建（与上游每 tick 检测一致）。 */
+
     public static List<WitherStormEntity> getCachedStorms(World world) {
         long tick = world.getTotalWorldTime();
         if (cachedStormIndexWorld != world || cachedStormIndexTick != tick) {
@@ -48,7 +48,7 @@ public final class WorldUtil {
         return cachedStormIndex;
     }
 
-    /** 1.12 没有 AxisAlignedBB.getCenter()，这里提供等价计算。 */
+
     public static Vec3d centerOf(AxisAlignedBB box) {
         return new Vec3d(
                 box.minX + (box.maxX - box.minX) / 2.0D,
@@ -60,7 +60,7 @@ public final class WorldUtil {
         return box.minY + (box.maxY - box.minY) / 2.0D;
     }
 
-    /** 判断实体是否位于附近地表高度能够覆盖到的开放区域。 */
+
     public static boolean isInAnOpenArea(Entity entity) {
         int lowestHeight = Integer.MAX_VALUE;
         BlockPos center = entity.getPosition();
@@ -73,7 +73,7 @@ public final class WorldUtil {
         return entity.posY >= lowestHeight - 10.0D;
     }
 
-    /** 判断方块是否有可见外露面，用于风暴光束和坠落碎屑的客户端表现。 */
+
     public static boolean isBlockExposed(World world, BlockPos position) {
         if (world == null || position == null) return false;
         IBlockState state = world.getBlockState(position);
@@ -89,7 +89,7 @@ public final class WorldUtil {
         return block == Blocks.AIR || block == Blocks.WATER || block == Blocks.FLOWING_WATER;
     }
 
-    /** 按上游规则从实体眼位最多检查 300 格方块视线。 */
+
     public static boolean hasLineOfSight(Entity caster, Entity target) {
         if (caster == null || target == null || caster.world != target.world) return false;
         Vec3d start = caster.getPositionEyes(1.0F);
@@ -100,7 +100,7 @@ public final class WorldUtil {
         return result == null || result.typeOfHit == RayTraceResult.Type.MISS;
     }
 
-    /** 从指定高度向上寻找首个非空气方块；未找到时返回世界高度上限。 */
+
     public static int getCeilingStartingAt(World world, int startingHeight, int x, int z) {
         int maximumHeight = world.getActualHeight();
         BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos(x,
@@ -111,7 +111,7 @@ public final class WorldUtil {
         return position.getY();
     }
 
-    /** 从指定高度向下寻找首个非空气方块；未找到时返回世界底部。 */
+
     public static int getHeightStartingAt(World world, int startingHeight, int x, int z) {
         BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos(x,
                 MathHelper.clamp(startingHeight, 0, world.getActualHeight() - 1), z);
@@ -121,7 +121,7 @@ public final class WorldUtil {
         return position.getY();
     }
 
-    /** 取得阻挡运动的最高表面，同时忽略树叶，等价于新版的 MOTION_BLOCKING_NO_LEAVES。 */
+
     public static int getMotionBlockingHeightIgnoringLeaves(World world, int x, int z) {
         int startingHeight = MathHelper.clamp(
                 world.getHeight(new BlockPos(x, 0, z)).getY() - 1,
@@ -140,7 +140,7 @@ public final class WorldUtil {
         return 0;
     }
 
-    /** 按上游的立方体外壳顺序向外查找首个匹配方块。 */
+
     @Nullable
     public static BlockPos findBlockSpiralOutwards(BlockPos starting, int radius,
                                                     Predicate<BlockPos> predicate) {
@@ -181,7 +181,7 @@ public final class WorldUtil {
         return null;
     }
 
-    /** 保留逐位置搜索顺序，但在服务端只查询一次搜索范围内的已加载区块。 */
+
     @Nullable
     public static BlockPos findLoadedBlockSpiralOutwards(World world, BlockPos starting, int radius,
                                                           Predicate<IBlockState> predicate) {

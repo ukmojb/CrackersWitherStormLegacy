@@ -9,7 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.math.MathHelper;
 
-/** 1.12.2 ModelRenderer translation of the 4.2.1 symbiont model hierarchy. */
+
 public class WitheredSymbiontModel extends ModelBiped {
     private final ModelRenderer[] tentacleBases = new ModelRenderer[3];
     private final ModelRenderer[][] tentacles = new ModelRenderer[3][4];
@@ -138,9 +138,9 @@ public class WitheredSymbiontModel extends ModelBiped {
         bipedBody.rotateAngleX += crouchAnimation;
         bipedRightArm.rotateAngleX += crouchAnimation;
         bipedLeftArm.rotateAngleX += crouchAnimation;
-        // Unlike modern ModelPart poses, 1.12 ModelBiped does not reset the body or arm
-        // pivots before every render pass. Use absolute base-pose offsets so emissive and
-        // tear passes cannot accumulate the vulnerable pose and move the torso away.
+
+
+
         bipedRightLeg.rotationPointZ = crouchAnimation * 10.5F;
         bipedLeftLeg.rotationPointZ = crouchAnimation * 10.5F;
         bipedRightLeg.rotationPointY = 12.0F + crouchAnimation * 0.4F;

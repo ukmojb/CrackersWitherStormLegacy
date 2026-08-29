@@ -11,7 +11,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.nio.FloatBuffer;
 
-/** 在保留当前 FOV 与投影偏移的前提下，临时扩展远裁剪面。 */
+
 public final class DistantProjection {
     private static final float FALLBACK_NEAR_PLANE = 0.05F;
     private static final float FAR_PLANE_MULTIPLIER = 180.0F;
@@ -20,15 +20,15 @@ public final class DistantProjection {
     private DistantProjection() {
     }
 
-    /** The world and every storm part use one projection, so no distance handoff can clip it. */
+
     public static boolean shouldUse(Entity entity) {
         return WitherStormClientConfig.distantRenderer
                 && entity instanceof DistantStormPart;
     }
 
     public static void push() {
-        // OptiFine 着色器依赖自己的投影/深度管线，扩展投影会干扰其天空与阴影缓冲；
-        // 与 EntityRendererFogMixin 的守卫保持一致，着色器激活时完全不接管投影矩阵。
+
+
         if (OptifineCompat.areShadersActive()) return;
         PROJECTION_MATRIX.clear();
         GlStateManager.getFloat(GL11.GL_PROJECTION_MATRIX, PROJECTION_MATRIX);
@@ -62,8 +62,8 @@ public final class DistantProjection {
     }
 
     public static FogState pushDistantFog(Entity entity, boolean enabled) {
-        // 着色器激活时不接管 GL 雾状态：返回 null 表示本帧由 OptiFine 自己管理雾，
-        // restoreFog(null) 与既有的 disableVanillaFog 守卫保持同一语义。
+
+
         if (OptifineCompat.areShadersActive()) return null;
         FogState previous = new FogState(GL11.glIsEnabled(GL11.GL_FOG),
                 GL11.glGetInteger(GL11.GL_FOG_MODE),
@@ -133,7 +133,7 @@ public final class DistantProjection {
     }
 
     public static void pop() {
-        // 与 push() 的着色器守卫保持成对：着色器激活时 push 未压栈，pop 同样跳过。
+
         if (OptifineCompat.areShadersActive()) return;
         GlStateManager.matrixMode(GL11.GL_PROJECTION);
         GlStateManager.popMatrix();

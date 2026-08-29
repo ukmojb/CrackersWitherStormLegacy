@@ -10,7 +10,7 @@ import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
-/** 保存上游相机震动、白屏与全局声音在本地玩家上的客户端状态。 */
+
 public final class ClientEffects {
     private static float shakeX;
     private static float shakeY;
@@ -100,7 +100,7 @@ public final class ClientEffects {
                 (float) minecraft.player.posY, (float) minecraft.player.posZ));
     }
 
-    /** 使用 1.12 中与上游 POOF、EXPLOSION 对应的两种爆炸粒子。 */
+
     public static void spawnFormidibombExplosion(double x, double y, double z) {
         Minecraft minecraft = Minecraft.getMinecraft();
         if (minecraft.world == null) return;

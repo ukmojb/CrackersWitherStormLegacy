@@ -35,11 +35,11 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 public final class SpecialItemEvents {
     private SpecialItemEvents() { }
 
-    /**
-     * Forge fires this before EntityLiving.processInitialInteract. The upstream items must get
-     * first refusal so trading, mounting, leashing, and similar mob actions cannot consume the
-     * click before their entity interaction runs.
-     */
+
+
+
+
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void useImportantItemOnMob(PlayerInteractEvent.EntityInteract event) {
         if (!(event.getTarget() instanceof EntityLiving)) return;
@@ -62,11 +62,11 @@ public final class SpecialItemEvents {
         event.setCanceled(true);
     }
 
-    /**
-     * 1.12 的玩家实体攻击包与 1.20 的 LivingEntity#hurt 入口并不完全相同。
-     * 命令方块核心保留上游的自定义命中规则，并在服务端统一收束到实体自身，
-     * 避免不同映射下的 DamageSource 导致装死核心看得见却无法响应攻击。
-     */
+
+
+
+
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void attackCommandBlock(AttackEntityEvent event) {
         if (!(event.getTarget() instanceof SupplementalEntities.CommandBlockEntity)

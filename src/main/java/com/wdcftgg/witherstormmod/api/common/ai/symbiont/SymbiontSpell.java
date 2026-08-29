@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * 凋零共生体法术的公共抽象（1.12.2 语义）。
- */
+
+
+
 public abstract class SymbiontSpell {
 
     protected final SickenedEntities.WitheredSymbiontEntity entity;

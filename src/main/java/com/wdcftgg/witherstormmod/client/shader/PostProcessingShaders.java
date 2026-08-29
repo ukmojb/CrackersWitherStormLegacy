@@ -22,7 +22,7 @@ import org.lwjgl.opengl.GL11;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
-/** Formidibomb 引信期间使用上游外部资源包提供的色差后处理。 */
+
 public final class PostProcessingShaders implements IResourceManagerReloadListener {
 
     public static final PostProcessingShaders INSTANCE = new PostProcessingShaders();
@@ -62,8 +62,8 @@ public final class PostProcessingShaders implements IResourceManagerReloadListen
     }
 
     public void render(float partialTicks) {
-        // OptiFine 着色器激活时其自己的后处理链独占主 framebuffer，1.12 ShaderGroup
-        // 会与之争抢并破坏画面，因此着色器激活期间跳过本模组色差后处理。
+
+
         if (OptifineCompat.areShadersActive() || !shouldRenderChromaticAberration()) return;
         loadPendingEffect();
         if (aberrationEffect == null) return;
@@ -77,9 +77,9 @@ public final class PostProcessingShaders implements IResourceManagerReloadListen
         }
         aberrationEffect.render(partialTicks);
         minecraft.getFramebuffer().bindFramebuffer(false);
-        // 1.12 ShaderGroup.render 结束后把光照、alpha test 与混合留在关闭状态，
-        // 也不重置深度写入。显式恢复成 RenderWorldLastEvent 的进入状态，避免
-        // 引信结束后下一帧继续携带后处理状态。
+
+
+
         GlStateManager.depthMask(true);
         GlStateManager.enableAlpha();
         GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1F);

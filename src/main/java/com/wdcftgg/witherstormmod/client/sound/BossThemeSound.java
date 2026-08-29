@@ -6,7 +6,7 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.MathHelper;
 
-/** 可在同类 Boss 之间接续并按上游时长淡入淡出的主题音轨。 */
+
 public final class BossThemeSound extends MovingSound {
     private BossThemeProvider provider;
     private final SoundEvent theme;

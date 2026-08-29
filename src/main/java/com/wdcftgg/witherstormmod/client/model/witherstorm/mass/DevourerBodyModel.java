@@ -7,9 +7,9 @@ import com.wdcftgg.witherstormmod.client.model.witherstorm.ModelBuilders.PartPos
 
 
 public class DevourerBodyModel {
-    /*
-     * Opcode count of 16266 triggered aggressive code reduction.  Override with --aggressivesizethreshold.
-     */
+
+
+
     public static PartDefinition createBodyModel(PartDefinition root, float texScale) {
         CubeDeformation def = new CubeDeformation(0.0f);
         CubeListBuilder builder0 = CubeListBuilder.m_171558_();
@@ -1101,9 +1101,9 @@ public class DevourerBodyModel {
         return root.m_171599_("mass", body, PartPose.m_171419_((float)0.0f, (float)-15.0f, (float)0.0f));
     }
 
-    /*
-     * Opcode count of 37127 triggered aggressive code reduction.  Override with --aggressivesizethreshold.
-     */
+
+
+
     private static void addMoreBoxes(CubeListBuilder body, CubeDeformation def, float texScale) {
         body.m_171514_(0, 16).m_171496_(19.0f, -4.0f, -7.0f, 2.0f, 1.0f, 1.0f, def, texScale, texScale);
         body.m_171514_(0, 16).m_171496_(-22.0f, -3.0f, -7.0f, 4.0f, 1.0f, 1.0f, def, texScale, texScale);
@@ -3582,5 +3582,3 @@ public class DevourerBodyModel {
         body.m_171514_(0, 16).m_171496_(1.0f, -27.0f, 31.0f, 3.0f, 7.0f, 1.0f, def, texScale, texScale);
     }
 }
-
-

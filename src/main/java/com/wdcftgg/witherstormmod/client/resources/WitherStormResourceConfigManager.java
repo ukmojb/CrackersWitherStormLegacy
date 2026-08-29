@@ -17,10 +17,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * 从外部上游资源包读取 config/colors.json 与 config/textures.json，
- * 提供按阶段的牵引光束/夜辉配色与风暴纹理组（1.12 语义）。
- */
+
+
+
+
 public final class WitherStormResourceConfigManager {
 
     public static final WitherStormResourceConfigManager INSTANCE =
@@ -67,7 +67,7 @@ public final class WitherStormResourceConfigManager {
             }
             WitherStormMod.LOGGER.info("Loaded external Wither Storm color sets");
         } catch (Exception exception) {
-            // 外部资源包未提供配色时使用内置默认值。
+
         }
     }
 
@@ -90,7 +90,7 @@ public final class WitherStormResourceConfigManager {
             }
             WitherStormMod.LOGGER.info("Loaded external Wither Storm texture sets");
         } catch (Exception exception) {
-            // 外部资源包未提供纹理配置时使用内置默认值。
+
         }
     }
 

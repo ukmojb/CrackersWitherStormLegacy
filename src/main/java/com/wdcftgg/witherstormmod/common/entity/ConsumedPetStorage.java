@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** 主体与分裂体各自保存、恢复被其吞噬的驯服宠物。 */
+
 final class ConsumedPetStorage {
     private ConsumedPetStorage() {
     }

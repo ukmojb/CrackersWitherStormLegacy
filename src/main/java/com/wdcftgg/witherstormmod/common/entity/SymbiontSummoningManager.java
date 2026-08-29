@@ -39,10 +39,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 对齐上游 SymbiontSummoningManager 的服务端状态和生成规则。
- * 召唤冷却、玩家保护和最近一次召唤记录都写入实体 NBT，避免区块重载后重复召唤。
- */
+
+
+
+
 public final class SymbiontSummoningManager {
     private static final String PLAYER_DATA_KEY = "WitherStormLegacySymbiont";
     private static final String SUMMONING_DATA = "SummoningData";
@@ -63,14 +63,14 @@ public final class SymbiontSummoningManager {
         if (timeTillCanSummonSymbiont > 0) --timeTillCanSummonSymbiont;
         if (!WitherStormConfig.canSummonSymbiont) return;
         int delay = MathHelper.clamp(WitherStormConfig.minimumSpawnCheckInterval, 1, 240) * 20;
-        // 上游字节码把随机乘数放在取模之外：`ticks % delay * (nextInt(3)+1) == 0`
-        // 数学上等价于每 delay tick 检查一次，且每 tick 都会消耗一次 RNG。
-        // 这里逐字保留该表达式与优先级，不再引入更稀疏的随机化间隔。
+
+
+
         if (storm.ticksExisted % delay * (storm.getRNG().nextInt(3) + 1) != 0) return;
 
         List<EntityPlayer> players = storm.world.getEntitiesWithinAABB(EntityPlayer.class,
                 storm.getSearchBox(), player -> player != null && player.isEntityAlive());
-        // 保留上游比较器的 floor(真实距离差) 及稳定排序语义。
+
         Collections.sort(players, (first, second) -> MathHelper.floor(
                 first.getDistance(storm) - second.getDistance(storm)));
         for (EntityPlayer player : players) {
@@ -121,7 +121,7 @@ public final class SymbiontSummoningManager {
     }
 
     public void summonSymbiont(EntityPlayer player) {
-        // 上游用 cos 算 X、sin 算 Z；此前移植写反会导致召唤点绕风暴旋转 90°。
+
         float angle = -(float) Math.atan2(player.posX - storm.posX, player.posZ - storm.posZ);
         float spawnX = MathHelper.cos(angle) * 30.0F + (float) storm.posX;
         float spawnZ = MathHelper.sin(angle) * 30.0F + (float) storm.posZ;
@@ -195,8 +195,8 @@ public final class SymbiontSummoningManager {
             for (int offsetZ = -5; offsetZ <= 5; offsetZ++) {
                 int candidateX = x + offsetX;
                 int candidateZ = z + offsetZ;
-                // This local scan already returns the supporting block Y;
-                // convert its collision shape to the entity feet position below.
+
+
                 int y = getMotionBlockingNoLeavesHeight(candidateX, candidateZ);
                 if (y < 0) continue;
                 if (highest != null && y <= highest) continue;
@@ -235,8 +235,8 @@ public final class SymbiontSummoningManager {
     }
 
     private boolean isPlayerInsideBowelsInstance() {
-        // 只读取已加载的肠道世界，绝不能在这里创建维度，否则每次召唤检查都会
-        // 触发“Loading dimension 223 / Unloading dimension 223”的反复加载。
+
+
         WorldServer bowels = DimensionManager.getWorld(BowelsDimensions.DIMENSION_ID);
         if (bowels == null) return false;
         BowelsInstanceData.Instance instance = BowelsInstanceData.get(bowels).get(storm.getUniqueID());

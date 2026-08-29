@@ -134,7 +134,7 @@ public final class PhasometerOverlay {
     public static void render(Minecraft minecraft, ScaledResolution resolution,
                               float partialTicks) {
         EntityPlayer player = minecraft.player;
-        // F1 隐藏界面时与上游一样不绘制望远镜遮罩，避免遮罩状态影响世界渲染。
+
         if (!isFirstPersonScoping(minecraft) || minecraft.gameSettings.hideGUI) return;
 
         int width = resolution.getScaledWidth();
@@ -144,8 +144,8 @@ public final class PhasometerOverlay {
         int top = (height - size) / 2;
 
         try {
-            // The upstream scope has a deliberately low-alpha center. Alpha testing
-            // would discard that center and make the whole view appear black.
+
+
             GlStateManager.disableAlpha();
             GlStateManager.disableDepth();
             GlStateManager.depthMask(false);
@@ -156,9 +156,9 @@ public final class PhasometerOverlay {
             Gui.drawRect(0, top, left, top + size, 0xFF000000);
             Gui.drawRect(left + size, top, width, top + size, 0xFF000000);
 
-            // Gui.drawRect restores alpha testing and disables blending internally.
-            // It also leaves the current color set to black, so restore white before
-            // the textured pass or the complete scope is multiplied by black.
+
+
+
             GlStateManager.disableAlpha();
             enableScopeBlend();
             GlStateManager.enableTexture2D();

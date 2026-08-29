@@ -9,7 +9,7 @@ import net.minecraft.util.EntityDamageSourceIndirect;
 
 import javax.annotation.Nullable;
 
-/** 上游十种数据驱动伤害类型在 1.12 中的对应实现。 */
+
 public final class ModDamageSources {
     private static final DamageSource WITHER_SICKNESS =
             new ZeroExhaustionDamageSource("witherSickness")

@@ -16,10 +16,10 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * 上游 WitherStormAmbienceEffects 的 1.12 实现：风暴附近（第 5 阶段起）时
- * 把天空、云与雾的颜色向 colors.json 的 SkyColorSet 过渡。
- */
+
+
+
+
 public final class SkyAmbienceManager {
 
     public static final SkyAmbienceManager INSTANCE = new SkyAmbienceManager();
@@ -47,7 +47,7 @@ public final class SkyAmbienceManager {
             activeWorld = minecraft.world;
             reset();
         }
-        // 上游状态附着于 ClientLevel：暂停或关闭配置时冻结，不继续推进渐变。
+
         if (minecraft.isGamePaused() || !WitherStormClientConfig.renderSkyAmbienceEffects) return;
         long worldTick = minecraft.world.getTotalWorldTime();
         if (lastUpdateTick == worldTick) return;

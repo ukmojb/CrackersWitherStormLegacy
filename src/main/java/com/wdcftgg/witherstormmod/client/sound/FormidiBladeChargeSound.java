@@ -8,7 +8,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 
-/** Follows the upstream Formidi-Blade loop for any visible client player. */
+
 public class FormidiBladeChargeSound extends MovingSound {
     private static final float FADE_TICKS = 20.0F;
     private final EntityPlayer player;

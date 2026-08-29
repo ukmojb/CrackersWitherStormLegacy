@@ -9,11 +9,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-/**
- * The 1.12 sky renderer enables fog internally after EntityRenderer.setupFog has returned.
- * OptiFine 会替换 renderSky 的整个天空绘制路径，因此只要检测到 OptiFine 本体就完全
- * 不触碰这里的 GL 雾与 isSkyColored，交给 OptiFine 自己的天空逻辑。
- */
+
+
+
+
+
 @Mixin(RenderGlobal.class)
 public abstract class RenderGlobalFogMixin {
     @Redirect(method = "renderSky(FI)V",

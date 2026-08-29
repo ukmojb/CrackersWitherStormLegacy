@@ -103,5 +103,3 @@ public class Hunchback3_2BodyModel {
         return back;
     }
 }
-
-

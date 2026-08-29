@@ -27,10 +27,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 上游 CrackersLib 配置主页在 1.12.2 的移植：客户端/服务器选项、上游预设
- * 与“刷新声音”按钮。所有修改都会写回 Forge 配置文件并同步静态字段。
- */
+
+
+
+
 public final class WitherStormConfigScreen extends GuiScreen {
 
     private static final ResourceLocation PANORAMA = new ResourceLocation(Tags.MOD_ID,

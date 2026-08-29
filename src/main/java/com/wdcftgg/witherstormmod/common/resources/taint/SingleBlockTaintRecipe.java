@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-/** 以单个 1.12 方块注册项为来源的腐化配方。 */
+
 public class SingleBlockTaintRecipe extends TaintRecipe {
     private final Block block;
 

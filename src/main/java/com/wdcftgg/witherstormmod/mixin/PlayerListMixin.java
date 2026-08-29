@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** 在玩家加入目标维度前解除旧世界的远距风暴跟踪。 */
+
 @Mixin(PlayerList.class)
 public abstract class PlayerListMixin {
     @Inject(

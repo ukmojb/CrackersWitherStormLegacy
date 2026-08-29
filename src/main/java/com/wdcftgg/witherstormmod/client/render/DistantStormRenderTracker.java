@@ -15,7 +15,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
 
-/** 补绘被 1.12 客户端区块收集阶段漏掉的远距风暴实体。 */
+
 public final class DistantStormRenderTracker {
     private static final Set<Entity> RENDERED_THIS_FRAME =
             Collections.newSetFromMap(new IdentityHashMap<Entity, Boolean>());
@@ -80,9 +80,9 @@ public final class DistantStormRenderTracker {
             int standardCount = 0;
             int outsideFarPlaneCount = 0;
             int fallbackCount = 0;
-            // RenderLivingBase 退出时会重新启用光照贴图纹理单元，原版由
-            // RenderGlobal.renderEntities 外层负责关闭。补绘脱离了该外层，
-            // 因此必须复刻同一对调用，避免 F1/旁观者跳过手部渲染后泄漏到 GUI。
+
+
+
             minecraft.entityRenderer.enableLightmap();
             RenderHelper.enableStandardItemLighting();
             try {

@@ -294,10 +294,10 @@ public final class WitherStormClientEvents {
         updateFormidibombLoops(minecraft);
         updateCommandBlockLoops(minecraft);
         updateTractorBeamLoops(minecraft);
-        // 粒子是每客户端 tick 补充的短生命周期对象；暂停时游戏 tick 冻结、
-        // EffectRenderer 不再老化粒子，但 ClientTickEvent.END 仍会推进，若继续
-        // 召唤会在暂停期间无限堆积，恢复后同帧爆发。原版粒子走服务端 tick 网络包，
-        // 暂停时服务端不 tick、不发包，因此没有这种堆积。这里对齐该行为。
+
+
+
+
         if (!minecraft.isGamePaused()) {
             spawnFormidibombParticles(minecraft);
             spawnSymbiontDragonFireballParticles(minecraft);
@@ -320,7 +320,7 @@ public final class WitherStormClientEvents {
         }
     }
 
-    /** 对应上游 SoundManagersRefresher：停止并清空全部循环音效，下一帧自动重建。 */
+
     public static void refreshAllLoopSounds() {
         for (WitherStormLoopSound loop : WITHER_STORM_LOOPS.values()) loop.stopImmediately();
         WITHER_STORM_LOOPS.clear();
@@ -558,8 +558,8 @@ public final class WitherStormClientEvents {
                     volume, sound.getPitch(), sound.canRepeat(), sound.getRepeatDelay(),
                     sound.getAttenuationType(), sound.getXPosF(), sound.getYPosF(), sound.getZPosF()));
         } catch (NullPointerException ignored) {
-            // Cleanroom can post PlaySoundEvent before PositionedSound resolves its Sound.
-            // Keeping the original result lets SoundManager finish resolving and play it safely.
+
+
         }
     }
 
@@ -598,9 +598,9 @@ public final class WitherStormClientEvents {
         Vec3d look = player.getLook(1.0F);
         Vec3d end = new Vec3d(eyes.x + look.x * reach,
                 eyes.y + look.y * reach, eyes.z + look.z * reach);
-        // Query a wider corridor because the visible ribcage extends several
-        // blocks beyond the 1x1 physical core. The final ray test below still
-        // selects only the core's interaction envelope.
+
+
+
         AxisAlignedBB search = player.getEntityBoundingBox()
                 .expand(look.x * reach, look.y * reach, look.z * reach).grow(3.0D);
         SupplementalEntities.CommandBlockEntity closest = null;
@@ -610,10 +610,10 @@ public final class WitherStormClientEvents {
             if (!core.isEntityAlive() || core.isIndependentBowelsPart()
                     || core.getCoreState()
                     != SupplementalEntities.CommandBlockEntity.CoreState.PLAYING_DEAD) continue;
-            // Keep the physical 1x1 core hitbox unchanged, but use the visible
-            // ribcage as a forgiving interaction envelope. The podium and ribs
-            // otherwise make the tiny command block impossible to select from
-            // the same angles where it is clearly visible.
+
+
+
+
             RayTraceResult intercept = core.getInteractionBoundingBox()
                     .grow(Math.max(0.0D, core.getCollisionBorderSize()))
                     .calculateIntercept(eyes, end);
@@ -662,7 +662,7 @@ public final class WitherStormClientEvents {
 
     @SubscribeEvent
     public static void renderAmuletInHand(RenderSpecificHandEvent event) {
-        // 新版望远镜观测时会跳过整个第一人称手部阶段，主副手都不应穿过遮罩。
+
         if (PhasometerOverlay.isFirstPersonScoping(Minecraft.getMinecraft())) {
             event.setCanceled(true);
             return;
@@ -673,7 +673,7 @@ public final class WitherStormClientEvents {
 
     @SubscribeEvent
     public static void renderWitherStormWorldEffects(RenderWorldLastEvent event) {
-        // 同一次 Forge 世界末尾事件只能提交一批全局效果，避免重复注册时整批叠加。
+
         if (lastWorldEffectsEvent == event) return;
         lastWorldEffectsEvent = event;
         Minecraft minecraft = Minecraft.getMinecraft();
@@ -692,10 +692,10 @@ public final class WitherStormClientEvents {
                     minecraft.world.provider.getDimension(),
                     minecraft.getRenderViewEntity().getEntityId(), describeCurrentGlState());
         }
-        // 原版 RenderWorldLastEvent 在 RenderHelper.disableStandardItemLighting() 之后发布，
-        // 之后唯一会触碰 GL 状态的只剩第一人称物品 pass。F1 或观察者模式会跳过物品
-        // 绘制，任何泄漏的光照/混合/alpha test 都会进入下一帧并使天空全黑。事件边界
-        // 保存并恢复完整 GL 状态，异常路径同样兜底，不再依赖手部渲染碰巧重置。
+
+
+
+
         boolean lightingEnabled = GL11.glIsEnabled(GL11.GL_LIGHTING);
         boolean blendEnabled = GL11.glIsEnabled(GL11.GL_BLEND);
         boolean alphaTestEnabled = GL11.glIsEnabled(GL11.GL_ALPHA_TEST);
@@ -721,8 +721,8 @@ public final class WitherStormClientEvents {
             double viewerX = minecraft.getRenderManager().viewerPosX;
             double viewerY = minecraft.getRenderManager().viewerPosY;
             double viewerZ = minecraft.getRenderManager().viewerPosZ;
-            // World.loadedEntityList can briefly contain the same tracked entity more than once
-            // while a split storm is reattached to a distant chunk. Render its world effects once.
+
+
             List<WitherStormEntity> renderableStorms = new ArrayList<WitherStormEntity>();
             Set<java.util.UUID> renderedStormIds = new HashSet<java.util.UUID>();
             for (Entity entity : minecraft.world.loadedEntityList) {
@@ -793,7 +793,7 @@ public final class WitherStormClientEvents {
                 + ",lightmapTexture=" + lightmapTextureEnabled;
     }
 
-    /** 查询指定纹理单元的二维纹理状态，并保持真实活动单元不变。 */
+
     private static boolean isTexture2DEnabled(int textureUnit, int activeTexture) {
         OpenGlHelper.setActiveTexture(textureUnit);
         boolean enabled = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
@@ -801,7 +801,7 @@ public final class WitherStormClientEvents {
         return enabled;
     }
 
-    /** 把世界末尾特效批恢复为事件进入前的 GL 状态，保持 1.12 状态缓存与实际 GL 同步。 */
+
     private static void restoreWorldEffectsGlState(boolean lightingEnabled, boolean blendEnabled,
                                                    boolean alphaTestEnabled, boolean cullEnabled,
                                                    boolean depthMaskEnabled, boolean fogEnabled,
@@ -852,7 +852,7 @@ public final class WitherStormClientEvents {
                 previousLightmapX, previousLightmapY);
     }
 
-    /** 强制同步指定纹理单元的真实状态与 GlStateManager 缓存。 */
+
     private static void restoreTexture2DState(int textureUnit, boolean enabled) {
         forceActiveTexture(textureUnit);
         if (enabled) {
@@ -864,7 +864,7 @@ public final class WitherStormClientEvents {
         }
     }
 
-    /** 通过一次不同单元的过渡，避免活动纹理缓存错误时跳过真实 GL 调用。 */
+
     private static void forceActiveTexture(int textureUnit) {
         int alternate = textureUnit == OpenGlHelper.defaultTexUnit
                 ? OpenGlHelper.lightmapTexUnit : OpenGlHelper.defaultTexUnit;
@@ -1059,14 +1059,14 @@ public final class WitherStormClientEvents {
         }
     }
 
-    /**
-     * 1.12 声音引擎会跳过初始音量为零的声音；先执行一次循环更新，
-     * 让淡入循环以有效音量注册，后续 tick 再由声音引擎正常更新。
-     */
+
+
+
+
     private static void playLoopSound(Minecraft minecraft, MovingSound sound) {
         sound.update();
-        // 不要在声音解析前调用 getVolume()；1.12 PositionedSound 此时的内部
-        // Sound 尚未初始化，会在 getVolume() 内部触发空指针。
+
+
         if (!sound.isDonePlaying()) {
             minecraft.getSoundHandler().playSound(sound);
         }
@@ -1101,7 +1101,7 @@ public final class WitherStormClientEvents {
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public static void disableVanillaFog(EntityViewRenderEvent.FogDensity event) {
         if (!WitherStormClientConfig.disableVanillaFog) return;
-        // 事件短路原版雾参数；EntityRendererFogMixin 再关闭 setupFog 末尾启用的 GL 状态。
+
         GlStateManager.setFog(GlStateManager.FogMode.EXP);
         GlStateManager.setFogDensity(0.0F);
         event.setDensity(0.0F);
@@ -1110,12 +1110,12 @@ public final class WitherStormClientEvents {
 
     @SubscribeEvent
     public static void renderBlindOverlay(RenderGameOverlayEvent.Pre event) {
-        // Draw the flash before the HUD pass.  Drawing during HOTBAR covers the
-        // slot background and makes the inventory look as if it disappeared.
+
+
         if (event.getType() != RenderGameOverlayEvent.ElementType.ALL) return;
         Minecraft minecraft = Minecraft.getMinecraft();
-        // 上游把白屏注册为 HUD 覆盖层：任何 GuiScreen（物品栏/容器）打开时都不绘制，
-        // 避免全屏白矩形进入容器 GUI 的混合状态并吞掉物品栏。
+
+
         if (minecraft.currentScreen != null) return;
         float fade = ClientEffects.getBlindFade(event.getPartialTicks());
         if (fade <= 0.0F) return;
@@ -1124,8 +1124,8 @@ public final class WitherStormClientEvents {
         boolean depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
         boolean blendEnabled = GL11.glIsEnabled(GL11.GL_BLEND);
         try {
-            // 与上游 renderSolidOverlay 等价：显式管理深度与混合，不依赖
-            // Gui.drawRect 的局部恢复，避免残留状态破坏后续 HUD/GUI 渲染。
+
+
             GlStateManager.disableDepth();
             GlStateManager.depthMask(false);
             GlStateManager.enableBlend();
@@ -1140,8 +1140,8 @@ public final class WitherStormClientEvents {
             GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA,
                     GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             if (!blendEnabled) GlStateManager.disableBlend();
-            // Gui.drawRect leaves the OpenGL current color at the overlay alpha;
-            // reset it before vanilla draws the hotbar and inventory icons.
+
+
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
@@ -1180,7 +1180,7 @@ public final class WitherStormClientEvents {
                 + (active ? TextFormatting.GREEN : TextFormatting.RED) + active);
     }
 
-    /** 对应上游 RenderWitherSicknessOverlay：患病时用病化血条替换原版心形血条。 */
+
     @SubscribeEvent
     public static void renderWitherSicknessHealth(RenderGameOverlayEvent.Pre event) {
         if (event.getType() != RenderGameOverlayEvent.ElementType.HEALTH) return;
@@ -1188,8 +1188,8 @@ public final class WitherStormClientEvents {
         EntityPlayer player = minecraft.player;
         if (player == null || minecraft.gameSettings.hideGUI
                 || !player.isPotionActive(ModEffects.WITHER_SICKNESS)) return;
-        // Classic Bars owns the health overlay when installed; its optional mixin maps
-        // Wither Sickness to the configured Withered Colors palette.
+
+
         if (Loader.isModLoaded("classicbar")) return;
         event.setCanceled(true);
 
@@ -1356,7 +1356,7 @@ public final class WitherStormClientEvents {
         }
     }
 
-    /** 对应上游 ParticleEvents：命令方块书/工具掉落物持续冒出命令方块粒子。 */
+
     private static void spawnCommandBlockItemParticles(Minecraft minecraft) {
         for (Entity entity : minecraft.world.loadedEntityList) {
             if (!(entity instanceof EntityItem)) continue;
@@ -1369,7 +1369,7 @@ public final class WitherStormClientEvents {
         }
     }
 
-    /** 对应上游 ClientWitherSicknessEvents：客户端推进病化动画计时。 */
+
     private static void tickWitherSicknessTrackers(Minecraft minecraft) {
         for (Entity entity : minecraft.world.loadedEntityList) {
             if (!(entity instanceof EntityLivingBase)) continue;

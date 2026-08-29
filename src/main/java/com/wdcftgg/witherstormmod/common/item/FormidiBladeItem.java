@@ -21,10 +21,10 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.List;
 
-/**
- * Formidi 之刃：蓄力 40 刻达到满充能，命中时消耗充能产生无方块破坏的爆炸，
- * 并在冷却期间播放释放音效。NBT 键与上游保持一致。
- */
+
+
+
+
 public class FormidiBladeItem extends CommandBlockSwordItem {
 
     public static final int DEFAULT_RELEASE_TIME = 40;
@@ -121,7 +121,7 @@ public class FormidiBladeItem extends CommandBlockSwordItem {
         return slotChanged && super.shouldCauseReequipAnimation(oldStack, newStack, true);
     }
 
-    /** 上游 anim 模型谓词：蓄力中 0~1，满充能 1，释放后从 2 衰减回 0。 */
+
     public static float getPower(EntityLivingBase living, ItemStack stack, boolean using) {
         float current = 0.0F;
         if (using && living != null && living.isHandActive()) {

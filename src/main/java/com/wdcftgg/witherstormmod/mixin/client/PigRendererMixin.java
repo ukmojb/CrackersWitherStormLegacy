@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** 对应上游 MixinPigRenderer：名为 reuben 的猪使用专属贴图。 */
+
 @Mixin(RenderPig.class)
 public abstract class PigRendererMixin {
 

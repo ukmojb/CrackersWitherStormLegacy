@@ -841,5 +841,3 @@ public class LowResTornEvolvedDevourerBodyModel {
         return body;
     }
 }
-
-

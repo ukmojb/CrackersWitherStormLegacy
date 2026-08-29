@@ -5,12 +5,12 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.math.MathHelper;
 
-/**
- * 腐化掠夺者的弩攻击状态机：先蓄力 25 tick（同步 CHARGING 姿态），
- * 再按弩的弹道发射病化箭，随后进入攻击间隔。对应 1.20 上游 SickenedPillager
- * 继承原版 Pillager 的 RangedCrossbowAttackGoal，1.12 由 Crossbow 模组
- * 提供弩物品与模型，这里只负责 AI 时序与开火。
- */
+
+
+
+
+
+
 public final class SickenedPillagerCrossbowGoal extends EntityAIBase {
     private static final int CHARGE_TICKS = 25;
 
@@ -58,7 +58,7 @@ public final class SickenedPillagerCrossbowGoal extends EntityAIBase {
 
         double squaredDistance = pillager.getDistanceSq(target);
         if (squaredDistance > maximumAttackDistance * maximumAttackDistance && seeTime < 20) {
-            // 目标过远或暂时不可见时拉近到射程。
+
             pillager.getNavigator().tryMoveToEntityLiving(target, 1.0D);
         } else {
             pillager.getNavigator().clearPath();
@@ -69,7 +69,7 @@ public final class SickenedPillagerCrossbowGoal extends EntityAIBase {
             --chargeTicks;
             pillager.setCharging(true);
             if (chargeTicks == 0) {
-                // 与 1.12 弓 AI 一致，伤害因子按距离归一化到 0.1~1.0。
+
                 float distanceFactor = MathHelper.clamp(
                         (float) pillager.getDistance(target) / 10.0F, 0.1F, 1.0F);
                 pillager.attackEntityWithRangedAttack(target, distanceFactor);

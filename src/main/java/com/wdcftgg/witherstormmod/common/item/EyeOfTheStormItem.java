@@ -34,7 +34,7 @@ public class EyeOfTheStormItem extends CommandBlockSwordItem {
         super(name, ModToolMaterials.EYE_OF_THE_STORM);
     }
 
-    /** 对应上游 ItemAttributeModifierEvent：生命值越低伤害越低。 */
+
     @Override
     public Multimap<String, AttributeModifier> getAttributeModifiers(
             EntityEquipmentSlot slot, ItemStack stack) {

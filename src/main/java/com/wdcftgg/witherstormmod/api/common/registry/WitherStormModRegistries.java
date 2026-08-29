@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** 1.12.2 Forge 自定义注册表中的 Symbiont 法术类型。 */
+
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public class WitherStormModRegistries {
     public static final ResourceLocation SPELL_TYPES_NAME =

@@ -7,7 +7,7 @@ import net.minecraft.util.math.Vec2f;
 
 import java.util.Random;
 
-/** 四阶段及以后生成的大型默认方块簇。 */
+
 public final class DefaultClusterSource extends BlockClusterSource {
     public DefaultClusterSource() {
         super(256);

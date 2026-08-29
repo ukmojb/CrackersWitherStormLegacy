@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/** 让可寻路生物按上游阶段与牵引规则逃离凋零风暴。 */
+
 public final class AvoidWitherStormAI extends EntityAIBase {
     private static final int OPEN_AREA_CACHE_TICKS = 20;
     private static final int PORTAL_SEARCH_INTERVAL_TICKS = 20;
@@ -38,7 +38,7 @@ public final class AvoidWitherStormAI extends EntityAIBase {
     private boolean cachedOpenArea;
     private BlockPos cachedPortal;
     private long nextPortalSearchTick = Long.MIN_VALUE;
-    /** 性能优化：视线射线按 5 tick 缓存，避免每 tick 对每个动物做 300 格射线。 */
+
     private long lastSightCheckTick = Long.MIN_VALUE;
     private WitherStormEntity cachedSightStorm;
     private boolean cachedSightResult;
@@ -93,7 +93,7 @@ public final class AvoidWitherStormAI extends EntityAIBase {
     }
 
     public static void clearWorldCache(World world) {
-        // 风暴索引已由 WorldUtil 的 5-tick 共享缓存维护，无需在此清理
+
     }
 
     private boolean canEscapeFrom(@Nullable WitherStormEntity storm) {
@@ -113,7 +113,7 @@ public final class AvoidWitherStormAI extends EntityAIBase {
     }
 
     private boolean isCreatureInOpenArea() {
-        // 与 BossVisibility 一致：直接按坐标构造，避免运行时 Entity.getPosition() 返回 null
+
         BlockPos currentPosition = new BlockPos(
                 Math.floor(creature.posX), Math.floor(creature.posY + 0.5D), Math.floor(creature.posZ));
         long currentTick = creature.world.getTotalWorldTime();

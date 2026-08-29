@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** 1.12 implementation of Cracker's Lib's server ConfigCommandBuilder tree. */
+
 final class WitherStormConfigCommandSupport {
     private static final String USAGE = "commands.witherstormmod.usage";
     private static final Map<String, Field> SERVER_VALUES = new LinkedHashMap<String, Field>();

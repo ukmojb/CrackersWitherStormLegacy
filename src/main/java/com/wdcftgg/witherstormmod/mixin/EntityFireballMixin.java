@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-/** 让共生体龙息弹只使用客户端重建的命令方块轨迹。 */
+
 @Mixin(EntityFireball.class)
 public abstract class EntityFireballMixin {
 

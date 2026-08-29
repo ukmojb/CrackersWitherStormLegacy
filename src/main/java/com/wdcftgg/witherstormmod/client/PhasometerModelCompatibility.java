@@ -21,7 +21,7 @@ import org.lwjgl.util.vector.Vector3f;
 import javax.vecmath.Matrix4f;
 import java.util.EnumMap;
 
-/** Recreates Forge 1.20's separate-transforms loader with the 1.12 baked-model API. */
+
 final class PhasometerModelCompatibility {
     private static final ResourceLocation GUI_MODEL =
             new ResourceLocation(Tags.MOD_ID, "phasometer_gui");

@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** 对应上游望远镜手臂姿势：使用 Phasometer 时仅把活动手举到眼前。 */
+
 @Mixin(ModelBiped.class)
 public abstract class ModelBipedMixin {
 

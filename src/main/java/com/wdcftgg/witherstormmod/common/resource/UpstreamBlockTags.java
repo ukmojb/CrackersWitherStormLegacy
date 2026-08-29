@@ -43,10 +43,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Reads the upstream data-pack block tags without copying ARR data into this mod.
- * Vanilla and Forge tag families are matched with their Minecraft 1.12.2 semantics.
- */
+
+
+
+
 public final class UpstreamBlockTags {
 
     private static final int BLOCK_STATE_CACHE_SIZE = 1 << 16;
@@ -317,7 +317,7 @@ public final class UpstreamBlockTags {
             return block == Blocks.CHEST || block == Blocks.TRAPPED_CHEST || block == Blocks.ENDER_CHEST;
         }
         if ("minecraft:wooden_buttons".equals(tagName)) {
-            // 1.12 只有橡木木按钮一种木质按钮。
+
             return block == Blocks.WOODEN_BUTTON;
         }
         if ("minecraft:wooden_doors".equals(tagName)) {
@@ -326,7 +326,7 @@ public final class UpstreamBlockTags {
                     || block == Blocks.ACACIA_DOOR || block == Blocks.DARK_OAK_DOOR;
         }
         if ("minecraft:wooden_trapdoors".equals(tagName)) {
-            // 1.12 只有橡木活板门一种木质活板门。
+
             return block == Blocks.TRAPDOOR;
         }
         if ("minecraft:fence_gates".equals(tagName)) {
@@ -340,7 +340,7 @@ public final class UpstreamBlockTags {
                     || block == Blocks.ACACIA_FENCE || block == Blocks.DARK_OAK_FENCE;
         }
         if ("minecraft:wooden_pressure_plates".equals(tagName)) {
-            // 1.12 只有橡木压力板一种木质压力板。
+
             return block == Blocks.WOODEN_PRESSURE_PLATE;
         }
         if ("minecraft:wooden_stairs".equals(tagName)) {
@@ -349,7 +349,7 @@ public final class UpstreamBlockTags {
                     || block == Blocks.ACACIA_STAIRS || block == Blocks.DARK_OAK_STAIRS;
         }
         if ("minecraft:wooden_slabs".equals(tagName)) {
-            // 1.12 木台阶是独立方块，而不是 stone_slab 的变体。
+
             return block == Blocks.WOODEN_SLAB || block == Blocks.DOUBLE_WOODEN_SLAB;
         }
         if ("minecraft:fire".equals(tagName)) return block == Blocks.FIRE;

@@ -49,7 +49,7 @@ final class ModelResourceConverter {
         parents.put("minecraft:block/orientable_with_bottom", "minecraft:block/orientable");
         parents.put("minecraft:block/template_wall_post", "minecraft:block/wall_post");
         parents.put("minecraft:block/template_wall_side", "minecraft:block/wall_side");
-        // 1.20 增加了更高的墙侧模板，1.12 的普通墙侧父模型可兼容其结构。
+
         parents.put("minecraft:block/template_wall_side_tall", "minecraft:block/wall_side");
         parents.put("minecraft:block/template_glass_pane_post", "minecraft:block/glass_pane_post");
         parents.put("minecraft:block/template_glass_pane_side", "minecraft:block/glass_pane_side");
@@ -107,8 +107,8 @@ final class ModelResourceConverter {
                     JsonObject perspectives = requiredObject(root, "perspectives", legacyName);
                     root = requiredObject(perspectives, "gui", legacyName);
                 } else if (CROSSBOW_MOD_ENDER_PEARL_MODEL.equals(legacyName)) {
-                    // Crossbow's blockstate shorthand resolves to block/template, but this
-                    // generated item model is baked directly and needs the explicit parent path.
+
+
                     root.addProperty("parent", "crossbow:block/template");
                     JsonObject textures = getOrCreateObject(root, "textures");
                     textures.addProperty(
@@ -354,8 +354,8 @@ final class ModelResourceConverter {
     }
 
     private static JsonObject doorState(JsonObject source) {
-        // 客户端状态映射器会忽略 BlockDoor.POWERED。上游 1.20 键已经匹配
-        // 1.12 的其余属性，只需改写模型引用。
+
+
         return source;
     }
 

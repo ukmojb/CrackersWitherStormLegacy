@@ -10,7 +10,7 @@ import net.minecraft.potion.PotionType;
 import javax.annotation.Nullable;
 import java.util.List;
 
-/** 方块腐化数据生成器使用的 1.12 配方契约。 */
+
 public abstract class TaintRecipe implements Comparable<TaintRecipe> {
     @Nullable
     protected final Potion effect;

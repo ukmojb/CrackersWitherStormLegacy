@@ -228,16 +228,16 @@ public class WitherStormEntity extends EntityMob
     private int flickerTime;
     private int nextFlicker = 40;
     private int tentacleTickCount;
-    /** 性能优化：牵引光束候选实体每 5 tick 全量扫描一次，tick 间仅对缓存候选施力。 */
+
     private final List<Entity> tractorBeamCandidates = new ArrayList<Entity>();
-    /** 性能优化：质量吸收候选与附近玩家，与牵引候选共用每 tick 单次实体遍历。 */
+
     private final List<Entity> absorbCandidates = new ArrayList<Entity>();
     private final List<EntityPlayerMP> nearbyPlayers = new ArrayList<EntityPlayerMP>();
-    /** 性能优化：同 tick 内缓存头部视线射线结果（检测机制不变）。 */
+
     private long pullSightCacheCycle = Long.MIN_VALUE;
     private final java.util.Map<String, Boolean> pullSightCache =
             new java.util.HashMap<String, Boolean>();
-    /** 诊断：风暴服务端 tick 分段耗时统计（每 200 tick 输出一次平均耗时）。 */
+
     private final java.util.LinkedHashMap<String, Long> profileNanos =
             new java.util.LinkedHashMap<String, Long>();
     private final java.util.LinkedHashMap<String, Integer> profileCounts =
@@ -279,7 +279,7 @@ public class WitherStormEntity extends EntityMob
         enablePersistence();
     }
 
-    /** The 1.20 entity type uses the hostile sound source for entity-owned sounds. */
+
     @Override
     public SoundCategory getSoundCategory() {
         return SoundCategory.HOSTILE;
@@ -339,7 +339,7 @@ public class WitherStormEntity extends EntityMob
                 onGround && isDeadOrPlayingDead(), rand);
     }
 
-    /** 上游主实体不使用原版凋灵 AI，所有目标和攻击都由移植状态机管理。 */
+
     @Override
     protected void initEntityAI() {
     }
@@ -757,7 +757,7 @@ public class WitherStormEntity extends EntityMob
         return shineScale;
     }
 
-    /** 维护风暴搜索范围内正在播放唱片的唱片机位置，供声音和分裂体表现使用。 */
+
     private void searchForPlayingJukeboxes() {
         AxisAlignedBB search = getSearchBox();
         for (TileEntity tile : world.loadedTileEntityList) {
@@ -821,10 +821,10 @@ public class WitherStormEntity extends EntityMob
         }
     }
 
-    /** 1.12 没有 Monster 飞行基类；直接移动可保留上游无重力速度模型。 */
+
     @Override
     public void travel(float strafe, float vertical, float forward) {
-        // 死亡移动由 onDeathUpdate 按上游的纵向阻尼与重力顺序执行，避免同一 tick 重复位移。
+
         if (getHealth() <= 0.0F) return;
         moveRelative(strafe, vertical, forward, 0.02F);
         move(MoverType.SELF, motionX, motionY, motionZ);
@@ -868,19 +868,19 @@ public class WitherStormEntity extends EntityMob
 
     @Override
     public boolean canBeCollidedWith() {
-        // The upstream entity remains pickable. In 1.12.2 this method is also
-        // used by the client entity ray trace; returning false prevents the
-        // player attack packet from ever reaching attackEntityFrom(). Keep
-        // canBePushed() false separately so the storm is still non-colliding
-        // for movement physics.
+
+
+
+
+
         return true;
     }
 
-    /**
-     * 修复渲染剔除：RenderManager 用该包围盒做视锥判断，默认碰撞箱仅 15x120x15，
-     * 玩家仰视/远距离时风暴模型（含高耸身体、碎片环）会整体被剔除。
-     * 扩大范围以覆盖完整模型与碎片环（与 WitherStormRenderer.shouldRender 的 grow 一致）。
-     */
+
+
+
+
+
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
         return getEntityBoundingBox().grow(260.0D, 220.0D, 260.0D);
@@ -937,7 +937,7 @@ public class WitherStormEntity extends EntityMob
         return false;
     }
 
-    /** 上游主体和分裂体使用 248 倍尺寸渲染距离，避免远距离部分突然消失。 */
+
     @Override
     public boolean isInRangeToRenderDist(double distance) {
         return isInWitherStormRenderRange(this, distance);
@@ -976,13 +976,13 @@ public class WitherStormEntity extends EntityMob
         return getPhase() > 3 ? 25.0F : super.getSoundVolume();
     }
 
-    /** 大型阶段允许头部追踪更大的垂直角度，贴合上游的头部控制语义。 */
+
     @Override
     public int getVerticalFaceSpeed() {
         return getPhase() > 3 ? 180 : super.getVerticalFaceSpeed();
     }
 
-    /** 牵引光束或受伤状态下减慢水平转头，避免目标瞬间跳转。 */
+
     @Override
     public int getHorizontalFaceSpeed() {
         if (getPhase() > 3 && !isHeadInjured(0) && !isHeadDistracted(0)) return 1;
@@ -999,11 +999,11 @@ public class WitherStormEntity extends EntityMob
         if (consumedMass == lastConsumedMass) return;
         lastConsumedMass = consumedMass;
         if (isDeadOrPlayingDead() || consumedMass <= getConsumptionAmountForPhase(getPhase())) return;
-        // 上游每次只推进一个阶段，并把质量重置到新阶段的起始阈值。
+
         if (evolve(false)) lastConsumedMass = getConsumedMass();
     }
 
-    /** Mirrors the upstream command hook after directly changing consumed entities. */
+
     public void checkConsumptionAmount() {
         updateEvolution();
     }
@@ -1012,13 +1012,13 @@ public class WitherStormEntity extends EntityMob
         if (WitherStormConfig.chaseOnPhaseChange && getPhase() > 3) targetManager.accelerate();
     }
 
-    /** 返回当前阶段是否允许进入下一阶段；阶段 5 只能通过 Formidibomb 倒地流程离开。 */
+
     public boolean canEvolve(boolean force) {
         int phase = getPhase();
         return phase < 7 && (force || evolutionProfiler.isProfiling() || phase != 5);
     }
 
-    /** 尝试推进一个阶段，并执行上游进化后的追逐与全局音效。 */
+
     public boolean evolve(boolean force) {
         int nextPhase = getPhase() + 1;
         if (!canEvolve(force)
@@ -1032,7 +1032,7 @@ public class WitherStormEntity extends EntityMob
         return true;
     }
 
-    /** 直接切换到指定阶段，使用该阶段前一阈值作为质量起点。 */
+
     public void evolveToPhase(int phase) {
         if (setPhase(phase)) {
             if (evolutionProfiler.isProfiling()) evolutionProfiler.onEvolve(this);
@@ -1091,7 +1091,7 @@ public class WitherStormEntity extends EntityMob
         return (phase + 1) * 2.0D;
     }
 
-    /** Applies the distinct state used by the upstream super-beacon resurrection path. */
+
     public void initializeFromSuperBeacon(int phase) {
         applyResummonedEvolutionModifier();
         setPhase(MathHelper.clamp(phase, 0, 7));
@@ -1266,10 +1266,10 @@ public class WitherStormEntity extends EntityMob
         }
     }
 
-    /**
-     * 上游会在坠落前 301 tick 将上一刻的纵向速度乘以 0.6，之后才保留普通重力累积。
-     * 1.12 的飞行实现不会替本实体施加重力，因此在这里按原版空气移动顺序显式还原。
-     */
+
+
+
+
     private void tickFallingMovement(boolean dampVerticalSpeed) {
         if (onGround) {
             motionX = motionY = motionZ = 0.0D;
@@ -1295,12 +1295,12 @@ public class WitherStormEntity extends EntityMob
         ModNetwork.syncWitherStormRotation(this);
     }
 
-    /**
-     * EntityLivingBase calls this after onLivingUpdate and normally derives
-     * renderYawOffset from movement.  The storm has its own target-driven body
-     * rotation, so allowing the vanilla pass to run would overwrite the value
-     * that was just interpolated (most visibly in phase 4).
-     */
+
+
+
+
+
+
     @Override
     protected float updateDistance(float yaw, float offset) {
         return offset;
@@ -1435,12 +1435,12 @@ public class WitherStormEntity extends EntityMob
         }
     }
 
-    /** 在当前世界所有已加载实体中按父 UUID 和镜像索引查找分裂体，并清理重复实例。 */
+
     @Nullable
     private SupplementalEntities.WitherStormSegmentEntity findSegment(int index) {
         int partIndex = MathHelper.clamp(index, 0, segmentUuids.length - 1);
         UUID preferredUuid = segmentUuids[partIndex];
-        // 性能优化：UUID 有效时直接用 O(1) 查询，避免 phase 6/7 每 tick 全量遍历实体
+
         if (preferredUuid != null) {
             Entity resolved = resolveAny(preferredUuid);
             if (resolved instanceof SupplementalEntities.WitherStormSegmentEntity) {
@@ -1557,7 +1557,7 @@ public class WitherStormEntity extends EntityMob
         if (podiumPlaced && !podiumOffsetCorrected) migratePlayingDeadPodium();
         SupplementalEntities.CommandBlockEntity existing = getPlayingDeadCommandBlockReference();
         if (existing != null && !existing.isDead) return;
-        // UUID 已存在时等待原实体重新加载；此处重建会在区块加载延迟时复制核心。
+
         if (commandBlockUuid != null) return;
         if (!podiumPlaced) return;
         SupplementalEntities.CommandBlockEntity core = new SupplementalEntities.CommandBlockEntity(world);
@@ -1605,7 +1605,7 @@ public class WitherStormEntity extends EntityMob
         podiumOffsetCorrected = true;
     }
 
-    /** Upstream uses cos for X and sin for Z after subtracting 90 degrees. */
+
     private BlockPos getPlayingDeadPodiumAnchor() {
         float angle = (renderYawOffset - 90.0F) * 0.017453292F;
         int offsetX = (int) (MathHelper.cos(angle) * 5.0F);
@@ -1613,7 +1613,7 @@ public class WitherStormEntity extends EntityMob
         return getPosition().add(offsetX, -4, offsetZ);
     }
 
-    /** Moves podiums written by the earlier legacy build with swapped sin/cos. */
+
     private void migratePlayingDeadPodium() {
         if (world.isRemote || podiumPosition == null) return;
         BlockPos corrected = getPlayingDeadPodiumAnchor();
@@ -1977,7 +1977,7 @@ public class WitherStormEntity extends EntityMob
             }
         }
 
-        // 候选列表由 refreshEntityCandidates 每 tick 单次遍历填充，检测机制与上游每 tick 一致
+
         for (int head = 0; head < 3; head++) {
             if (!tractorBeamActive(head)) continue;
             final int headIndex = head;
@@ -2000,7 +2000,7 @@ public class WitherStormEntity extends EntityMob
         }
     }
 
-    /** 每秒记录玩家从牵引候选到各主体头光束几何的判定结果。 */
+
     private void logPlayerBeamDiagnostics() {
         if (!StormDiagnosticLogger.isEnabled() || ticksExisted % 20 != 0) return;
         for (EntityPlayer player : world.playerEntities) {
@@ -2037,7 +2037,7 @@ public class WitherStormEntity extends EntityMob
                 + "/" + entity.getUniqueID();
     }
 
-    /** 每 tick 单次遍历世界实体，同时填充牵引候选、吸收候选与附近玩家（AABB 相交语义与 getEntitiesWithinAABB 一致）。 */
+
     private void refreshEntityCandidates() {
         tractorBeamCandidates.clear();
         absorbCandidates.clear();
@@ -2144,7 +2144,7 @@ public class WitherStormEntity extends EntityMob
         return null;
     }
 
-    /** 让风暴在 1.12 的飞行实体实现上保留上游的追逐和悬浮行为。 */
+
     private void updateCustomMovement() {
         if (isDeadOrPlayingDead() || getInvulnerableTicks() > 0) return;
         PowerfulExplosiveEntity.FormidibombEntity nearbyFormidibomb = getNearbyTickingFormidibomb();
@@ -2195,7 +2195,7 @@ public class WitherStormEntity extends EntityMob
                 horizontalSteering = true;
             }
         }
-        // 1.12 的 travel() 不会替飞行实体应用空气阻尼；没有水平追逐加速度时必须衰减旧速度，避免失去目标后沿旧方向永久滑行。
+
         if (!horizontalSteering) {
             velocity = new Vec3d(velocity.x * 0.91D, velocity.y, velocity.z * 0.91D);
         }
@@ -2245,7 +2245,7 @@ public class WitherStormEntity extends EntityMob
                 rotationYaw = renderYawOffset;
             }
         } else {
-            // 对齐上游 WitherStormBodyController：有目标时身体跟随主头，而不是继续沿运动方向。
+
             float headYaw = headManager.getYaw(0, 1.0F);
             renderYawOffset = rotateTowards(renderYawOffset, headYaw, 10.0F);
             rotationYaw = renderYawOffset;
@@ -2372,7 +2372,7 @@ public class WitherStormEntity extends EntityMob
 
     private boolean isInsideBeam(Entity entity, Vec3d origin, Vec3d direction, int head) {
         double cutoff = headManager.getTractorBeamCutoff(head);
-        // 上游对所有实体（含玩家）统一用 4.0 判定光束半径；8.0 会让玩家更难脱离。
+
         return TractorBeamHelper.isInsideTractorBeam(
                 entity.getPositionVector(), origin, direction, cutoff, 4.0D);
     }
@@ -2601,12 +2601,12 @@ public class WitherStormEntity extends EntityMob
         }
     }
 
-    /** 供管理命令直接设置已吞噬质量。 */
+
     public void setConsumedMass(int amount) {
         dataManager.set(CONSUMED_MASS, Math.max(0, amount));
     }
 
-    /** 供管理命令设置进化速度倍率，范围与上游 evolutionSpeed 命令一致。 */
+
     public void setEvolutionSpeedModifier(double value) {
         getEntityAttribute(ModAttributes.EVOLUTION_SPEED).setBaseValue(
                 MathHelper.clamp(value, 0.1D, 32.0D));
@@ -2716,7 +2716,7 @@ public class WitherStormEntity extends EntityMob
         if (PHASE.equals(key) || PLAY_DEAD_STATE.equals(key)) updateSizeForPlayDeadState();
     }
 
-    /** 返回与上游搜索范围对应的 1.12 轴对齐搜索盒。 */
+
     public AxisAlignedBB getSearchBox() {
         double range = getPhase() > 3
                 ? getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).getAttributeValue()
@@ -3114,7 +3114,7 @@ public class WitherStormEntity extends EntityMob
         return findContainingTractorBeamHead(entity, radius) >= 0;
     }
 
-    /** 上游不让已经骑乘在风暴家族附近实体上的乘客重复成为目标。 */
+
     boolean isPassengerTarget(Entity entity) {
         if (entity == null) return false;
         AxisAlignedBB nearby = getEntityBoundingBox().grow(10.0D, 255.0D, 10.0D);
@@ -3203,7 +3203,7 @@ public class WitherStormEntity extends EntityMob
         return hit == null || hit.typeOfHit == RayTraceResult.Type.MISS;
     }
 
-    /** 性能优化：同 tick 内缓存头部视线结果，同一 tick 内同一头对同一实体只做一次射线（检测机制不变）。 */
+
     boolean canSeeWithCache(int head, Entity entity) {
         if (entity == null || entity.world != world) return false;
         long cycle = world.getTotalWorldTime();
@@ -3227,7 +3227,7 @@ public class WitherStormEntity extends EntityMob
         return headManager.getYaw(head, partialTicks);
     }
 
-    /** Applies the complete upstream structure-summon rotation before the entity enters the world. */
+
     public void initializeStructureSummonYaw(float yaw) {
         rotationYaw = prevRotationYaw = yaw;
         renderYawOffset = prevRenderYawOffset = yaw;
@@ -3321,9 +3321,9 @@ public class WitherStormEntity extends EntityMob
     }
 
     public static float getSoundLoopAttenuationDistance(int phase) {
-        // 上游命令方块循环音的基础衰减距离为 16、资源音量为 3.0。
-        // 1.12 无法读取 attenuation_distance，因此手动衰减时必须把资源音量
-        // 对有效距离的扩展也计算进去，否则声音会在 16 格处直接消失。
+
+
+
         if (phase < 3) return 48.0F;
         if (phase == 3) return 128.0F;
         return 1024.0F;
@@ -3378,16 +3378,16 @@ public class WitherStormEntity extends EntityMob
 
     @Override
     public boolean canBeAttackedWithItem() {
-        // Let the attack packet reach attackEntityFrom; the server-side damage
-        // path owns the summoning invulnerability check.  Gating this on the
-        // client-side timer can discard legitimate phase 0-3 attacks when the
-        // synced timer is one tick behind.
+
+
+
+
         return getPhase() < 4;
     }
 
     @Override
     public boolean attackEntityFrom(DamageSource source, float amount) {
-        // 1.12.2 没有伤害类型标签，允许伤害创造模式是绕过实体无敌的对应语义。
+
         if (source.canHarmInCreative()) return super.attackEntityFrom(source, amount);
         Entity attacker = source.getTrueSource();
         if (isEntityInvulnerable(source)
@@ -3408,7 +3408,7 @@ public class WitherStormEntity extends EntityMob
         return super.attackEntityFrom(source, amount);
     }
 
-    /** 在原版图腾死亡保护检查尾部执行上游的低阶段濒死进化。 */
+
     public boolean tryEvolveFromDeathProtection(DamageSource source) {
         if (!isCompletelyInvulnerable() || getPhase() >= 4
                 || getHealth() / getMaxHealth() > 0.1F) return false;
@@ -3504,7 +3504,7 @@ public class WitherStormEntity extends EntityMob
         world.spawnEntity(cluster);
     }
 
-    /** 对应上游 debug deathClusters drop。 */
+
     public void debugDropDeathClusters() {
         dropMassCluster(Math.max(1, getPhase()));
     }
@@ -3528,7 +3528,7 @@ public class WitherStormEntity extends EntityMob
         return PHASE_HEIGHT[MathHelper.clamp(getPhase(), 0, PHASE_HEIGHT.length - 1)];
     }
 
-    /** 上游 getDeathTime：扩展死亡使用 360 帧的撕裂计时，普通死亡沿用原版计时。 */
+
     public int getDeathTime() {
         return getPhase() > 3 ? witherStormDeathTime : deathTime;
     }
@@ -3559,12 +3559,12 @@ public class WitherStormEntity extends EntityMob
         trackedEntities.clear();
     }
 
-    /** 还原肠道命令方块每次非致死受击对主体与全部分裂体的联动。 */
+
     public void reactToCommandBlockDamage() {
         reactToCommandBlockDamage(rand);
     }
 
-    /** 使用命令方块实体的随机源，保持主体与分裂体头部受伤抽样顺序和上游一致。 */
+
     public void reactToCommandBlockDamage(Random random) {
         if (world.isRemote || isDead) return;
         Random damageRandom = random == null ? rand : random;
@@ -3589,16 +3589,16 @@ public class WitherStormEntity extends EntityMob
                 : killer instanceof EntityLivingBase
                 ? ModDamageSources.mobAttackWitherStorm((EntityLivingBase) killer)
                 : DamageSource.OUT_OF_WORLD;
-        // The upstream final phase deals Float.MAX_VALUE through its dedicated
-        // damage type. Clear 1.12's generic hurt window before doing the same so
-        // an earlier maximum-damage attempt cannot reject the terminal hit.
+
+
+
         hurtResistantTime = 0;
         attackEntityFrom(source, Float.MAX_VALUE);
         if (getHealth() <= 0.0F || isDead) return;
 
-        // A completed bowels fight is authoritative. Some 1.12 compatibility
-        // handlers can consume the attack before EntityLivingBase reaches
-        // damageEntity; start the normal death sequence with the same source.
+
+
+
         WitherStormMod.LOGGER.warn("Bowels fight completed for storm {} but the terminal damage was rejected; "
                 + "starting the death sequence directly", getUniqueID());
         if (killer instanceof EntityPlayer) {
@@ -3673,7 +3673,7 @@ public class WitherStormEntity extends EntityMob
         super.setDead();
     }
 
-    /** 父类私有 Boss 条无法在倒地时隐藏，因此由移植实体独占玩家跟踪。 */
+
     @Override
     public void addTrackingPlayer(EntityPlayerMP player) {
         if (player == null) return;
@@ -3767,7 +3767,7 @@ public class WitherStormEntity extends EntityMob
         compound.setTag("PlayingJukeboxes", jukeboxes);
         compound.setBoolean("IsConsumptionLocked", consumptionLocked);
 
-        // 1.12 端额外需要这些实体引用与终局幂等状态；它们不替代上游键。
+
         compound.setDouble(EVOLUTION_SPEED_NBT_KEY, getEvolutionSpeedModifier());
         writeUuid(compound, "WitherStormFormidibomb", formidibombUuid);
         writeUuid(compound, "WitherStormCommandBlock", commandBlockUuid);
@@ -3909,7 +3909,7 @@ public class WitherStormEntity extends EntityMob
         setHealth(Math.min(getHealth(), getMaxHealth()));
     }
 
-    /** True only when this entity was reconstructed from a saved entity NBT record. */
+
     public boolean wasRestoredFromPersistentData() {
         return restoredFromPersistentData;
     }

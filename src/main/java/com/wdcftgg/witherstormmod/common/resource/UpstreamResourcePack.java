@@ -142,11 +142,11 @@ public class UpstreamResourcePack extends FileResourcePack {
         }
     }
 
-    /**
-     * 1.12's title renderer builds mip levels from power-of-two cube faces. The
-     * upstream face is 1000x1000, so normalize it at the resource boundary rather
-     * than relying on the legacy texture loader's non-power-of-two behavior.
-     */
+
+
+
+
+
     private InputStream normalizedPanoramaTexture() throws IOException {
         BufferedImage image;
         try (InputStream source = super.getInputStreamByName(TITLE_PANORAMA_FACE_0)) {

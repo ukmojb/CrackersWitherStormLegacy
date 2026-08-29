@@ -56,10 +56,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 从外部上游 JAR 读取腐化数据（52 个方块配方与 22 个生物转化），
- * 并按 Minecraft 1.12.2 的方块/实体语义映射到本移植模组。
- */
+
+
+
+
 public final class TaintingData {
 
     private static final String BLOCK_PREFIX = "data/witherstormmod/tainting/block/";
@@ -316,7 +316,7 @@ public final class TaintingData {
         if ("minecraft:red_sand".equals(blockId)) return meta(Blocks.SAND, 1);
         if ("minecraft:sandstone".equals(blockId)) return meta(Blocks.SANDSTONE, 0);
         if ("minecraft:cut_sandstone".equals(blockId) || "minecraft:chiseled_sandstone".equals(blockId)) {
-            // 1.12 没有单独的切制砂岩方块，其外观对应砂岩的錾制变体（元数据 1）。
+
             return meta(Blocks.SANDSTONE, 1);
         }
         if ("minecraft:smooth_sandstone".equals(blockId)) return meta(Blocks.SANDSTONE, 2);
@@ -334,10 +334,10 @@ public final class TaintingData {
         if ("minecraft:cut_sandstone_slab".equals(blockId) || "minecraft:smooth_sandstone_slab".equals(blockId)
                 || "minecraft:cut_red_sandstone_slab".equals(blockId)
                 || "minecraft:smooth_red_sandstone_slab".equals(blockId)) {
-            // 1.12 没有对应的独立切制/平滑台阶方块。
+
             return state -> false;
         }
-        // 1.12 的圆石楼梯沿用旧注册名 minecraft:stone_stairs；普通石楼梯尚不存在。
+
         if ("minecraft:stone_stairs".equals(blockId)) return state -> false;
         if ("minecraft:cobblestone_stairs".equals(blockId)) return any(Blocks.STONE_STAIRS);
         if ("minecraft:sandstone_stairs".equals(blockId)) return any(Blocks.SANDSTONE_STAIRS);
@@ -349,13 +349,13 @@ public final class TaintingData {
         if ("minecraft:sandstone_wall".equals(blockId) || "minecraft:red_sandstone_wall".equals(blockId)
                 || "minecraft:smooth_sandstone_wall".equals(blockId)
                 || "minecraft:smooth_red_sandstone_wall".equals(blockId)) {
-            // 1.12 只有圆石墙，没有砂岩墙。
+
             return state -> false;
         }
         if ("minecraft:glass".equals(blockId)) return any(Blocks.GLASS);
         if ("minecraft:glass_pane".equals(blockId)) return any(Blocks.GLASS_PANE);
         if ("minecraft:carved_pumpkin".equals(blockId)) {
-            // 1.12 的南瓜方块本身就带脸，语义上等价于上游的雕刻南瓜。
+
             return any(Blocks.PUMPKIN);
         }
         if ("minecraft:pumpkin".equals(blockId)) return state -> false;

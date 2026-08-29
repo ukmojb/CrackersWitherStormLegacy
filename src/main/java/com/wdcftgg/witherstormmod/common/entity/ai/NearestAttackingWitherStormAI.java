@@ -7,7 +7,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.util.math.AxisAlignedBB;
 
-/** 让被大型凋零风暴牵引到空中的骷髅和苦力怕反击风暴。 */
+
 public final class NearestAttackingWitherStormAI
         extends EntityAINearestAttackableTarget<EntityLivingBase> {
     private final EntityCreature creature;

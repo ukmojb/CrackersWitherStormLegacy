@@ -14,7 +14,7 @@ import java.util.Map;
 public final class ModelBuilders {
     private ModelBuilders() { }
 
-    /** Adds a modern ModelPart cube without rounding fractional bounds or texture scaling. */
+
     public static void addBox(ModelRenderer renderer, float textureU, float textureV,
                               float x, float y, float z,
                               float width, float height, float depth,
@@ -30,7 +30,7 @@ public final class ModelBuilders {
         renderer.textureHeight = originalTextureHeight;
     }
 
-    /** Exact cube bounds for 1.20 boxes whose dimensions cannot be represented by 1.12 ModelBox. */
+
     public interface PreciseModelBoxBounds {
         float minimumX();
         float minimumY();
@@ -146,7 +146,7 @@ public final class ModelBuilders {
         return value == Math.round(value);
     }
 
-    /** Preserves the fractional cube dimensions supported by the 1.20 ModelPart API. */
+
     private static final class FloatModelBox extends ModelBox implements PreciseModelBoxBounds {
         private final TexturedQuad[] floatQuads;
         private final float preciseMinimumX;

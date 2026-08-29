@@ -12,10 +12,10 @@ import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * 供附属模组生成生物腐化转化的数据提供器（1.12.2 语义）。
- * 输出格式与上游 data/witherstormmod/tainting/entity 一致。
- */
+
+
+
+
 public abstract class MobConversionProvider {
 
     private final String modid;

@@ -181,7 +181,7 @@ public class WitherStormPhaseModel extends ModelBase {
         renderTornEntrance(storm);
     }
 
-    /** Upstream TornEvolvedDevourer mass decal that visually closes the bowels entrance. */
+
     private void renderTornEntrance(WitherStormEntity storm) {
         if (form != Form.TORN_EVOLVED_DEVOURER || storm.getHealth() <= 0.0F) return;
 
@@ -207,8 +207,8 @@ public class WitherStormPhaseModel extends ModelBase {
             GlStateManager.disableTexture2D();
             GlStateManager.disableLighting();
             GlStateManager.enableBlend();
-            // RenderType.lightning() enables face culling. RenderLivingBase disables it while
-            // rendering models, which otherwise draws both coplanar windings additively.
+
+
             GlStateManager.enableCull();
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
                     GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE,
@@ -339,7 +339,7 @@ public class WitherStormPhaseModel extends ModelBase {
     private static void animateStormHead(WitherStormEntity storm, ModelRenderer head,
                                          int index, float partialTicks) {
         if (head == null) return;
-        // 上游 HeadModel.setupAnimations 不做 ±80 钳制，此处保持相同语义。
+
         float relativeYaw = MathHelper.wrapDegrees(storm.getHeadYRotation(index, partialTicks)
                 - interpolateBodyYaw(storm, partialTicks));
         head.rotateAngleY = relativeYaw * ((float) Math.PI / 180.0F) + (float) Math.PI;
@@ -350,8 +350,8 @@ public class WitherStormPhaseModel extends ModelBase {
     private static void animateVanillaSideHead(WitherStormEntity storm, ModelRenderer head,
                                                int sideIndex, float partialTicks) {
         if (head == null) return;
-        // These are vanilla Wither head cubes, not the forward-extended storm HeadModel.
-        // Upstream therefore uses neither HeadModel's PI yaw offset nor its inverted pitch.
+
+
         head.rotateAngleY = (storm.getHeadYRotation(sideIndex, partialTicks)
                 - interpolateBodyYawLinear(storm, partialTicks)) * ((float) Math.PI / 180.0F);
         head.rotateAngleX = storm.getHeadXRotation(sideIndex, partialTicks)
@@ -397,14 +397,14 @@ public class WitherStormPhaseModel extends ModelBase {
         return lowResMass;
     }
 
-    /** 上游 lowResModelsEnabled：低分辨率质量模型开关与远距离 LOD。 */
+
     public boolean shouldUseLowResMass(WitherStormEntity storm) {
         return lowResMass != null && (WitherStormClientConfig.lowResModels
                 || WitherStormClientConfig.witherStormLOD
                 && WitherStormRenderer.isDistantStorm(storm));
     }
 
-    /** 风暴被撕裂时的脉冲方块（上游 WitherStormPulseLayer 在 4.2.1 的等效实现）。 */
+
     public void renderPulse(WitherStormEntity storm, float partialTicks, float scale) {
         if (mass == null) return;
         ModelRenderer renderedMass = shouldUseLowResMass(storm) ? lowResMass : mass;

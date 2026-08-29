@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.util.ResourceLocation;
 
-/** 风暴被撕裂时从质量表面剥落的脉冲方块（上游 renderPulse 的 1.12 实现）。 */
+
 public final class WitherStormPulseLayer implements LayerRenderer<WitherStormEntity> {
     private static final ResourceLocation PULSE_TEXTURE = new ResourceLocation(Tags.MOD_ID,
             "textures/entity/wither_storm/wither_storm_pulse.png");

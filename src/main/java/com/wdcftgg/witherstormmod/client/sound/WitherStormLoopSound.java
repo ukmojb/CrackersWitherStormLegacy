@@ -131,7 +131,7 @@ public class WitherStormLoopSound extends MovingSound {
         else if (!obstructed && dampen > 0.0F) dampen -= 1.0F;
     }
 
-    /** 在声音提交给 1.12 声音引擎前写入坐标，避免首帧被错误定位到世界原点。 */
+
     private void setPosition(Vec3d position) {
         xPosF = (float) position.x;
         yPosF = (float) position.y;

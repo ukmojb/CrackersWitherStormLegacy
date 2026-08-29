@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.util.ResourceLocation;
 
-/** 圣诞节期间在大型凋零风暴上绘制圣诞帽（1.12 LayerRenderer）。 */
+
 public class SantaHatLayer implements LayerRenderer<WitherStormEntity> {
 
     private static final ResourceLocation TEXTURE =

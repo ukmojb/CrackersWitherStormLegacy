@@ -1,4 +1,3 @@
-# 移植模组自备翻译：以下键在上游 4.2.1 语言文件中不存在，由本移植补充
 gui.witherstormmod.config.category.presets.title=预设
 gui.witherstormmod.config.disableVanillaFog.title=完全禁用原版雾
 gui.witherstormmod.config.disableVanillaFog.description=关闭 Minecraft 原版的普通距离雾、Boss 强制雾、失明雾、水下雾、岩浆雾和云内雾，并同时关闭凋零风暴远距渲染的额外雾化。
@@ -13,7 +12,6 @@ commands.witherstormmod.config.set=已将 %s 设置为 %s
 commands.witherstormmod.config.missing=配置项不可用：%s
 commands.witherstormmod.config.error=无法更新服务端配置：%s
 
-# 上游简中仍为英文的预设文本覆盖
 config.witherstormmod.preset.server.longTerm.title=长期流程
 config.witherstormmod.preset.server.longTermSmallMap.title=长期流程：小型地图
 config.witherstormmod.preset.custom.description=由玩家自定义数值。修改预设中的任意默认值后，预设将变为“自定义”。
@@ -24,7 +22,6 @@ config.witherstormmod.preset.server.longTerm.description=为较长流程调整�
 config.witherstormmod.preset.server.smallMap.description=适用于小型自定义地图的预设。凋灵风暴总体移动更慢，让玩家有更多时间在地图中周旋和准备。
 config.witherstormmod.preset.server.hardmode.description=提高凋灵风暴难度的困难模式预设。凋灵风暴选择玩家的概率更高，玩家的准备时间大幅缩短，且凋灵风暴总体移动更快。不建议模组新手使用。
 
-# 上游英文语言文件中缺少简中对应项的覆盖翻译
 advancements.witherstormmod.main.nearly_kill_wither_storm.description=在凋灵风暴的初始阶段使用近战或弹射武器将其打至濒死
 advancements.witherstormmod.main.nearly_kill_wither_storm.title=恶意惊喜
 advancements.witherstormmod.main.overly_dedicated.description=制作一把命令方块木锄。你真是个怪人，但我敬佩你
@@ -155,7 +152,6 @@ witherstormmod.subtitle.tentacle_spike_stab=触须尖刺：刺击
 witherstormmod.subtitle.withered_phlegm_block_close=凋灵黏液块：关闭
 witherstormmod.subtitle.withered_phlegm_block_open=凋灵黏液块：打开
 
-# 配置界面缺失翻译（A-F）
 gui.witherstormmod.button.select.cooldown.description=选择新效果前必须等待 10 秒
 gui.witherstormmod.button.showArea.description=显示已连接的连结信标的作用范围
 gui.witherstormmod.config.amuletOverride.description=指定护身符是否应覆盖凋灵风暴的目标选择。
@@ -286,7 +282,6 @@ gui.witherstormmod.config.formidibombFuseEnabled.title=启用引信
 gui.witherstormmod.screen.wsmoptions.nazaKofi=Nazaru 的 Ko-fi
 gui.witherstormmod.screen.wsmoptions.nazaKofi.info=在 Ko-fi 上支持 Nazaru！
 
-# 配置界面缺失翻译（H-M）
 gui.witherstormmod.config.headEscapeTime.description=玩家伤害凋灵风暴头部并逃脱后获得的目标选择保护时间（秒）。\n范围：0 ~ 60
 gui.witherstormmod.config.headEscapeTime.title=头部逃脱保护时间
 gui.witherstormmod.config.healFromChomp.description=指定凋灵风暴吞噬生物时是否恢复生命值，恢复量为该生物最大生命值的一半。
@@ -329,7 +324,6 @@ gui.witherstormmod.config.minutesTillRunawayAttemptDiminish.description=减少�
 gui.witherstormmod.config.mobsRunIntoPortals.description=指定生物逃离凋灵风暴时是否进入附近的下界传送门。
 gui.witherstormmod.config.mobsRunIntoPortals.title=生物逃入传送门
 
-# 配置界面缺失翻译（N-S）
 gui.witherstormmod.config.normalFlyingSpeed.description=指定“慢速飞行速度”属性的修正值。数值越高，最终目标未静止时凋灵风暴移动得越快。\n范围：0.01 ~ 1.0
 gui.witherstormmod.config.normalFlyingSpeed.title=普通飞行速度
 gui.witherstormmod.config.occludeSoundsUnderground.description=指定玩家位于地下深处时是否仍能听见凋灵风暴的声音。
@@ -410,7 +404,6 @@ gui.witherstormmod.config.specialTargetingBiasChance.description=优先拉动特
 gui.witherstormmod.config.specialTargetingBiasChance.title=特殊目标偏向概率
 gui.witherstormmod.config.squashHitbox.description=设为 true 后，凋灵风暴及风暴断裂体的碰撞箱会在竖直方向压缩至一格。若较大阶段导致服务器严重卡顿，可启用此项。
 
-# 配置界面缺失翻译（T-Z）
 gui.witherstormmod.config.targetRunawayAttemptMinutes.description=凋灵风暴的最终目标必须静止多少分钟，之后目标尝试离开静止区块半径时才会被计为一次逃离尝试。\n范围：1 ~ 20
 gui.witherstormmod.config.targetRunawayAttempts.description=指定是否统计凋灵风暴最终目标离开静止区块半径的次数。达到指定次数后，凋灵风暴会加速至“目标静止速度”。
 gui.witherstormmod.config.targetRunawayAttemptsRequired.description=凋灵风暴的最终目标必须达到多少次逃离尝试，风暴才会开始追逐。\n范围：1 ~ 32

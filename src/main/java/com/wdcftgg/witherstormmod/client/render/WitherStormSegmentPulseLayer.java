@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.util.ResourceLocation;
 
-/** Segment counterpart of the upstream torn-mass pulse pass. */
+
 public final class WitherStormSegmentPulseLayer
         implements LayerRenderer<SupplementalEntities.WitherStormSegmentEntity> {
     private static final ResourceLocation PULSE_TEXTURE = new ResourceLocation(Tags.MOD_ID,

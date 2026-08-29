@@ -6,7 +6,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.Vec3d;
 
-/** 跟随实体或方块形态 Formidibomb 的上游脉冲循环音。 */
+
 public class FormidibombFuseSound extends MovingSound {
     private final FormidibombSource source;
 

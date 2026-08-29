@@ -8,7 +8,7 @@ import com.wdcftgg.witherstormmod.common.util.TractorBeamHelper;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
-/** 上游方块质量簇的旋转、光束对齐与淡出行为。 */
+
 public final class BlockClusterPullBehavior
         extends WitherStormPullBehavior<SupplementalEntities.BlockClusterEntity> {
     private static final double HUNCH_MAX_SPEED = 2.0D;

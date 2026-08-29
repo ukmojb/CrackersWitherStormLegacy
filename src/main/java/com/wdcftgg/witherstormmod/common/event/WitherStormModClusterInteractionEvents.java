@@ -12,7 +12,7 @@ import com.wdcftgg.witherstormmod.common.entity.ai.witherstorm.pullbehavior.Slim
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntitySlime;
 
-/** 注册上游自带的世界交互行为；外部模组随后可在同一注册事件中覆盖。 */
+
 public final class WitherStormModClusterInteractionEvents {
     private WitherStormModClusterInteractionEvents() {
     }

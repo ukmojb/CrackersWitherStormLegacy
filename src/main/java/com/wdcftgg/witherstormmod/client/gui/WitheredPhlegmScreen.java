@@ -47,7 +47,7 @@ public class WitheredPhlegmScreen extends GuiContainer {
         drawTexturedModalRect(left, top, 0, 0, xSize, ySize);
     }
 
-    /** Keep the container's item tooltip path explicit for custom 25-slot GUIs. */
+
     @Override
     protected void renderHoveredToolTip(int mouseX, int mouseY) {
         Slot slot = getSlotUnderMouse();

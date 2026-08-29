@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.IntPredicate;
 
-/** 分裂体的完整三头、质量和触手模型，几何与主风暴共用同一套定义。 */
+
 public final class WitherStormSegmentModel extends ModelBase {
     private static final int[] GEOMETRY_TO_HEAD = {2, 0, 1};
     private static final float[] HEAD_ANIMATION_OFFSETS = {0.0F, 175.0F, 100.0F};
@@ -186,7 +186,7 @@ public final class WitherStormSegmentModel extends ModelBase {
         return GEOMETRY_TO_HEAD[Math.min(geometryIndex, GEOMETRY_TO_HEAD.length - 1)];
     }
 
-    /** 分裂体与主风暴共用同一套低分辨率质量模型规则。 */
+
     private boolean shouldUseLowResMass(SupplementalEntities.WitherStormSegmentEntity segment) {
         return lowResMass != null && (WitherStormClientConfig.lowResModels
                 || WitherStormClientConfig.witherStormLOD

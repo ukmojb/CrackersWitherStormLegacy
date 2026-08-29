@@ -13,7 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** 记录凋零风暴各阶段的进化耗时和每秒消耗质量。 */
+
 public final class EvolutionProfiler {
     private final Map<Integer, Integer> ticksToEvolve = new LinkedHashMap<Integer, Integer>();
     private final List<Integer> consumedEntitiesPerSeconds = new ArrayList<Integer>();

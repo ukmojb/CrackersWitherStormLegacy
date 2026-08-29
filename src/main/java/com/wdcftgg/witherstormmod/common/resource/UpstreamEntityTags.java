@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** 从玩家提供的上游 JAR 动态读取实体类型标签。 */
+
 public final class UpstreamEntityTags {
 
     public static final String WITHER_STORM_TARGETING_BLACKLIST =

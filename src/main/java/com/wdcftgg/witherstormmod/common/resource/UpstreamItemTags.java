@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** 从玩家提供的上游 JAR 动态读取物品标签，并按 1.12.2 物品元数据还原旧版语义。 */
+
 public final class UpstreamItemTags {
 
     public static final String JUNK = "witherstormmod:junk";

@@ -48,7 +48,7 @@ public class BowelsWorldProvider extends WorldProvider {
             return new Vec3d(color.getRed() / 255.0D, color.getGreen() / 255.0D,
                     color.getBlue() / 255.0D);
         }
-        // 上游未配置 bowels_fog 时回退到 NetherEffects 默认雾色。
+
         return new Vec3d(0.2D, 0.03D, 0.03D);
     }
 

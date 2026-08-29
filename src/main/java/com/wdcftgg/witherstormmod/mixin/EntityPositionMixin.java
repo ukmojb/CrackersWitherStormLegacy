@@ -8,12 +8,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/**
- * 兜底保护：运行环境中 Entity.getPosition() 曾被观察到返回 null 并导致
- * BossVisibility/AvoidWitherStormAI 等 AI 路径 NPE 崩溃。原版 1.12.2 这两个
- * 方法始终基于坐标字段重建对象，此处仅在其被环境改写且返回 null 时按相同
- * 语义重建，保证所有 getPosition()/getEntityBoundingBox() 调用点安全。
- */
+
+
+
+
+
+
 @Mixin(Entity.class)
 public abstract class EntityPositionMixin {
     @Inject(method = "getPosition", at = @At("RETURN"), cancellable = true)

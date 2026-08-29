@@ -42,7 +42,7 @@ import java.util.Map;
 
 public final class StructureTemplates {
 
-    /** Radius used to approximate 1.20's terrain_adaptation=beard_thin. */
+
     private static final int STORM_PLATFORM_BLEND_RADIUS = 6;
 
     private static final Map<String, TemplateData> CACHE = new HashMap<String, TemplateData>();
@@ -59,7 +59,7 @@ public final class StructureTemplates {
     private static final ITemplateProcessor STORM_SPAWN_PLATFORM_PROCESSOR = new ITemplateProcessor() {
         @Override
         public Template.BlockInfo processBlock(World world, BlockPos worldPos, Template.BlockInfo blockInfo) {
-            // Upstream uses BlockIgnoreProcessor.STRUCTURE_BLOCK, so template air must replace terrain.
+
             return blockInfo;
         }
     };
@@ -83,13 +83,13 @@ public final class StructureTemplates {
         return true;
     }
 
-    /** 放置生成平台；自动生成模板返回数据标记，其余模板回退到结构原点。 */
+
     public static BlockPos placeStormSpawnPlatform(World world, String id, BlockPos origin, Rotation rotation) {
         TemplateData data = getData(id);
         if (data == null) return null;
-        // 1.20's TemplateStructurePiece uses the generation position as the
-        // horizontal pivot (size / 2, 0, size / 2), while 1.12's Template
-        // API treats its origin as the minimum corner.
+
+
+
         BlockPos placementOrigin = getHorizontalCenteredOrigin(data.template, origin, rotation);
         PlacementSettings settings = new PlacementSettings().setMirror(Mirror.NONE).setRotation(rotation)
                 .setIgnoreEntities(false).setIgnoreStructureBlock(true);
@@ -99,16 +99,16 @@ public final class StructureTemplates {
             public Template.BlockInfo processBlock(World targetWorld, BlockPos worldPos,
                                                     Template.BlockInfo blockInfo) {
                 if (isFragileStructureBlock(blockInfo.blockState)) {
-                    // Mirror the 1.12 Template writer's own transform exactly.
-                    // The processor receives the already-transformed world
-                    // position, while the block state still needs the placement
-                    // rotation applied before it is written in the second pass.
+
+
+
+
                     fragileBlocks.add(new PlacedFragileBlock(worldPos,
                             blockInfo.blockState.withMirror(settings.getMirror())
                                     .withRotation(settings.getRotation())));
-                    // Ladders are deliberately written after the complete
-                    // structure.  Placing them in the first template pass can
-                    // create an EntityItem before their support is present.
+
+
+
                     if (blockInfo.blockState.getBlock() instanceof BlockLadder) {
                         return null;
                     }
@@ -117,9 +117,9 @@ public final class StructureTemplates {
             }
         };
         data.template.addBlocksToWorld(world, placementOrigin, processor, settings, 2);
-        // Buttons and wall-mounted utility blocks can be processed before
-        // their support block by the 1.12 template writer and drop immediately.
-        // Reapply their rotated state after the full template is present.
+
+
+
         for (PlacedFragileBlock fragile : fragileBlocks) {
             if (fragile.state.getBlock() instanceof BlockLadder) continue;
             if (world.isBlockLoaded(fragile.position)
@@ -132,13 +132,13 @@ public final class StructureTemplates {
         for (DataMarker marker : data.dataMarkers) {
             if ("spawn_position".equals(marker.metadata)) {
                 spawnPosition = Template.transformedBlockPos(settings, marker.pos).add(placementOrigin);
-                // Upstream Piece.handleDataMarker removes the structure block after recording it.
+
                 world.setBlockToAir(spawnPosition);
                 break;
             }
         }
-        // Place ladders last, after terrain blending and marker cleanup, so no
-        // later structure operation can trigger their support check.
+
+
         for (PlacedFragileBlock fragile : fragileBlocks) {
             if (!(fragile.state.getBlock() instanceof BlockLadder)
                     || !world.isBlockLoaded(fragile.position)) continue;
@@ -148,19 +148,19 @@ public final class StructureTemplates {
         if ("auto_spawn_platform".equals(id)) {
             WitherStormMod.LOGGER.warn("Upstream automatic spawn platform has no spawn_position marker");
         }
-        // Platforms without a data marker use the generation position itself as
-        // the storm anchor; this is distinct from the 1.12 template origin.
+
+
         return origin;
     }
 
-    /**
-     * 1.20 通过 terrain_adaptation=beard_thin 在地形生成阶段对平台周边做双向
-     * 平滑：低于平台的柱列被抬升、高于平台的柱列被削低，形成连续过渡坡面。
-     * Forge 1.12 在地形生成后才运行本生成器，因此模板放置后在这里手动复刻：
-     * 抬升时用泥土填充、原地表方块封顶；削低时把原地表方块搬到坡面高度并清空
-     * 其上方方块，且不触碰 bedrock/刷怪笼/箱子/末地传送门框。坡形用 smoothstep
-     * 衰减，紧贴平台的柱列与平台底面齐平，向外逐渐过渡回原地形。
-     */
+
+
+
+
+
+
+
+
     private static void blendStormPlatformTerrain(World world, Template template, BlockPos placementOrigin,
                                                    Rotation rotation) {
         RelativeBounds bounds = getRelativeBounds(template, rotation);
@@ -193,13 +193,13 @@ public final class StructureTemplates {
                 if (surface.getBlock() == Blocks.AIR || surface.getMaterial().isLiquid()) continue;
 
                 if (currentTop < targetTop) {
-                    // 抬升低洼：泥土填充到坡面下方，原地表方块封顶。
+
                     for (int y = currentTop + 1; y < targetTop; y++) {
                         world.setBlockState(new BlockPos(x, y, z), Blocks.DIRT.getDefaultState(), 2);
                     }
                     world.setBlockState(new BlockPos(x, targetTop, z), surface, 2);
                 } else {
-                    // 削平高坡：先确认坡面上方没有不可替换方块，再清空并把地表方块搬到坡面。
+
                     boolean blocked = false;
                     for (int y = targetTop + 1; y <= currentTop; y++) {
                         if (cannotReplace(world, new BlockPos(x, y, z))) {
@@ -226,7 +226,7 @@ public final class StructureTemplates {
         return true;
     }
 
-    /** 1.20 的 TemplateFeature 使用锚点坐标种子来选择结构旋转。 */
+
     public static Rotation getFeatureRotation(BlockPos anchor) {
         Rotation[] rotations = Rotation.values();
         return rotations[new Random(toModernBlockPosLong(anchor)).nextInt(rotations.length)];
@@ -238,7 +238,7 @@ public final class StructureTemplates {
                 | (long) pos.getY() & 0xFFFL;
     }
 
-    /** 返回使结构三轴中心与锚点重合的 1.12 模板原点。 */
+
     public static BlockPos getCenteredFeatureOrigin(Template template, BlockPos anchor, Rotation rotation) {
         RelativeBounds bounds = getRelativeBounds(template, rotation);
         return anchor.add(-bounds.centerX(), -bounds.centerY(), -bounds.centerZ());
@@ -249,13 +249,13 @@ public final class StructureTemplates {
         return anchor.add(-bounds.centerX(), 0, -bounds.centerZ());
     }
 
-    /** Bowels podium 的锚点位于模板顶部上方一格，水平轴仍按结构中心对齐。 */
+
     public static BlockPos getTopAnchoredFeatureOrigin(Template template, BlockPos anchor, Rotation rotation) {
         RelativeBounds bounds = getRelativeBounds(template, rotation);
         return anchor.add(-bounds.centerX(), -template.getSize().getY(), -bounds.centerZ());
     }
 
-    /** Upstream CommandBlockPodiumFeature centers the template on all three axes. */
+
     public static BlockPos getFeatureOrigin(BlockPos anchor, Template template, Rotation rotation) {
         RelativeBounds bounds = getRelativeBounds(template, rotation);
         return anchor.add(-bounds.centerX(), -bounds.centerY(), -bounds.centerZ());
@@ -298,9 +298,9 @@ public final class StructureTemplates {
         if (start == null) return false;
         TemplateData main = getData(start.id);
         if (main == null) return false;
-        // 上游 BowelsStructure 把起始块的底部对齐 start_height=100（原点 Y=100）；
-        // 网络锚点 center 的 Y=96，因此垂直偏移为 +4。墙头凹槽、竞技场 Y=110 与
-        // 升台高度 115/120/125 全部以此为基准。
+
+
+
         BlockPos origin = center.add(-main.template.getSize().getX() / 2, 4, -main.template.getSize().getZ() / 2);
         placePiece(world, main, origin, Rotation.NONE, occupied);
         List<PendingConnector> queue = new ArrayList<PendingConnector>();
@@ -411,12 +411,12 @@ public final class StructureTemplates {
         return state;
     }
 
-    /** Converts state keys whose 1.20 meaning differs from the 1.12 block API. */
+
     private static void normalizeLegacyProperties(Block block, Map<String, String> properties) {
         if (block instanceof BlockButton && properties.containsKey("face")) {
-            // Modern buttons split attachment (face) from facing.  In 1.12 the
-            // attachment is encoded directly in FACING: UP for floor buttons,
-            // DOWN for ceiling buttons, and the horizontal direction for walls.
+
+
+
             String face = properties.get("face");
             if ("floor".equals(face)) properties.put("facing", "up");
             else if ("ceiling".equals(face)) properties.put("facing", "down");
@@ -429,15 +429,15 @@ public final class StructureTemplates {
             properties.remove("persistent");
             properties.remove("distance");
         }
-        // Modern slabs use type=top/bottom/double; 1.12 uses half=top/bottom.
+
         if (properties.containsKey("type")) {
             String type = properties.get("type");
             if ("double".equals(type)) properties.put("half", "double");
             else if ("top".equals(type) || "bottom".equals(type)) properties.put("half", type);
         }
-        // 1.12 does not expose these waterlogging/shape keys. They are simply
-        // ignored by the property loop below, but removing them avoids noisy
-        // conversion diagnostics in modded block implementations.
+
+
+
         properties.remove("waterlogged");
         properties.remove("shape");
         properties.remove("distance");
@@ -457,9 +457,9 @@ public final class StructureTemplates {
         if (name.startsWith("witherstormmod:")) return new Mapping(name);
         String path = name.substring(name.indexOf(':') + 1);
         if (path.equals("jigsaw") || path.equals("structure_block")) return new Mapping("minecraft:air");
-        // 1.20.1 still uses minecraft:grass for the short plant; 1.12 uses
-        // minecraft:tallgrass and also has a full grass block with the same
-        // legacy-facing name.
+
+
+
         if (path.equals("grass")) return new Mapping("minecraft:tallgrass", "type", "grass");
         if (path.equals("wither_skeleton_skull"))
             return new Mapping("minecraft:skull", "facing", "up");

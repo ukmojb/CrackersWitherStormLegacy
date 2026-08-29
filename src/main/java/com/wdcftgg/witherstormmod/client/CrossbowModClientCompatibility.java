@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
-/** Client-only model bridge for the optional Crossbow 1.2.0 API. */
+
 public final class CrossbowModClientCompatibility {
     private static final ResourceLocation CROSSBOW_ID =
             new ResourceLocation("crossbow", "crossbow");

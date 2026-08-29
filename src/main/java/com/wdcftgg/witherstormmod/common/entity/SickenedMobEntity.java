@@ -331,10 +331,10 @@ public abstract class SickenedMobEntity extends EntityMob {
         return attacked;
     }
 
-    /**
-     * 上游腐化生物的公共命中契约：可转换的 Mob 会在伤害结算前被替换，
-     * 本次攻击返回 false；没有转换时才继续执行普通伤害。
-     */
+
+
+
+
     protected boolean infectTarget(Entity entityIn) {
         if (!(entityIn instanceof EntityLiving)) return true;
         if (!TaintingManager.convertEntity((EntityLiving) entityIn, false)) return true;

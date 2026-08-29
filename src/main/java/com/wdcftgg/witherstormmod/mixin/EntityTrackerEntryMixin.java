@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** 让风暴实体使用其注册范围，不被服务器普通实体视距上限截断。 */
+
 @Mixin(EntityTrackerEntry.class)
 public abstract class EntityTrackerEntryMixin {
     @Shadow @Final private Entity trackedEntity;

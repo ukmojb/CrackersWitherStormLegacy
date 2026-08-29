@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class ExplosionMixin {
     @Shadow @Final private Entity exploder;
 
-    /** 超级 TNT 的上游伤害类型没有 is_explosion 标签，不能沿用 1.12 爆炸伤害源。 */
+
     @Redirect(
             method = "doExplosionA()V",
             at = @At(

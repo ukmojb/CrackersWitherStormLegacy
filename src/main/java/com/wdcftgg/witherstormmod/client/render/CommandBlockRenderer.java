@@ -41,9 +41,9 @@ public final class CommandBlockRenderer
     @Override
     protected void applyRotations(SupplementalEntities.CommandBlockEntity entity,
                                   float ageInTicks, float rotationYaw, float partialTicks) {
-        // Upstream mirrors first, then rotates around negative Y by
-        // -bodyYaw+90. RenderLivingBase mirrors after this callback, so the
-        // equivalent pre-mirror positive-Y rotation is 90-bodyYaw.
+
+
+
         float bodyYaw = interpolateRotation(entity.prevRenderYawOffset,
                 entity.renderYawOffset, partialTicks);
         GlStateManager.rotate(90.0F - bodyYaw, 0.0F, 1.0F, 0.0F);

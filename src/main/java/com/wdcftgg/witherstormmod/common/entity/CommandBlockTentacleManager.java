@@ -9,7 +9,7 @@ import net.minecraft.world.WorldServer;
 import java.util.List;
 import java.util.UUID;
 
-/** 维护肠道命令方块周围六根随核心移动的结构触手。 */
+
 final class CommandBlockTentacleManager {
     private static final int TENTACLE_COUNT = 6;
     private static final int SAVED_ENTITY_RESOLVE_TIMEOUT = 200;

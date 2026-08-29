@@ -14,7 +14,7 @@ import net.minecraft.potion.PotionEffect;
 import javax.annotation.Nullable;
 import java.util.Collections;
 
-/** 持久化上游的接近、感染、复发与治疗计时状态。 */
+
 public final class WitherSicknessTracker {
     private static final int MINIMUM_STAGE_TICKS = 1200;
     private static final int EFFECT_DURATION = 12000;
@@ -87,7 +87,7 @@ public final class WitherSicknessTracker {
         }
     }
 
-    /** 供管理命令重新随机化该实体的感染/治疗时间修正。 */
+
     public void randomizeModifiers() {
         randomizeModifiers(entity != null && isLowImmunity());
     }
@@ -216,7 +216,7 @@ public final class WitherSicknessTracker {
         synchronizeIfNeeded();
     }
 
-    /** 客户端只推进动画计时，不参与服务端感染逻辑（对应上游 ClientWitherSicknessEvents）。 */
+
     public void tickClient() {
         if (entity == null || !entity.world.isRemote) return;
         if (isInfected() && delayTicks < getApplicationDelay()) delayTicks++;

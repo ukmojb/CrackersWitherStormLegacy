@@ -10,9 +10,9 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoField;
 import java.util.function.BiFunction;
 
-/**
- * 上游节日彩蛋（万圣节/圣诞节）在 1.12.2 的移植。
- */
+
+
+
 public enum SpecialDay {
     HALLOWEEN(new Color(135, 82, 28),
             (month, day) -> month == 10 && day == 31),

@@ -7,7 +7,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
-/** 上游物品实体的绕风暴旋转牵引行为。 */
+
 public final class ItemPullBehavior extends WitherStormPullBehavior<EntityItem> {
     private static final double MAX_SPEED = 5.0D;
     private static final double ROTATION_SPEED = 0.25D;

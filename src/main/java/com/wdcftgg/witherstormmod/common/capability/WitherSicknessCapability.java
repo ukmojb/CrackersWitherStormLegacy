@@ -13,7 +13,7 @@ import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 
 import javax.annotation.Nullable;
 
-/** 凋零病状态的 Forge Capability 注册与序列化入口。 */
+
 public final class WitherSicknessCapability {
     public static final ResourceLocation ID = new ResourceLocation(Tags.MOD_ID, "wither_sickness_tracker");
 

@@ -7,9 +7,9 @@ import com.wdcftgg.witherstormmod.client.model.witherstorm.ModelBuilders.PartPos
 
 
 public class IntermediateEvolvedDevourerBodyModel {
-    /*
-     * Opcode count of 32943 triggered aggressive code reduction.  Override with --aggressivesizethreshold.
-     */
+
+
+
     public static PartDefinition createBodyModel(PartDefinition root, float texScale) {
         CubeDeformation def = CubeDeformation.f_171458_;
         CubeListBuilder builder0 = CubeListBuilder.m_171558_();
@@ -2213,9 +2213,9 @@ public class IntermediateEvolvedDevourerBodyModel {
         return root.m_171599_("mass", body, PartPose.m_171419_((float)0.0f, (float)8.0f, (float)0.0f));
     }
 
-    /*
-     * Opcode count of 37937 triggered aggressive code reduction.  Override with --aggressivesizethreshold.
-     */
+
+
+
     private static void addMoreCubes(CubeListBuilder body, CubeDeformation def, float texScale) {
         body.m_171514_(0, 16).m_171496_(20.0f, -87.0f, 1.0f, 2.0f, 1.0f, 1.0f, def, texScale, texScale);
         body.m_171514_(0, 16).m_171496_(22.0f, -86.0f, 1.0f, 2.0f, 1.0f, 1.0f, def, texScale, texScale);
@@ -4748,5 +4748,3 @@ public class IntermediateEvolvedDevourerBodyModel {
         body.m_171514_(0, 16).m_171496_(-7.0f, -63.0f, 32.0f, 2.0f, 5.0f, 1.0f, def, texScale, texScale);
     }
 }
-
-

@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** 在 1.12 客户端关闭入口释放风暴渲染缓冲与异步构建线程。 */
+
 @Mixin(Minecraft.class)
 public abstract class MinecraftLifecycleMixin {
     @Inject(method = "shutdownMinecraftApplet", at = @At("HEAD"))

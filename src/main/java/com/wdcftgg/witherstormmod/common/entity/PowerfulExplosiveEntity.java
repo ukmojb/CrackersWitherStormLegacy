@@ -92,7 +92,7 @@ public abstract class PowerfulExplosiveEntity extends EntityTNTPrimed {
 
         @Override protected boolean causesFire() { return false; }
 
-        /** 对应上游 MixinPrimedTnt：牵引光束内的超级 TNT 靠近头部立即爆炸，远离时拉长引信。 */
+
         @Override
         public void onUpdate() {
             updateFuseInTractorBeam();

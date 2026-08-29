@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** 对应上游 PlayerItemInHandLayer：把正在使用的 Phasometer 放到活动手一侧的眼前。 */
+
 @Mixin(LayerHeldItem.class)
 public abstract class LayerHeldItemMixin {
 

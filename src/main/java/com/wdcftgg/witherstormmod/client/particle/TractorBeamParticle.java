@@ -26,7 +26,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.Random;
 
-/** 上游牵引光束内部的短生命周期粒子。 */
+
 @SideOnly(Side.CLIENT)
 public final class TractorBeamParticle extends Particle {
     private static final ResourceLocation SPRITE_LOCATION =
@@ -51,12 +51,12 @@ public final class TractorBeamParticle extends Particle {
         this.setParticleTexture(sprite);
     }
 
-    /** 在方块图集中注册外部资源包提供的光束贴图。 */
+
     public static void registerSprite(TextureMap textureMap) {
         textureMap.registerSprite(SPRITE_LOCATION);
     }
 
-    /** 每 tick 为当前客户端可见的风暴头部生成上游数量的光束粒子。 */
+
     public static void spawnForProvider(Entity source, TractorBeamProvider provider) {
         if (!WitherStormClientConfig.tractorBeamParticles || source == null || provider == null
                 || source.world == null || !source.world.isRemote || source.isDead

@@ -35,7 +35,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
 
-/** The 1.12.2 container implementation of the upstream withered phlegm block. */
+
 public class WitheredPhlegmBlock extends BlockContainer {
     public static final PropertyBool POWERED = PropertyBool.create("powered");
 

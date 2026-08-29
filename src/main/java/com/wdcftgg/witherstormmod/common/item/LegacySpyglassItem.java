@@ -13,7 +13,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.World;
 
-/** 以 1.12 物品 API 复刻现代原版 SpyglassItem 的持续使用生命周期。 */
+
 public abstract class LegacySpyglassItem extends Item {
 
     public static final int USE_DURATION = 1200;
@@ -33,7 +33,7 @@ public abstract class LegacySpyglassItem extends Item {
 
     @Override
     public EnumAction getItemUseAction(ItemStack stack) {
-        // 1.12 没有 SPYGLASS 动作；客户端用独立的开镜和举镜渲染补齐该语义。
+
         return EnumAction.NONE;
     }
 

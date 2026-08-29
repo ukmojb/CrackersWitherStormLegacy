@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Arrays;
 
-/** 记录客户端换维度前后的世界替换和风暴实体网络生命周期。 */
+
 @Mixin(NetHandlerPlayClient.class)
 public abstract class NetHandlerPlayClientMixin {
     @Inject(method = "handleRespawn", at = @At(value = "INVOKE",

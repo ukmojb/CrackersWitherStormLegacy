@@ -9,9 +9,9 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-/**
- * 凋零共生体法术类型（1.12.2 语义）。
- */
+
+
+
 public final class SpellType extends IForgeRegistryEntry.Impl<SpellType> {
 
     private final BiFunction<SickenedEntities.WitheredSymbiontEntity, SpellType, SymbiontSpell>

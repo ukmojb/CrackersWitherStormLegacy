@@ -84,7 +84,7 @@ public class SickenedIllagerModel extends ModelBase {
         arms.rotationPointZ = -1.0F;
         arms.rotateAngleX = -0.75F;
         if (crossbowPose) {
-            // 蓄力时双手端平瞄准，空闲时轻微放下，对应上游掠夺者弩的充能/待机姿态。
+
             float relax = entity instanceof SickenedEntities.SickenedPillagerEntity
                     && ((SickenedEntities.SickenedPillagerEntity) entity).isCharging() ? 0.0F : 0.35F;
             rightArm.rotateAngleY = -0.3F + head.rotateAngleY;

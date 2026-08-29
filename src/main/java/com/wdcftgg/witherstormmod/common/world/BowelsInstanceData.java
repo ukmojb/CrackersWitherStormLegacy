@@ -51,10 +51,10 @@ public class BowelsInstanceData extends WorldSavedData {
         return instance;
     }
 
-    /**
-     * 对应上游 WitherStormBowelsManager.getAvailableStructure 的结构生成检查：
-     * 世界禁用结构生成时向全体玩家发红色警告并拒绝访问肠道。
-     */
+
+
+
+
     public static boolean checkStructuresEnabled(World world) {
         if (world.getWorldInfo().isMapFeaturesEnabled()) return true;
         MinecraftServer server = world.getMinecraftServer();
@@ -68,7 +68,7 @@ public class BowelsInstanceData extends WorldSavedData {
         return false;
     }
 
-    /** 上游 WitherStormBowelsManager.get：已完成实例不返回，重进时会创建新实例。 */
+
     @Nullable
     public Instance get(UUID stormUuid) {
         for (Instance instance : instances) {
@@ -77,7 +77,7 @@ public class BowelsInstanceData extends WorldSavedData {
         return null;
     }
 
-    /** 供死亡收尾等必须访问已完成实例的路径使用。 */
+
     @Nullable
     public Instance getIncludingCompleted(UUID stormUuid) {
         for (Instance instance : instances) if (instance.stormUuid.equals(stormUuid)) return instance;
@@ -126,8 +126,8 @@ public class BowelsInstanceData extends WorldSavedData {
         public int bossPhase;
         public int bossPhaseTicks;
         public BlockPos arenaPosition;
-        /** 肠道网络主结构模板的放置原点 Y。新版按上游 BowelsStructure 对齐 100，
-         * 旧存档在升级前按旧锚点 88 放置，只能以 88 + 28 的墙头凹槽高度修复头部。 */
+
+
         public int networkBaseY = 88;
         private int coordinateVersion = CURRENT_COORDINATE_VERSION;
 
@@ -197,7 +197,7 @@ public class BowelsInstanceData extends WorldSavedData {
             return instance;
         }
 
-        /** The generated network is anchored at Y=96, while upstream arena offsets use a Y=0 center. */
+
         public BlockPos getStructureCenter() {
             return new BlockPos(center.getX(), 0, center.getZ());
         }
@@ -208,7 +208,7 @@ public class BowelsInstanceData extends WorldSavedData {
             return new BlockPos(x, 110, z);
         }
 
-        /** 上游墙头偏移 Y=128 相对起始块原点 Y=100，因此凹槽位于网络原点 +28。 */
+
         public int getArenaHeadY() {
             return networkBaseY + 28;
         }

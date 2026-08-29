@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.Random;
 
-/** 仅收集自然方块且不计入吞噬质量的方块簇。 */
+
 public final class NatureClusterSource extends BlockClusterSource {
     public NatureClusterSource() {
         super(256);

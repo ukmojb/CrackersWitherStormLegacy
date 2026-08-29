@@ -7,9 +7,9 @@ import com.wdcftgg.witherstormmod.client.model.witherstorm.ModelBuilders.PartPos
 
 
 public class IntermediateDevourerBodyModel {
-    /*
-     * Opcode count of 25229 triggered aggressive code reduction.  Override with --aggressivesizethreshold.
-     */
+
+
+
     public static PartDefinition createBodyModel(PartDefinition root, float texScale) {
         CubeDeformation def = CubeDeformation.f_171458_;
         CubeListBuilder builder0 = CubeListBuilder.m_171558_();
@@ -1698,5 +1698,3 @@ public class IntermediateDevourerBodyModel {
         return root.m_171599_("mass", body, PartPose.m_171419_((float)0.0f, (float)8.0f, (float)0.0f));
     }
 }
-
-

@@ -21,7 +21,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
-/** 对应上游 WitherStormModUtilEvents：投掷药水腐化与钓竿不能钩住风暴/命令方块核心。 */
+
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public final class WitherStormUtilEvents {
 

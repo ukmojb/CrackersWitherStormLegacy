@@ -33,7 +33,7 @@ public final class WitheredSymbiontArmorLayer extends LayerBipedArmor {
         @Override
         public void setRotationAngles(float limbSwing, float limbSwingAmount, float ageInTicks,
                                       float netHeadYaw, float headPitch, float scaleFactor, Entity entity) {
-            // The main symbiont model already supplied the complete pose in setModelAttributes.
+
         }
     }
 }

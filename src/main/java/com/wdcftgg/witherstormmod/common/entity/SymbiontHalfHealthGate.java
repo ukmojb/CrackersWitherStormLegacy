@@ -1,6 +1,6 @@
 package com.wdcftgg.witherstormmod.common.entity;
 
-/** 处理 1.12 护甲结算发生在半血伤害裁剪之后的差异。 */
+
 final class SymbiontHalfHealthGate {
 
     private SymbiontHalfHealthGate() {

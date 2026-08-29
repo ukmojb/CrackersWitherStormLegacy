@@ -637,5 +637,3 @@ public class IntermediateEvolvedDestroyerBodyModel {
         return root.m_171599_("mass", body, PartPose.m_171419_((float)0.0f, (float)8.0f, (float)0.0f));
     }
 }
-
-

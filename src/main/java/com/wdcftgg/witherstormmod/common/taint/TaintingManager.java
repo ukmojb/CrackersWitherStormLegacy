@@ -27,10 +27,10 @@ import net.minecraftforge.common.MinecraftForge;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 面向世界/事件暴露的腐化入口，具体配方来自外部上游 JAR 的
- * data/witherstormmod/tainting 数据（见 TaintingData）。
- */
+
+
+
+
 public final class TaintingManager {
 
     private TaintingManager() {
@@ -83,9 +83,9 @@ public final class TaintingManager {
                 original, replacement, SickenedMobConversionEvent.Direction.INFECTION);
         if (MinecraftForge.EVENT_BUS.post(pre)) return false;
         if (!original.world.spawnEntity(replacement)) return false;
-        // WorldTainting.convertMob(..., true) moves the equipment into the
-        // sickened entity. Clear the source only after the replacement is
-        // accepted by the world so a cancelled conversion leaves it intact.
+
+
+
         clearEquipment(original);
         transferRidingRelationships(original, replacement);
         replacement.playSound(ModSounds.get("mob_infected"),

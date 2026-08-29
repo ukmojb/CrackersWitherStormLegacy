@@ -7,7 +7,7 @@ import net.minecraft.util.text.TextComponentTranslation;
 
 import java.util.List;
 
-/** 超级信标召唤实体分类。 */
+
 public final class SuperBeaconSummoningCategory
         extends AbstractSuperBeaconCategory<SuperBeaconSummoningRecipeWrapper> {
 
@@ -29,6 +29,6 @@ public final class SuperBeaconSummoningCategory
     @Override
     protected void setResult(IGuiItemStackGroup stacks, int slotIndex,
                              List<List<ItemStack>> outputs, int centerX, int centerY) {
-        // 召唤结果由配方包装器在中心绘制实体；输出物品仅用于 JEI 查询。
+
     }
 }

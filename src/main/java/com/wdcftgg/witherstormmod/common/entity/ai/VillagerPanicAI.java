@@ -12,13 +12,13 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 
-/**
- * 1.12.2 语义下的村民“凋零风暴恐慌”。
- * 对应上游 WitherStormPanicTrigger + VillagerCalmDownFromWitherStorm：
- * 村民以 300 格范围感知最近存活风暴；phase < 4 时需在 100 格内，
- * phase >= 4 时只要感知到风暴就恐慌；恐慌时以 0.75 倍导航速度逃离并清空攻击目标，
- * 风暴离开/死亡/装死后自然冷静。
- */
+
+
+
+
+
+
+
 public final class VillagerPanicAI extends EntityAIBase {
     private static final float SENSOR_RADIUS = 300.0F;
     private static final float SMALL_PHASE_RADIUS = 100.0F;
@@ -42,7 +42,7 @@ public final class VillagerPanicAI extends EntityAIBase {
         if (escapePath == null || escapePath.isFinished()) {
             Vec3d destination = panicDestination();
             escapePath = navigator.getPathToXYZ(destination.x, destination.y, destination.z);
-            // 上游恐慌活动会清除村民的工作/攻击目标
+
             villager.setAttackTarget(null);
         }
         return escapePath != null;

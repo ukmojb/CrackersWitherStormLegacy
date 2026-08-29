@@ -5,7 +5,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-/** 凋零风暴本体和分裂体共用的牵引光束几何。 */
+
 public final class TractorBeamHelper {
     private static final double BEAM_ORIGIN_WIDTH = 30.0D;
     private static final double BEAM_WIDTH_GROWTH = 0.014D;

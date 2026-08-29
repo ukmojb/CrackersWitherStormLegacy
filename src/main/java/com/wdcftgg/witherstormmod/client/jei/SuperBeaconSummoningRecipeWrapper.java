@@ -11,7 +11,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
-/** 超级信标召唤实体类配方包装。 */
+
 public final class SuperBeaconSummoningRecipeWrapper extends SuperBeaconRecipeWrapper {
     private EntityLivingBase entityToRender;
     private World renderWorld;

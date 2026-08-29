@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.Collection;
 
-/** 风暴附近的天空/云颜色过渡（1.12 的天空颜色在 World.getSkyColor/getCloudColour）。 */
+
 @Mixin(World.class)
 public abstract class WorldMixin {
     @Shadow protected abstract boolean isChunkLoaded(int x, int z, boolean allowEmpty);
@@ -36,7 +36,7 @@ public abstract class WorldMixin {
         int chunkZ = MathHelper.floor(entity.posZ / 16.0D);
         if (isChunkLoaded(chunkX, chunkZ, false)) return;
 
-        // forceSpawn 的原版语义会忽略事件取消；这里只替换共享 blankChunk 写入路径。
+
         MinecraftForge.EVENT_BUS.post(new EntityJoinWorldEvent(entity, world));
         entity.addedToChunk = false;
         entity.chunkCoordX = chunkX;

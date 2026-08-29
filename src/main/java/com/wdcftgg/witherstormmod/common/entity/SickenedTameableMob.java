@@ -13,9 +13,9 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.UUID;
 
-/**
- * 保存上游病化宠物从原生 TamableAnimal 继承的数据，但不继承主人同队或跟随 AI。
- */
+
+
+
 abstract class SickenedTameableMob extends SickenedMobEntity implements IEntityOwnable {
     private static final DataParameter<Byte> TAME_FLAGS = EntityDataManager.createKey(
             SickenedTameableMob.class, DataSerializers.BYTE);
@@ -57,7 +57,7 @@ abstract class SickenedTameableMob extends SickenedMobEntity implements IEntityO
     }
 
     public void setSickenedSitting(boolean sitting) {
-        // 上游病化宠物拒绝坐下命令。
+
     }
 
     @Nullable

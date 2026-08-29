@@ -7,7 +7,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.MathHelper;
 
-/** 命令方块核心脉冲循环，音量和音高直接跟随同步状态。 */
+
 public final class CommandBlockLoopSound extends MovingSound {
     private final SupplementalEntities.CommandBlockEntity commandBlock;
 
@@ -42,7 +42,7 @@ public final class CommandBlockLoopSound extends MovingSound {
         donePlaying = true;
     }
 
-    /** 保证声音首次注册时就位于命令方块，而不是默认的世界原点。 */
+
     private void updatePosition() {
         xPosF = (float) commandBlock.posX;
         yPosF = (float) commandBlock.posY;
